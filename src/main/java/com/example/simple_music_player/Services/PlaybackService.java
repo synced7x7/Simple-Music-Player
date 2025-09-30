@@ -1,5 +1,7 @@
 package com.example.simple_music_player.Services;
 
+import com.example.simple_music_player.Controller.NowPlayingController;
+import com.example.simple_music_player.Controller.VisualizerController;
 import com.example.simple_music_player.Model.Track;
 import javafx.beans.property.*;
 import javafx.scene.media.Media;
@@ -29,7 +31,6 @@ public class PlaybackService {
     public ReadOnlyDoubleProperty progressProperty() { return progress; }
 
 
-
     public void setPlaylist(List<Track> tracks) {
         playlist.clear(); playlist.addAll(tracks);
         if (!playlist.isEmpty()) play(0);
@@ -57,8 +58,13 @@ public class PlaybackService {
             Duration total = mediaPlayer.getTotalDuration();
 
             if (total != null && !total.isUnknown() && total.toMillis() > 0) {
-                // update progress bar
-                progress.set(newT.toMillis() / total.toMillis());
+                double prog = newT.toMillis() / total.toMillis();
+                progress.set(prog);
+
+                // update waveform progress
+                if (currentTrack.get() != null && NowPlayingController.visualizerController != null && VisualizerController.progressBarDraggingCap == false) {
+                    NowPlayingController.visualizerController.updateProgress(prog);
+                }
 
                 // calculate run-up (elapsed)
                 int currentSec = (int) newT.toSeconds();
@@ -99,6 +105,13 @@ public class PlaybackService {
         if (playlist.isEmpty()) return;
         int prev = (currentIndex - 1 + playlist.size()) % playlist.size();
         play(prev);
+    }
+
+    public void updateProgressFromMouse(double currentProgress) {
+        if (mediaPlayer != null && mediaPlayer.getTotalDuration() != null) {
+            Duration newTime = mediaPlayer.getTotalDuration().multiply(currentProgress);
+            mediaPlayer.seek(newTime);
+        }
     }
 
     private String formatTime(int seconds) {

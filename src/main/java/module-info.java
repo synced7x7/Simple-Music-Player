@@ -4,6 +4,9 @@ module com.example.simple_music_player {
     requires static lombok;
     requires javafx.media;
     requires jaudiotagger;
+    requires TarsosDSP;
+    requires java.desktop;
+    requires jlayer;
 
 
     opens com.example.simple_music_player to javafx.fxml;

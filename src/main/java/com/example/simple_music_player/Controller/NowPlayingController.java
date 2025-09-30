@@ -2,20 +2,22 @@ package com.example.simple_music_player.Controller;
 
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Services.PlaybackService;
+import com.example.simple_music_player.SimpleMusicPlayer;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import lombok.Getter;
+
+import java.io.IOException;
 
 public class NowPlayingController {
-
-    private Boolean countdown = true;
-
     @FXML private Button playButton;
     @FXML private Button nextButton;
     @FXML private Button prevButton;
-    @FXML private ProgressBar nowPlayingBar;
     @FXML private ImageView albumCover;
     @FXML private Label nameLabel;
     @FXML private Label artistLabel;
@@ -24,16 +26,37 @@ public class NowPlayingController {
     @FXML private Label formatLabel;
     @FXML private Label timeLabel;
     @FXML private Label sampleRateLabel;
+    @FXML private AnchorPane visualizerHolder;
 
-    private final PlaybackService playbackService = new PlaybackService();
+    public static VisualizerController visualizerController;
+    @Getter
+    private static final PlaybackService playbackService = new PlaybackService();
+    private Boolean countdown = true;
 
     @FXML
-    public void initialize() {
+    public void initialize() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/simple_music_player/visualizer.fxml"));
+        AnchorPane visualizer = loader.load();
+        visualizerController = loader.getController();
+        visualizerHolder.getChildren().add(visualizer);
+
+        // Anchor it to fill the holder
+        AnchorPane.setTopAnchor(visualizer, 0.0);
+        AnchorPane.setBottomAnchor(visualizer, 0.0);
+        AnchorPane.setLeftAnchor(visualizer, 0.0);
+        AnchorPane.setRightAnchor(visualizer, 0.0);
+
+
+        playbackService.currentTrackProperty().addListener((obs, oldT, newT) -> {
+            if (newT != null && visualizerController != null) {
+                visualizerController.loadWaveform(new java.io.File(newT.getPath()));
+            }
+        });
+
         playButton.setOnAction(e -> playbackService.togglePlayPause());
         nextButton.setOnAction(e -> playbackService.next());
         prevButton.setOnAction(e -> playbackService.previous());
 
-        nowPlayingBar.progressProperty().bind(playbackService.progressProperty()); //bind updates nowPlayingBar base on progress property it is getting
         //Time
         timeLabel.textProperty().bind(playbackService.remainingTimeProperty());
         //Song Metadata
@@ -41,9 +64,11 @@ public class NowPlayingController {
             //Name
             nameLabel.setText(newT.getTitle());
             //Artist
-            if(newT.getArtist() != null)    artistLabel.setText(newT.getArtist()); else artistLabel.setText("Unknown");
+            if (newT.getArtist() != null) artistLabel.setText(newT.getArtist());
+            else artistLabel.setText("Unknown");
             //Album
-            if(newT.getAlbum() != null)    albumLabel.setText(newT.getAlbum()); else albumLabel.setText("Unknown");
+            if (newT.getAlbum() != null) albumLabel.setText(newT.getAlbum());
+            else albumLabel.setText("Unknown");
             //Format
             formatLabel.setText(newT.getFormat());
             //bitRate
@@ -64,16 +89,18 @@ public class NowPlayingController {
                         new Track("C:/music/song1.mp3"),
                         new Track("C:/music/song2.mp3"),
                         new Track("C:/music/song3.mp3"),
-                        new Track("C:/music/song4.mp3")
+                        new Track("C:/music/song4.mp3"),
+                        new Track("C:/music/song5.wav"),
+                        new Track("C:/music/song6.wav")
                 )
         );
     }
 
     @FXML
-    public void toggleCountdown(){
+    public void toggleCountdown() {
         countdown = !countdown;
         System.out.println("countdown: " + countdown);
-        if(countdown){
+        if (countdown) {
             timeLabel.textProperty().bind(playbackService.remainingTimeProperty());
         } else {
             timeLabel.textProperty().bind(playbackService.elapsedTimeProperty());
