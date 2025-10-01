@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.GridPane?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.simple_music_player.Controller.LibraryController"
-            prefWidth="450" prefHeight="750">
+<AnchorPane prefHeight="750" prefWidth="450" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.LibraryController">
     <children>
-        <ScrollPane layoutY="0" prefHeight="750" prefWidth="450">
+        <ScrollPane layoutY="73.0" prefHeight="677.0" prefWidth="450">
             <content>
                 <GridPane fx:id="songGrid" hgap="10" vgap="10" />
             </content>
         </ScrollPane>
+      <TextField fx:id="searchField" layoutX="93.0" layoutY="25.0" prefHeight="26.0" prefWidth="263.0" />
     </children>
 </AnchorPane>
-
-
