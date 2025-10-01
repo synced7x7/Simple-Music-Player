@@ -1,7 +1,6 @@
 package com.example.simple_music_player.Services;
 
 import com.example.simple_music_player.Controller.NowPlayingController;
-import com.example.simple_music_player.Controller.VisualizerController;
 import com.example.simple_music_player.Model.Track;
 import javafx.beans.property.*;
 import javafx.scene.media.Media;
@@ -62,7 +61,7 @@ public class PlaybackService {
                 progress.set(prog);
 
                 // update waveform progress
-                if (currentTrack.get() != null && NowPlayingController.visualizerController != null && VisualizerController.progressBarDraggingCap == false) {
+                if (currentTrack.get() != null && NowPlayingController.visualizerController != null && VisualizerService.progressBarDraggingCap == false) {
                     NowPlayingController.visualizerController.updateProgress(prog);
                 }
 

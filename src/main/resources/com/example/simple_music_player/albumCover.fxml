@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="450.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <StackPane layoutX="-3.0" layoutY="1.0" prefHeight="750.0" prefWidth="456.0">
+            <children>
+                <ImageView fitHeight="750.0" fitWidth="452.0" preserveRatio="true" />
+            </children>
+        </StackPane>
+    </children>
+</AnchorPane>

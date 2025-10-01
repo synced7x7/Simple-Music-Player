@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.Label?>
+<AnchorPane xmlns="http://javafx.com/javafx/25"
+            xmlns:fx="http://javafx.com/fxml/1"
+            prefWidth="150" prefHeight="180">
+    <ImageView fx:id="coverImage" fitWidth="150" fitHeight="150" preserveRatio="true"/>
+    <Label fx:id="songNameLabel" layoutY="155" prefWidth="150" alignment="CENTER"/>
+</AnchorPane>

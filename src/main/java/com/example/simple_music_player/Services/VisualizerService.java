@@ -1,6 +1,6 @@
-package com.example.simple_music_player.Controller;
+package com.example.simple_music_player.Services;
 
-import com.example.simple_music_player.Services.PlaybackService;
+import com.example.simple_music_player.Controller.NowPlayingController;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
@@ -17,7 +17,7 @@ import javazoom.jl.decoder.Bitstream;
 import javazoom.jl.decoder.Decoder;
 import javazoom.jl.decoder.SampleBuffer;
 
-public class VisualizerController {
+public class VisualizerService {
 
     @FXML
     private Canvas waveformCanvas;
