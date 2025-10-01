@@ -2,9 +2,8 @@
 
 <?import javafx.scene.control.SplitPane?>
 
-<SplitPane dividerPositions="0.5, 0.8" prefHeight="750.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/25"
-           xmlns:fx="http://javafx.com/fxml/1">
-    <fx:include  source="albumCover.fxml"/>
-    <fx:include  source="nowPlaying.fxml"/>
-    <fx:include source="library.fxml"/>
+<SplitPane dividerPositions="0.5, 0.8" prefHeight="750.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.MainController">
+    <fx:include source="albumCover.fxml" />
+    <fx:include source="nowPlaying.fxml" />
+    <fx:include source="library.fxml" />
 </SplitPane>

@@ -12,57 +12,71 @@ import javafx.scene.layout.GridPane;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LibraryController {
 
     @FXML
     private GridPane songGrid;
 
-    private final int COLUMN_COUNT = 2; // how many columns per row
+    private final int COLUMN_COUNT = 3; // 3 cards per row
+    private final double CARD_WIDTH = 120;
+    private final double CARD_HEIGHT = 150;
 
     PlaybackService playbackService = NowPlayingController.getPlaybackService();
+
+    @FXML
+    public void initialize() {
+        File musicDir = new File("C:/music");
+        loadSongsFromDirectory(musicDir);
+    }
 
     public void loadSongsFromDirectory(File dir) {
         if (!dir.exists() || !dir.isDirectory()) return;
 
         File[] files = dir.listFiles((d, name) -> {
             String ext = name.substring(name.lastIndexOf('.') + 1).toLowerCase();
-            return ext.equals("mp3") || ext.equals("wav"); // add more later
+            return ext.equals("mp3") || ext.equals("wav");
         });
 
         if (files == null) return;
 
-        int col = 0;
-        int row = 0;
+        List<Track> trackList = new ArrayList<>();
+        int col = 0, row = 0;
 
-        try {
-            for (File f : files) {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/simple_music_player/song_card.fxml"));
-                AnchorPane card = loader.load();
+        for (File f : files) {
+            Track track = new Track(f.getAbsolutePath());
+            trackList.add(track);
 
-                ImageView cover = (ImageView) card.lookup("#coverImage");
-                Label songName = (Label) card.lookup("#songNameLabel");
+            // --- create card dynamically ---
+            AnchorPane card = new AnchorPane();
+            card.setPrefSize(CARD_WIDTH, CARD_HEIGHT);
 
-                playbackService.currentTrackProperty().addListener((obs, oldT, newT) -> {
-                    //Name
-                    songName.setText(newT.getTitle());
-                    if (newT.getCover() != null) {
-                        cover.setImage(newT.getCover());
-                    } else {
-                        cover.setImage(null);
-                    }
-                });
+            ImageView cover = new ImageView();
+            cover.setFitWidth(CARD_WIDTH);
+            cover.setFitHeight(CARD_WIDTH);
+            cover.setPreserveRatio(true);
+            if (track.getCover() != null) cover.setImage(track.getCover());
 
-                songGrid.add(card, col, row);
+            Label nameLabel = new Label(track.getTitle());
+            nameLabel.setPrefWidth(CARD_WIDTH);
+            nameLabel.setLayoutY(CARD_WIDTH + 5);
+            nameLabel.setWrapText(true);
 
-                col++;
-                if (col >= COLUMN_COUNT) {
-                    col = 0;
-                    row++;
-                }
+            card.getChildren().addAll(cover, nameLabel);
+
+            songGrid.add(card, col, row);
+
+            col++;
+            if (col >= COLUMN_COUNT) {
+                col = 0;
+                row++;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+
+        // set playlist once
+        playbackService.setPlaylist(trackList);
     }
 }
+
