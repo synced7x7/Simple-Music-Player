@@ -80,9 +80,9 @@ public class VisualizerController {
 
         new Thread(() -> {
             try {
-                if (ext.equals("mp3")) {
+                if (ext.equals("mp3") || ext.equals("m4a")) {
                     loadMP3Waveform(audioFile);
-                } else if (ext.equals("wav")) {
+                } else if (ext.equals("wav"))  {
                     loadWAVWaveform(audioFile);
                 } else {
                     System.out.println("Unsupported audio format: " + ext);
@@ -96,12 +96,12 @@ public class VisualizerController {
         }).start();
     }
 
+    //Pulse Code Modulation
     private void loadMP3Waveform(File mp3File) {
         try (InputStream fis = new FileInputStream(mp3File)) {
             Bitstream bitstream = new Bitstream(fis);
             Decoder decoder = new Decoder();
 
-            // Use dynamic list first
             java.util.List<Double> samples = new java.util.ArrayList<>();
 
             javazoom.jl.decoder.Header frameHeader;
@@ -114,11 +114,11 @@ public class VisualizerController {
                 bitstream.closeFrame();
             }
 
-            // Downsample to fixed waveform array for visualization
+            //Undersampling
             int targetSize = 2000;
             waveform = new double[targetSize];
             int step = samples.size() / targetSize;
-            if (step == 0) step = 1; // avoid division by zero
+            if (step == 0) step = 1;
 
             for (int i = 0; i < targetSize; i++) {
                 int idx = i * step;
@@ -173,7 +173,7 @@ public class VisualizerController {
             double canvasHeight = waveformCanvas.getHeight();
             int length = waveform.length;
             double barWidth = canvasWidth / length;
-
+            System.out.println("Length: " + length + " Bar width: " + barWidth);
             for (int i = 0; i < length; i++) {
                 double value = waveform[i];
                 double barHeight = value * canvasHeight;

@@ -91,7 +91,8 @@ public class NowPlayingController {
                         new Track("C:/music/song3.mp3"),
                         new Track("C:/music/song4.mp3"),
                         new Track("C:/music/song5.wav"),
-                        new Track("C:/music/song6.wav")
+                        new Track("C:/music/song6.wav"),
+                        new Track ("C:/music/song7.mp3")
                 )
         );
     }
