@@ -12,20 +12,29 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
+import javafx.stage.DirectoryChooser;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class LibraryController {
 
-    @FXML private GridPane songGrid;
-    @FXML private TextField searchField;
-    @FXML private ComboBox<String> sortComboBox;
-    @FXML private Button shuffleButton;
-    @FXML private Button reverseButton;
+    @FXML
+    private GridPane songGrid;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private ComboBox<String> sortComboBox;
+    @FXML
+    private Button shuffleButton;
+    @FXML
+    private Button reverseButton;
+    @FXML
+    private Button directoryButton;
 
 
     private final int COLUMN_COUNT = 3;
@@ -36,11 +45,24 @@ public class LibraryController {
     //JavaFX controls like ListView, TableView, ComboBox, etc. are designed to work with ObservableList.
     PlaybackService playbackService = NowPlayingController.getPlaybackService();
     public static boolean restartFromStart = false;
+    File selectedDir;
 
     @FXML
     public void initialize() {
         File musicDir = new File("C:/music");
         loadSongsFromDirectory(musicDir);
+
+        directoryButton.setOnAction(e -> {
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle("Select Music Directory");
+
+            //previous/default directory
+            directoryChooser.setInitialDirectory(Objects.requireNonNullElse(selectedDir, musicDir));
+            selectedDir = directoryChooser.showDialog(directoryButton.getScene().getWindow());
+            if (selectedDir != null) {
+                loadSongsFromDirectory(selectedDir);
+            }
+        });
 
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterTracks(newVal));
         sortComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
