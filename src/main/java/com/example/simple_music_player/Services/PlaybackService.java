@@ -1,5 +1,6 @@
 package com.example.simple_music_player.Services;
 
+import com.example.simple_music_player.Controller.LibraryController;
 import com.example.simple_music_player.Controller.NowPlayingController;
 import com.example.simple_music_player.Model.Track;
 import javafx.beans.property.*;
@@ -30,9 +31,12 @@ public class PlaybackService {
     public ReadOnlyDoubleProperty progressProperty() { return progress; }
 
 
-    public void setPlaylist(List<Track> tracks) {
-        playlist.clear(); playlist.addAll(tracks);
-        if (!playlist.isEmpty()) play(0);
+    public void setPlaylist(List<Track> tracks, boolean autoPlay) {
+        playlist.clear();
+        playlist.addAll(tracks);
+        if (autoPlay && !playlist.isEmpty()) {
+            play(0);
+        }
     }
 
     public void play(int index) {
@@ -98,10 +102,12 @@ public class PlaybackService {
 
     public void next() {
         if (playlist.isEmpty()) return;
+        if(checkRestartFromStart()) currentIndex = -1;
         play((currentIndex + 1) % playlist.size());
     }
     public void previous() {
         if (playlist.isEmpty()) return;
+        if(checkRestartFromStart()) currentIndex = 1;
         int prev = (currentIndex - 1 + playlist.size()) % playlist.size();
         play(prev);
     }
@@ -117,6 +123,14 @@ public class PlaybackService {
         int minutes = seconds / 60;
         int sec = seconds % 60;
         return String.format("%02d:%02d", minutes, sec);
+    }
+
+    private boolean checkRestartFromStart() {
+        if(LibraryController.restartFromStart){
+            LibraryController.restartFromStart = false;
+            return true;
+        }
+        return false;
     }
 
 }

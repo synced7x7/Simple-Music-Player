@@ -2,7 +2,11 @@ package com.example.simple_music_player.Controller;
 
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Services.PlaybackService;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
@@ -11,25 +15,27 @@ import javafx.scene.layout.GridPane;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class LibraryController {
 
-    @FXML
-    private GridPane songGrid;
+    @FXML private GridPane songGrid;
+    @FXML private TextField searchField;
+    @FXML private ComboBox<String> sortComboBox;
+    @FXML private Button shuffleButton;
+    @FXML private Button reverseButton;
 
-    @FXML
-    private TextField searchField;
 
-    List<Track> prevFiltered;
-
-    private final int COLUMN_COUNT = 3; 
+    private final int COLUMN_COUNT = 3;
     private final double CARD_WIDTH = 120;
     private final double CARD_HEIGHT = 150;
 
-    private List<Track> allTracks = new ArrayList<>(); // full list
+    private static final ObservableList<Track> allTracks = FXCollections.observableArrayList(); //Special kind of list that notifies listeners when its content changes (add, remove, update, sort).
+    //JavaFX controls like ListView, TableView, ComboBox, etc. are designed to work with ObservableList.
     PlaybackService playbackService = NowPlayingController.getPlaybackService();
+    public static boolean restartFromStart = false;
 
     @FXML
     public void initialize() {
@@ -37,8 +43,55 @@ public class LibraryController {
         loadSongsFromDirectory(musicDir);
 
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterTracks(newVal));
+        sortComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                sortLibrary(newVal);
+            }
+        });
+        shuffleButton.setOnMouseClicked(e -> {
+            sortLibrary("Shuffle");
+        });
+        reverseButton.setOnMouseClicked(e -> {
+            sortLibrary("Reverse");
+        });
     }
 
+    //All Tracks changing
+    private void sortLibrary(String criteria) {
+        Comparator<Track> comparator;
+        restartFromStart = true;
+        switch (criteria) {
+            case "Title":
+                comparator = Comparator.comparing(Track::getTitle, String.CASE_INSENSITIVE_ORDER);
+                break;
+            case "Artist":
+                comparator = Comparator.comparing(Track::getArtist, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+                break;
+            case "Album":
+                comparator = Comparator.comparing(Track::getAlbum, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+                break;
+            case "Duration":
+                comparator = Comparator.comparingInt(t -> Integer.parseInt(t.getLength()));
+                break;
+            case "Date Added":
+                comparator = Comparator.comparing(t -> new File(t.getPath()).lastModified());
+                break;
+            case "Shuffle":
+                FXCollections.shuffle(allTracks);
+                refreshGrid(allTracks);
+                return;
+            case "Reverse":
+                FXCollections.reverse(allTracks);
+                refreshGrid(allTracks);
+                return;
+            default:
+                return;
+        }
+        FXCollections.sort(allTracks, comparator);
+        refreshGrid(allTracks);
+    }
+
+    //All tracks changing
     private void loadSongsFromDirectory(File dir) {
         if (!dir.exists() || !dir.isDirectory()) return;
 
@@ -53,12 +106,13 @@ public class LibraryController {
         for (File f : files) allTracks.add(new Track(f.getAbsolutePath()));
 
         // set playlist in PlaybackService
-        playbackService.setPlaylist(allTracks);
+        playbackService.setPlaylist(allTracks, true);
 
         refreshGrid(allTracks);
     }
 
     private void filterTracks(String query) {
+        restartFromStart = true;
         if (query == null || query.isEmpty()) {
             refreshGrid(allTracks);
             return;
@@ -71,19 +125,19 @@ public class LibraryController {
                         || (t.getArtist() != null && t.getArtist().toLowerCase().contains(lowerQuery))
                         || (t.getAlbum() != null && t.getAlbum().toLowerCase().contains(lowerQuery)))
                 .collect(Collectors.toList());
-        if(filtered.equals(prevFiltered)){
-            return;
-        }
-        prevFiltered = filtered;
+
         refreshGrid(filtered);
     }
 
     private void refreshGrid(List<Track> tracks) {
         songGrid.getChildren().clear();
 
+        // set visible playlist as the one in playback service
+        playbackService.setPlaylist(tracks, false);
+
         int col = 0, row = 0;
         for (Track track : tracks) {
-            AnchorPane card = createCard(track);
+            AnchorPane card = createCard(track, tracks);
             songGrid.add(card, col, row);
 
             col++;
@@ -94,7 +148,7 @@ public class LibraryController {
         }
     }
 
-    private AnchorPane createCard(Track track) {
+    private AnchorPane createCard(Track track, List<Track> visibleList) {
         AnchorPane card = new AnchorPane();
         card.setPrefSize(CARD_WIDTH, CARD_HEIGHT);
         card.setStyle("-fx-border-color: gray; -fx-background-color: #f0f0f0;");
@@ -112,8 +166,13 @@ public class LibraryController {
 
         card.getChildren().addAll(cover, nameLabel);
 
-        card.setOnMouseClicked(e -> playbackService.play(allTracks.indexOf(track)));
+        card.setOnMouseClicked(e -> {
+            restartFromStart = false;
+            playbackService.play(visibleList.indexOf(track));
+        });
 
         return card;
     }
+
+
 }

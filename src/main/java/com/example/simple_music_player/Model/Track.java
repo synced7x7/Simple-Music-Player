@@ -30,6 +30,8 @@ public class Track {
 
     // Album art
     private final Image cover;
+    private final double coverWidth;
+    private final double coverHeight;
 
     public Track(String filePath) {
         this.path = filePath;
@@ -38,6 +40,8 @@ public class Track {
         String fmt = null, br = null, sr = null, ch = null;
         int len = 0;
         Image c = null;
+        double covW = 0;
+        double covH = 0;
 
         try {
             File file = new File(filePath);
@@ -56,6 +60,8 @@ public class Track {
                 if (art != null) {
                     byte[] imageData = art.getBinaryData();
                     c = new Image(new ByteArrayInputStream(imageData));
+                    covW = c.getWidth();
+                    covH = c.getHeight();
                 }
             }
 
@@ -87,6 +93,8 @@ public class Track {
         this.channels = ch;
         this.length = l;
         this.cover = c;
+        this.coverWidth = covW;
+        this.coverHeight = covH;
     }
 
 

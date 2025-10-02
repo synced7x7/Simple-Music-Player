@@ -97,4 +97,5 @@ public class NowPlayingController {
             timeLabel.textProperty().bind(playbackService.elapsedTimeProperty());
         }
     }
+
 }

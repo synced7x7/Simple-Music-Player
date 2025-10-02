@@ -1,14 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.effect.GaussianBlur?>
+<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.StackPane?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="450.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="450.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.AlbumCoverController">
     <children>
+        <!-- Background Cover -->
+        <StackPane prefHeight="750.0" prefWidth="456.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+            <children>
+                <ImageView fx:id="coverBack" fitWidth="456.0" preserveRatio="true" StackPane.alignment="CENTER">
+               <image>
+                  <Image url="@../../../../../../../../../Downloads/Tetsuotatakinagara%20Teme-no%20Tamashiio%20Tatakiagero_256k.jpg" />
+               </image>
+               <effect>
+                  <GaussianBlur radius="4.0" />
+               </effect></ImageView>
+            </children>
+        </StackPane>
         <StackPane layoutX="-3.0" layoutY="1.0" prefHeight="750.0" prefWidth="456.0">
             <children>
-                <ImageView fitHeight="750.0" fitWidth="452.0" preserveRatio="true" />
+                <ImageView fx:id="coverFront" fitHeight="750.0" fitWidth="456.0" preserveRatio="true">
+               <image>
+                  <Image url="@../../../../../../../../../Downloads/Tetsuotatakinagara%20Teme-no%20Tamashiio%20Tatakiagero_256k.jpg" />
+               </image>
+               <effect>
+                  <DropShadow height="28.02" radius="15.265" spread="0.62" width="35.04" />
+               </effect></ImageView>
             </children>
         </StackPane>
     </children>

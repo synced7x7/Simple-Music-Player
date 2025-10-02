@@ -115,7 +115,7 @@ public class VisualizerService {
             }
 
             //Undersampling
-            int targetSize = 2000;
+            int targetSize = 1000;
             waveform = new double[targetSize];
             int step = samples.size() / targetSize;
             if (step == 0) step = 1;
@@ -145,7 +145,7 @@ public class VisualizerService {
             byte[] audioBytes = new byte[numBytes];
             int bytesRead = audioStream.read(audioBytes);
 
-            waveform = new double[2000]; // fixed size
+            waveform = new double[1000]; // fixed size
             int step = bytesRead / waveform.length; // downsample to fit
 
             for (int i = 0; i < waveform.length; i++) {
