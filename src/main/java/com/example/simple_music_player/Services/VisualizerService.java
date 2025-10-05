@@ -78,7 +78,7 @@ public class VisualizerService {
 
         String ext = audioFile.getName().substring(audioFile.getName().lastIndexOf('.') + 1).toLowerCase();
 
-        new Thread(() -> {
+       /* new Thread(() -> {
             try {
                 if (ext.equals("mp3") || ext.equals("m4a")) {
                     loadMP3Waveform(audioFile);
@@ -93,7 +93,7 @@ public class VisualizerService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }).start();
+        }).start();*/
     }
 
     //Pulse Code Modulation

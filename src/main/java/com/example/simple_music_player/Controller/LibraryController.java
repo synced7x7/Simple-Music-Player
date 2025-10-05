@@ -2,7 +2,7 @@ package com.example.simple_music_player.Controller;
 
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Services.PlaybackService;
-import javafx.application.Platform;
+import com.example.simple_music_player.Utility.thumbnailCaching;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -10,16 +10,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class LibraryController {
@@ -39,14 +37,15 @@ public class LibraryController {
 
 
     private final int COLUMN_COUNT = 3;
-    private final double CARD_WIDTH = 120;
-    private final double CARD_HEIGHT = 150;
+    public static final double CARD_WIDTH = 120;
+    public static final double CARD_HEIGHT = 150;
 
     private static final ObservableList<Track> allTracks = FXCollections.observableArrayList(); //Special kind of list that notifies listeners when its content changes (add, remove, update, sort).
     //JavaFX controls like ListView, TableView, ComboBox, etc. are designed to work with ObservableList.
     PlaybackService playbackService = NowPlayingController.getPlaybackService();
     public static boolean restartFromStart = false;
     File selectedDir;
+    private thumbnailCaching optimization = new thumbnailCaching();
 
     @FXML
     public void initialize() {
@@ -177,12 +176,19 @@ public class LibraryController {
         card.setPrefSize(CARD_WIDTH, CARD_HEIGHT);
         card.setStyle("-fx-border-color: gray; -fx-background-color: #f0f0f0;");
 
+        // --- Cover Image ---
         ImageView cover = new ImageView();
         cover.setFitWidth(CARD_WIDTH);
         cover.setFitHeight(CARD_WIDTH);
         cover.setPreserveRatio(true);
-        if (track.getCover() != null) cover.setImage(track.getCover());
 
+        // Load thumbnail (lazy)
+        Image thumbnail = optimization.loadThumbnail(track);
+        if (thumbnail != null) {
+            cover.setImage(thumbnail);
+        }
+
+        // --- Title ---
         Label nameLabel = new Label(track.getTitle());
         nameLabel.setPrefWidth(CARD_WIDTH);
         nameLabel.setLayoutY(CARD_WIDTH + 5);
@@ -190,6 +196,7 @@ public class LibraryController {
 
         card.getChildren().addAll(cover, nameLabel);
 
+        // --- Click Handler ---
         card.setOnMouseClicked(e -> {
             restartFromStart = false;
             playbackService.play(visibleList.indexOf(track));
@@ -197,6 +204,4 @@ public class LibraryController {
 
         return card;
     }
-
-
 }
