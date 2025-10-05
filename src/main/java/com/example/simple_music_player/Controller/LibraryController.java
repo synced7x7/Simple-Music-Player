@@ -2,6 +2,7 @@ package com.example.simple_music_player.Controller;
 
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Services.PlaybackService;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -49,12 +50,13 @@ public class LibraryController {
 
     @FXML
     public void initialize() {
+
         File musicDir = new File("C:/music");
         loadSongsFromDirectory(musicDir);
 
         directoryButton.setOnAction(e -> {
             DirectoryChooser directoryChooser = new DirectoryChooser();
-            directoryChooser.setTitle("Select Music Directory");
+            directoryChooser.setTitle("Choose Music Directory");
 
             //previous/default directory
             directoryChooser.setInitialDirectory(Objects.requireNonNullElse(selectedDir, musicDir));
