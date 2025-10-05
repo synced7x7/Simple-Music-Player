@@ -6,13 +6,14 @@ import javafx.scene.image.Image;
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 import static com.example.simple_music_player.Controller.LibraryController.CARD_HEIGHT;
 import static com.example.simple_music_player.Controller.LibraryController.CARD_WIDTH;
 
 public class thumbnailCaching {
     //compressed thumbnail loading
-    private final Map<String, Image> thumbnailCache = new HashMap<>();
+    private final WeakHashMap<String, Image> thumbnailCache = new WeakHashMap<>(); //does not need to explicitly mention to clean memory
     public Image loadThumbnail(Track track) {
         return thumbnailCache.computeIfAbsent(track.getPath(), k -> {
             try {
