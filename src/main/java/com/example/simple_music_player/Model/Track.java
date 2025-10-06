@@ -100,5 +100,42 @@ public class Track {
         this.artworkData = imageData;
     }
 
+    public Track(String path,
+                 String title,
+                 String artist,
+                 String album,
+                 String genre,
+                 String year,
+                 String format,
+                 String bitrate,
+                 String sampleRate,
+                 String channels,
+                 String length,
+                 byte[] artworkData) {
+        this.path = path;
+        this.title = title;
+        this.artist = artist;
+        this.album = album;
+        this.genre = genre;
+        this.year = year;
+        this.format = format;
+        this.bitrate = bitrate;
+        this.sampleRate = sampleRate;
+        this.channels = channels;
+        this.length = length;
+        this.artworkData = artworkData;
+
+        if (artworkData != null) {
+            this.cover = new Image(new ByteArrayInputStream(artworkData));
+            this.coverWidth = cover.getWidth();
+            this.coverHeight = cover.getHeight();
+        } else {
+            this.cover = null;
+            this.coverWidth = 0;
+            this.coverHeight = 0;
+        }
+    }
+
+
 
 }

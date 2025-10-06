@@ -1,5 +1,6 @@
 package com.example.simple_music_player;
 
+import com.example.simple_music_player.db.DatabaseManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -11,6 +12,8 @@ public class SimpleMusicPlayer extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
+        DatabaseManager.initialize();
+
         FXMLLoader fxmlLoader = new FXMLLoader(SimpleMusicPlayer.class.getResource("main.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setResizable(false);
@@ -21,5 +24,10 @@ public class SimpleMusicPlayer extends Application {
 
     public static void main(String[] args) {
         launch();
+    }
+
+    @Override
+    public void stop() {
+        DatabaseManager.close();
     }
 }
