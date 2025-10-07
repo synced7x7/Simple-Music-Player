@@ -2,6 +2,8 @@ package com.example.simple_music_player.Model;
 
 import javafx.scene.image.Image;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -13,26 +15,30 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 
 @Getter
+@Setter
+@NoArgsConstructor
 public class Track {
-    private final String path;
+    private String path;
+    private int id;
 
     // Metadata fields
-    private final String title;
-    private final String artist;
-    private final String album;
-    private final String genre;
-    private final String year;
-    private final String format;
-    private final String bitrate;
-    private final String sampleRate;
-    private final String channels;
-    private final String length;
+    private String title;
+    private String artist;
+    private  String album;
+    private  String genre;
+    private  String year;
+    private  String format;
+    private  String bitrate;
+    private  String sampleRate;
+    private  String channels;
+    private  String length;
 
     // Album art
-    private final Image cover;
-    private final double coverWidth;
-    private final double coverHeight;
-    private final byte[] artworkData;
+    private Image cover;
+    private double coverWidth;
+    private double coverHeight;
+    private byte[] artworkData;
+
 
     public Track(String filePath) {
         this.path = filePath;
@@ -136,6 +142,14 @@ public class Track {
         }
     }
 
-
+    /**
+     * Lazy loads Image only when needed
+     */
+    public Image getCover() {
+        if (cover == null && artworkData != null) {
+            cover = new Image(new ByteArrayInputStream(artworkData), 120, 150, true, true);
+        }
+        return cover;
+    }
 
 }

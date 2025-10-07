@@ -5,6 +5,7 @@ import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Services.VisualizerService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
@@ -27,6 +28,7 @@ public class NowPlayingController {
     @FXML private Label sampleRateLabel;
     @FXML private AnchorPane visualizerHolder;
 
+
     public static VisualizerService visualizerController;
     @Getter
     private static final PlaybackService playbackService = new PlaybackService(); //one instance to be shared among all
@@ -35,10 +37,15 @@ public class NowPlayingController {
     @FXML
     public void initialize() throws IOException {
 
+        playbackService.setNowPlayingController(this);
+
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/simple_music_player/visualizer.fxml"));
         AnchorPane visualizer = loader.load();
         visualizerController = loader.getController();
         visualizerHolder.getChildren().add(visualizer);
+
+
 
         // Anchor it to fill the holder
         AnchorPane.setTopAnchor(visualizer, 0.0);
@@ -96,6 +103,17 @@ public class NowPlayingController {
         } else {
             timeLabel.textProperty().bind(playbackService.elapsedTimeProperty());
         }
+    }
+    public void clearScreen() {
+        nameLabel.setText("Title");
+        artistLabel.setText("Artist");
+        albumLabel.setText("Album");
+        formatLabel.setText("Format");
+        bitRateLabel.setText("Bitrate");
+        sampleRateLabel.setText("Samplerate");
+        albumCover.setImage(null);
+        //timeLabel is resetting in PlaybackService Class in play function by using listener
+        System.out.println("Screen Cleared");
     }
 
 }

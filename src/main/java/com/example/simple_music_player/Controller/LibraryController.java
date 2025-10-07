@@ -2,7 +2,10 @@ package com.example.simple_music_player.Controller;
 
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Services.PlaybackService;
-import com.example.simple_music_player.Utility.thumbnailCaching;
+import com.example.simple_music_player.Utility.ThumbnailCaching;
+import com.example.simple_music_player.db.DatabaseManager;
+import com.example.simple_music_player.db.TrackDAO;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -18,6 +21,7 @@ import javafx.stage.DirectoryChooser;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class LibraryController {
@@ -35,7 +39,7 @@ public class LibraryController {
     @FXML
     private Button directoryButton;
 
-
+    private static final int PAGE_SIZE = 50;
     private final int COLUMN_COUNT = 3;
     public static final double CARD_WIDTH = 120;
     public static final double CARD_HEIGHT = 150;
@@ -45,24 +49,42 @@ public class LibraryController {
     PlaybackService playbackService = NowPlayingController.getPlaybackService();
     public static boolean restartFromStart = false;
     File selectedDir;
-    private thumbnailCaching optimization = new thumbnailCaching();
+    private final ThumbnailCaching thumbnailCaching = new ThumbnailCaching();
+    private final TrackDAO trackDAO = new TrackDAO(DatabaseManager.getConnection());
+    //Default Directory Path
+    private final File defaultMusicDirOpener = new File("C:/Users/Asus/Music");
+    private File prevDir = null;
+    private boolean dirChanged = false;
 
     @FXML
     public void initialize() {
-
-        File musicDir = new File("C:/music");
-        loadSongsFromDirectory(musicDir);
+        // Load default directory from DB (sorted by title)
+        loadInitialDirectoryFromDatabase();
+        if(trackDAO.getTrackPath()!=null) {
+            selectedDir = new File(trackDAO.getTrackPath());
+        }
 
         directoryButton.setOnAction(e -> {
             DirectoryChooser directoryChooser = new DirectoryChooser();
-            directoryChooser.setTitle("Choose Music Directory");
+            directoryChooser.setTitle("Select Music Directory");
+            directoryChooser.setInitialDirectory(
+                    Objects.requireNonNullElse(selectedDir, defaultMusicDirOpener)
+            );
 
-            //previous/default directory
-            directoryChooser.setInitialDirectory(Objects.requireNonNullElse(selectedDir, musicDir));
-            selectedDir = directoryChooser.showDialog(directoryButton.getScene().getWindow());
-            if (selectedDir != null) {
-                loadSongsFromDirectory(selectedDir);
+            File newDir = directoryChooser.showDialog(directoryButton.getScene().getWindow());
+            if (newDir == null) {
+                return;
             }
+
+            if (selectedDir == null || !selectedDir.equals(newDir)) {
+                System.out.println("Directory changed: clearing old tracks");
+                dirChanged = true;
+                trackDAO.deleteAllTracks();
+            }
+
+            selectedDir = newDir;
+            loadSongsFromDirectory(selectedDir);
+            prevDir = selectedDir;
         });
 
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterTracks(newVal));
@@ -114,24 +136,55 @@ public class LibraryController {
         refreshGrid(allTracks);
     }
 
-    //All tracks changing
-    private void loadSongsFromDirectory(File dir) {
-        if (!dir.exists() || !dir.isDirectory()) return;
+    private void loadInitialDirectoryFromDatabase() {
+        List<Integer> allIds = trackDAO.getAllIds();
+        Platform.runLater(() -> {
+            playbackService.setPlaylist(allIds, true);
+        });
+    }
 
+
+    private void loadSongsFromDirectory(File dir) {
+        if (dir == null || !dir.exists() || !dir.isDirectory()) return;
+
+        // Filter only audio files safely
         File[] files = dir.listFiles((d, name) -> {
-            String ext = name.substring(name.lastIndexOf('.') + 1).toLowerCase();
+            int dotIndex = name.lastIndexOf('.');
+            if (dotIndex == -1) return false; // no extension
+            String ext = name.substring(dotIndex + 1).toLowerCase();
             return ext.equals("mp3") || ext.equals("wav");
         });
 
-        if (files == null) return;
+        if (files == null || files.length == 0) {
+            System.out.println("No songs in the directory");
+            playbackService.setPlaylist(Collections.emptyList(), true);
+            return;
+        }
 
-        allTracks.clear();
-        for (File f : files) allTracks.add(new Track(f.getAbsolutePath()));
+        // Heavy work off the FX thread (database + metadata)
+        CompletableFuture.runAsync(() -> {
+            for (File f : files) {
+                try {
+                    Track t = new Track(f.getAbsolutePath());
+                    trackDAO.updateTracks(t);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
 
-        // set playlist in PlaybackService
-        playbackService.setPlaylist(allTracks, true);
-
-        refreshGrid(allTracks);
+            List<Integer> allIds = trackDAO.getAllIds();
+            List<Track> firstPage = trackDAO.getTracks(PAGE_SIZE, 0);
+            System.out.println("Directory changed = " + dirChanged);
+            Platform.runLater(() -> {
+                if (dirChanged) {
+                    playbackService.setPlaylist(allIds, true);
+                    dirChanged = false;
+                }
+                else
+                    playbackService.setPlaylist(allIds, false);
+                // refreshGrid(firstPage); // if needed
+            });
+        });
     }
 
     private void filterTracks(String query) {
@@ -155,12 +208,15 @@ public class LibraryController {
     private void refreshGrid(List<Track> tracks) {
         songGrid.getChildren().clear();
 
-        // set visible playlist as the one in playback service
-        playbackService.setPlaylist(tracks, false);
+        List<Integer> ids = tracks.stream()
+                .map(Track::getId)
+                .collect(Collectors.toList());
+
+        playbackService.setPlaylist(ids, false);
 
         int col = 0, row = 0;
         for (Track track : tracks) {
-            AnchorPane card = createCard(track, tracks);
+            AnchorPane card = createCard(track, ids);
             songGrid.add(card, col, row);
 
             col++;
@@ -171,7 +227,7 @@ public class LibraryController {
         }
     }
 
-    private AnchorPane createCard(Track track, List<Track> visibleList) {
+    private AnchorPane createCard(Track track, List<Integer> visibleIds) {
         AnchorPane card = new AnchorPane();
         card.setPrefSize(CARD_WIDTH, CARD_HEIGHT);
         card.setStyle("-fx-border-color: gray; -fx-background-color: #f0f0f0;");
@@ -182,8 +238,8 @@ public class LibraryController {
         cover.setFitHeight(CARD_WIDTH);
         cover.setPreserveRatio(true);
 
-        // Load thumbnail (lazy)
-        Image thumbnail = optimization.loadThumbnail(track);
+        // Lazy thumbnail load
+        Image thumbnail = thumbnailCaching.loadThumbnail(track);
         if (thumbnail != null) {
             cover.setImage(thumbnail);
         }
@@ -199,9 +255,13 @@ public class LibraryController {
         // --- Click Handler ---
         card.setOnMouseClicked(e -> {
             restartFromStart = false;
-            playbackService.play(visibleList.indexOf(track));
+            int index = visibleIds.indexOf(track.getId());
+            if (index != -1) {
+                playbackService.play(index);
+            }
         });
 
         return card;
     }
+
 }

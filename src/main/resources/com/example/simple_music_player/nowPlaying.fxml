@@ -7,35 +7,24 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0"
-            prefWidth="450.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.simple_music_player.Controller.NowPlayingController">
-    <Label alignment="CENTER" layoutX="-1.0" layoutY="7.0" prefHeight="40.0" prefWidth="450.0"
-           text="SIMPLE MUSIC PLAYER">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="450.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.NowPlayingController">
+    <Label alignment="CENTER" layoutX="-1.0" layoutY="7.0" prefHeight="40.0" prefWidth="450.0" text="SIMPLE MUSIC PLAYER">
         <font>
-          <Font name="System Bold" size="21.0"/>
+          <Font name="System Bold" size="21.0" />
         </font>
     </Label>
     <StackPane layoutX="52.0" layoutY="53.0" prefHeight="406.0" prefWidth="343.0">
-        <ImageView fx:id="albumCover" fitHeight="406.0" fitWidth="343.0" preserveRatio="true"/>
+        <ImageView fx:id="albumCover" fitHeight="406.0" fitWidth="343.0" preserveRatio="true" />
     </StackPane>
-    <Button fx:id="playButton" alignment="CENTER" layoutX="201.0" layoutY="683.0" text="Play"/>
-    <Button fx:id="nextButton" layoutX="288.0" layoutY="682.0" mnemonicParsing="false" prefHeight="26.0"
-            prefWidth="59.0" text="Next"/>
-    <Button fx:id="prevButton" layoutX="84.0" layoutY="683.0" mnemonicParsing="false" text="Previous"/>
-    <Label fx:id="nameLabel" alignment="CENTER" layoutX="52.0" layoutY="473.0" prefHeight="26.0" prefWidth="343.0"
-           text="Name"/>
-    <Label fx:id="artistLabel" alignment="CENTER" layoutX="52.0" layoutY="503.0" prefHeight="26.0" prefWidth="343.0"
-           text="Aritst"/>
-    <Label fx:id="albumLabel" alignment="CENTER" layoutX="53.0" layoutY="534.0" prefHeight="26.0" prefWidth="343.0"
-           text="Album"/>
-    <Label fx:id="timeLabel" alignment="CENTER" layoutX="404.0" layoutY="627.0" onMouseClicked="#toggleCountdown"
-           prefHeight="18.0" prefWidth="38.0" text="123:00"/>
-    <Label fx:id="bitRateLabel" alignment="CENTER" layoutX="287.0" layoutY="575.0" prefHeight="26.0" prefWidth="61.0"
-           text="2569kbps"/>
-    <Label fx:id="formatLabel" alignment="CENTER" layoutX="103.0" layoutY="575.0" prefHeight="26.0" prefWidth="59.0"
-           text="Format"/>
-    <Label fx:id="sampleRateLabel" alignment="CENTER" layoutX="189.0" layoutY="575.0" prefHeight="26.0" prefWidth="72.0"
-           text="SampleRate"/>
-    <AnchorPane fx:id="visualizerHolder" layoutX="43.0" layoutY="605.0" prefHeight="62.0" prefWidth="362.0"/>
+    <Button fx:id="playButton" alignment="CENTER" layoutX="201.0" layoutY="683.0" text="Play" />
+    <Button fx:id="nextButton" layoutX="288.0" layoutY="682.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="59.0" text="Next" />
+    <Button fx:id="prevButton" layoutX="84.0" layoutY="683.0" mnemonicParsing="false" text="Previous" />
+    <Label fx:id="nameLabel" alignment="CENTER" layoutX="52.0" layoutY="473.0" prefHeight="26.0" prefWidth="343.0" text="Title" />
+    <Label fx:id="artistLabel" alignment="CENTER" layoutX="52.0" layoutY="503.0" prefHeight="26.0" prefWidth="343.0" text="Aritst" />
+    <Label fx:id="albumLabel" alignment="CENTER" layoutX="53.0" layoutY="534.0" prefHeight="26.0" prefWidth="343.0" text="Album" />
+    <Label fx:id="timeLabel" alignment="CENTER" layoutX="404.0" layoutY="627.0" onMouseClicked="#toggleCountdown" prefHeight="18.0" prefWidth="38.0" text="00:00" />
+    <Label fx:id="bitRateLabel" alignment="CENTER" layoutX="287.0" layoutY="575.0" prefHeight="26.0" prefWidth="61.0" text="Bitrate" />
+    <Label fx:id="formatLabel" alignment="CENTER" layoutX="103.0" layoutY="575.0" prefHeight="26.0" prefWidth="59.0" text="Format" />
+    <Label fx:id="sampleRateLabel" alignment="CENTER" layoutX="189.0" layoutY="575.0" prefHeight="26.0" prefWidth="72.0" text="Samplerate" />
+    <AnchorPane fx:id="visualizerHolder" layoutX="43.0" layoutY="605.0" prefHeight="62.0" prefWidth="362.0" />
 </AnchorPane>

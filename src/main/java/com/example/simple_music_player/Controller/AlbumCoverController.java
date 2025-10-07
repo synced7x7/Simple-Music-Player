@@ -16,6 +16,9 @@ public class AlbumCoverController {
 
     @FXML
     private void initialize() {
+
+        playbackService.setAlbumCoverController(this);
+
         playbackService.currentTrackProperty().addListener((obs, oldT, newT) -> {
             //Image fill algorithm by preserving aspect ratio
             double coverAR = newT.getCoverWidth() / newT.getCoverHeight();
@@ -36,6 +39,11 @@ public class AlbumCoverController {
                 coverBack.setImage(null);
             }
         });
+    }
+
+    public void clearCover() {
+        coverFront.setImage(null);
+        coverBack.setImage(null);
     }
 
 }
