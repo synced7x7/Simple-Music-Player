@@ -55,6 +55,7 @@ public class LibraryController {
     private final File defaultMusicDirOpener = new File("C:/Users/Asus/Music");
     private File prevDir = null;
     private boolean dirChanged = false;
+    private  File[] prevFiles = null;
 
     @FXML
     public void initialize() {
@@ -138,6 +139,17 @@ public class LibraryController {
 
     private void loadInitialDirectoryFromDatabase() {
         List<Integer> allIds = trackDAO.getAllIds();
+
+        if(trackDAO.getTrackPath()!=null) {
+            File dir = new File(trackDAO.getTrackPath());
+            prevFiles = dir.listFiles((d, name) -> {
+                int dotIndex = name.lastIndexOf('.');
+                if (dotIndex == -1) return false; // no extension
+                String ext = name.substring(dotIndex + 1).toLowerCase();
+                return ext.equals("mp3") || ext.equals("wav");
+            });
+        }
+
         Platform.runLater(() -> {
             playbackService.setPlaylist(allIds, true);
         });
@@ -147,6 +159,7 @@ public class LibraryController {
     private void loadSongsFromDirectory(File dir) {
         if (dir == null || !dir.exists() || !dir.isDirectory()) return;
 
+
         // Filter only audio files safely
         File[] files = dir.listFiles((d, name) -> {
             int dotIndex = name.lastIndexOf('.');
@@ -154,6 +167,11 @@ public class LibraryController {
             String ext = name.substring(dotIndex + 1).toLowerCase();
             return ext.equals("mp3") || ext.equals("wav");
         });
+        if(prevFiles!= null && Arrays.equals(prevFiles, files)) {
+            System.out.println("No songs changed in the directory");
+            return;
+        }
+        prevFiles = files;
 
         if (files == null || files.length == 0) {
             System.out.println("No songs in the directory");
