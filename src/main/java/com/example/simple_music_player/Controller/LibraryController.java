@@ -88,7 +88,9 @@ public class LibraryController {
             loadSongsFromDirectory(selectedDir);
             prevDir = selectedDir;
         });
-        //searchField.textProperty().addListener((obs, oldVal, newVal) -> filterTracks(newVal));
+
+
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> filterTracks(newVal));
         sortComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 sortLibrary(newVal);
@@ -211,23 +213,19 @@ public class LibraryController {
         });
     }
 
-   /* private void filterTracks(String query) {
-        restartFromStart = true;
-        if (query == null || query.isEmpty()) {
-            //refreshGrid(allTracks);
-            return;
-        }
+    private void filterTracks(String query) {
+        // Get current sort criteria from comboBox
+        String sortBy = sortComboBox.getValue() != null ? sortComboBox.getValue() : "title";
+        boolean ascending = true; // or maintain your ascending flag
 
-        String lowerQuery = query.toLowerCase();
+        CompletableFuture.runAsync(() -> {
+            List<Integer> filteredIds = trackDAO.searchTrackIds(query, sortBy, ascending);
 
-        List<Track> filtered = allTracks.stream()
-                .filter(t -> t.getTitle().toLowerCase().contains(lowerQuery)
-                        || (t.getArtist() != null && t.getArtist().toLowerCase().contains(lowerQuery))
-                        || (t.getAlbum() != null && t.getAlbum().toLowerCase().contains(lowerQuery)))
-                .collect(Collectors.toList());
-
-        //refreshGrid(filtered);
-    }*/
+            Platform.runLater(() -> {
+                refreshGrid(filteredIds);
+            });
+        });
+    }
 
     private void refreshGrid(List<Integer> allIds) {
         songGrid.getChildren().clear();

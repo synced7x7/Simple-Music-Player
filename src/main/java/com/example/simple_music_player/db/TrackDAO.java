@@ -285,6 +285,31 @@ public class TrackDAO {
         return ids;
     }
 
+    public List<Integer> searchTrackIds(String query, String sortBy, boolean ascending) {
+        List<Integer> ids = new ArrayList<>();
+        if (query == null || query.isEmpty()) return getAllIdsSorted(sortBy, ascending);
+
+        String sql = """
+        SELECT id FROM songs
+        WHERE LOWER(title) LIKE ? OR LOWER(artist) LIKE ? OR LOWER(album) LIKE ?
+        ORDER BY %s %s
+    """.formatted(sortBy, ascending ? "ASC" : "DESC");
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            String likeQuery = "%" + query.toLowerCase() + "%";
+            ps.setString(1, likeQuery);
+            ps.setString(2, likeQuery);
+            ps.setString(3, likeQuery);
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ids.add(rs.getInt("id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ids;
+    }
 
 
 
