@@ -140,7 +140,7 @@ public class LibraryController {
     private void loadInitialDirectoryFromDatabase() {
         List<Integer> allIds = trackDAO.getAllIds();
 
-        if(trackDAO.getTrackPath()!=null) {
+        /*if(trackDAO.getTrackPath()!=null) {
             File dir = new File(trackDAO.getTrackPath());
             prevFiles = dir.listFiles((d, name) -> {
                 int dotIndex = name.lastIndexOf('.');
@@ -148,7 +148,7 @@ public class LibraryController {
                 String ext = name.substring(dotIndex + 1).toLowerCase();
                 return ext.equals("mp3") || ext.equals("wav");
             });
-        }
+        }*/
 
         Platform.runLater(() -> {
             playbackService.setPlaylist(allIds, true);

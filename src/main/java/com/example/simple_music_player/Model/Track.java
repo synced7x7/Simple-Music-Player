@@ -1,6 +1,11 @@
 package com.example.simple_music_player.Model;
 
+import com.example.simple_music_player.Utility.CompressionUtility;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.image.WritableImage;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,8 +16,14 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.images.Artwork;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import javafx.embed.swing.SwingFXUtils;
 
 @Getter
 @Setter
@@ -38,6 +49,7 @@ public class Track {
     private double coverWidth;
     private double coverHeight;
     private byte[] artworkData;
+    private byte[] compressedArtworkData;
 
 
     public Track(String filePath) {
@@ -50,6 +62,7 @@ public class Track {
         double covW = 0;
         double covH = 0;
         byte[] imageData = null;
+        byte[] compImageData = null;
 
         try {
             File file = new File(filePath);
@@ -68,6 +81,7 @@ public class Track {
                 if (art != null) {
                     imageData = art.getBinaryData();
                     c = new Image(new ByteArrayInputStream(imageData));
+                    compImageData = CompressionUtility.resizeAndCompress(c, 350, 350, 0.7f);
                     covW = c.getWidth();
                     covH = c.getHeight();
                 }
@@ -90,6 +104,7 @@ public class Track {
 
         String l = Integer.toString(len);
 
+        //System.out.println("Constructor Called for + " + t);
         this.title = (t == null || t.isEmpty()) ? new File(filePath).getName() : t; //if title is empty then read name from file
         this.artist = a;
         this.album = al;
@@ -104,6 +119,7 @@ public class Track {
         this.coverWidth = covW;
         this.coverHeight = covH;
         this.artworkData = imageData;
+        this.compressedArtworkData = compImageData;
     }
 
     public Track(String path,
@@ -145,11 +161,12 @@ public class Track {
     /**
      * Lazy loads Image only when needed
      */
-    public Image getCover() {
+    public Image getCompressedCover() {
         if (cover == null && artworkData != null) {
             cover = new Image(new ByteArrayInputStream(artworkData), 120, 150, true, true);
         }
         return cover;
     }
+
 
 }

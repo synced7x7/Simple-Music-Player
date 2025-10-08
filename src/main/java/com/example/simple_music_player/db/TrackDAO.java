@@ -22,8 +22,8 @@ public class TrackDAO {
     public void updateTracks(Track track) {
         String sql = """
             INSERT OR IGNORE INTO songs
-            (path, title, artist, album, genre, year, format, bitrate, sampleRate, channels, length, artwork)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (path, title, artist, album, genre, year, format, bitrate, sampleRate, channels, length, artwork, compressed_artwork)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -40,8 +40,10 @@ public class TrackDAO {
             ps.setString(11, track.getLength());
             if (track.getArtworkData() != null) {
                 ps.setBytes(12, track.getArtworkData());
+                ps.setBytes(13, track.getCompressedArtworkData());
             } else {
                 ps.setNull(12, Types.BLOB);
+                ps.setNull(13, Types.BLOB);
             }
             ps.executeUpdate();
         } catch (SQLException e) {

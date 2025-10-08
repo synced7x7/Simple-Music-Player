@@ -8,6 +8,7 @@ module com.example.simple_music_player {
     requires java.desktop;
     requires jlayer;
     requires java.sql;
+    requires javafx.swing;
 
 
     opens com.example.simple_music_player to javafx.fxml;

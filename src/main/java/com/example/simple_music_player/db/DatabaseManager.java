@@ -52,7 +52,8 @@ public class DatabaseManager {
                         sampleRate TEXT,
                         channels TEXT,
                         length TEXT,
-                        artwork BLOB
+                        artwork BLOB,
+                        compressed_artwork BLOB
                     );
                 CREATE INDEX IF NOT EXISTS idx_songs_title ON songs(title);
                 CREATE INDEX IF NOT EXISTS idx_songs_artist ON songs(
