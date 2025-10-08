@@ -11,6 +11,7 @@ import javafx.fxml.FXML;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
@@ -33,6 +34,7 @@ public class PlaybackService {
     public ReadOnlyObjectProperty<Track> currentTrackProperty() { return currentTrack; }
     public ReadOnlyDoubleProperty progressProperty() { return progress; }
 
+    @Getter
     public static List<Integer> playlist; // just keep IDs of songs in order
     @Setter
     NowPlayingController nowPlayingController;
@@ -54,8 +56,14 @@ public class PlaybackService {
         }
     }
 
+    public void clearList() {
+        playlist.clear();
+        System.out.println("Playlist Cleared");
+    }
+
     public void play(int index) {
         if (index < 0 || index >= playlist.size()) return;
+        System.out.println("Currently playing " + index);
         currentIndex = index;
         int songId = playlist.get(index);
         Track t = trackDao.getTrackById(songId);  // fetch from DB only now
@@ -130,14 +138,14 @@ public class PlaybackService {
 
     public void next() {
         if (playlist.isEmpty()) return;
-        if (checkRestartFromStart()) currentIndex = -1; // ✅ so next() starts at 0
+        if (checkRestartFromStart()) currentIndex = -1;
         int nextIndex = (currentIndex + 1) % playlist.size();
         play(nextIndex);
     }
 
     public void previous() {
         if (playlist.isEmpty()) return;
-        if (checkRestartFromStart()) currentIndex = 1; // ✅ so previous goes to 0
+        if (checkRestartFromStart()) currentIndex = 1;
         int prevIndex = (currentIndex - 1 + playlist.size()) % playlist.size();
         play(prevIndex);
     }

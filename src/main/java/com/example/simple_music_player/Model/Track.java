@@ -81,7 +81,7 @@ public class Track {
                 if (art != null) {
                     imageData = art.getBinaryData();
                     c = new Image(new ByteArrayInputStream(imageData));
-                    compImageData = CompressionUtility.resizeAndCompress(c, 350, 350, 0.7f);
+                    compImageData = CompressionUtility.resizeAndCompress(c, 300, 300, 0.6f);
                     covW = c.getWidth();
                     covH = c.getHeight();
                 }
@@ -158,15 +158,6 @@ public class Track {
         }
     }
 
-    /**
-     * Lazy loads Image only when needed
-     */
-    public Image getCompressedCover() {
-        if (cover == null && artworkData != null) {
-            cover = new Image(new ByteArrayInputStream(artworkData), 120, 150, true, true);
-        }
-        return cover;
-    }
 
 
 }

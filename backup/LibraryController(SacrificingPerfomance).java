@@ -45,6 +45,7 @@ public class LibraryController {
     public static final double CARD_WIDTH = 120;
     public static final double CARD_HEIGHT = 150;
 
+    private static final ObservableList<Track> allTracks = FXCollections.observableArrayList(); //Special kind of list that notifies listeners when its content changes (add, remove, update, sort).
     //JavaFX controls like ListView, TableView, ComboBox, etc. are designed to work with ObservableList.
     PlaybackService playbackService = NowPlayingController.getPlaybackService();
     public static boolean restartFromStart = false;
@@ -55,13 +56,13 @@ public class LibraryController {
     private final File defaultMusicDirOpener = new File("C:/Users/Asus/Music");
     private File prevDir = null;
     private boolean dirChanged = false;
-    private File[] prevFiles = null;
+    private  File[] prevFiles = null;
 
     @FXML
     public void initialize() {
         // Load default directory from DB (sorted by title)
         loadInitialDirectoryFromDatabase();
-        if (trackDAO.getTrackPath() != null) {
+        if(trackDAO.getTrackPath()!=null) {
             selectedDir = new File(trackDAO.getTrackPath());
         }
 
@@ -81,14 +82,14 @@ public class LibraryController {
                 System.out.println("Directory changed: clearing old tracks");
                 dirChanged = true;
                 trackDAO.deleteAllTracks();
-                playbackService.clearList();
             }
 
             selectedDir = newDir;
             loadSongsFromDirectory(selectedDir);
             prevDir = selectedDir;
         });
-        //searchField.textProperty().addListener((obs, oldVal, newVal) -> filterTracks(newVal));
+
+        /*searchField.textProperty().addListener((obs, oldVal, newVal) -> filterTracks(newVal));
         sortComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 sortLibrary(newVal);
@@ -99,55 +100,50 @@ public class LibraryController {
         });
         reverseButton.setOnMouseClicked(e -> {
             sortLibrary("Reverse");
-        });
+        });*/
     }
 
-    private boolean ascending = true;
-    private String prevCriteria = "Title";
-
+    //All Tracks changing
     private void sortLibrary(String criteria) {
-       
-        if (!criteria.equals("Shuffle") && !criteria.equals("Reverse") && prevCriteria.equals(criteria)) {
-            return;
-        }
-
+        Comparator<Track> comparator;
         restartFromStart = true;
-
-        new Thread(() -> {
-            List<Integer> sortedIds;
-
-            switch (criteria) {
-                case "Shuffle":
-                    sortedIds = PlaybackService.getPlaylist();
-                    Collections.shuffle(sortedIds);
-                    prevCriteria = "Shuffle";
-                    break;
-
-                case "Reverse":
-                    sortedIds = PlaybackService.getPlaylist();
-                    Collections.reverse(sortedIds);
-                    prevCriteria = "Reverse";
-                    break;
-
-                default:
-                    sortedIds = trackDAO.getAllIdsSorted(criteria, ascending);
-                    prevCriteria = criteria;
-                    break;
-            }
-
-            Platform.runLater(() -> {
-                playbackService.setPlaylist(sortedIds, false);
-                refreshGrid(sortedIds);
-            });
-        }).start();
+        switch (criteria) {
+            case "Title":
+                comparator = Comparator.comparing(Track::getTitle, String.CASE_INSENSITIVE_ORDER);
+                break;
+            case "Artist":
+                comparator = Comparator.comparing(Track::getArtist, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+                break;
+            case "Album":
+                comparator = Comparator.comparing(Track::getAlbum, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
+                break;
+            case "Duration":
+                comparator = Comparator.comparingInt(t -> Integer.parseInt(t.getLength()));
+                break;
+            case "Date Added":
+                comparator = Comparator.comparing(t -> new File(t.getPath()).lastModified());
+                break;
+            case "Shuffle":
+                FXCollections.shuffle(allTracks);
+                //refreshGrid(allTracks);
+                return;
+            case "Reverse":
+                FXCollections.reverse(allTracks);
+                //refreshGrid(allTracks);
+                return;
+            default:
+                return;
+        }
+        FXCollections.sort(allTracks, comparator);
+        //refreshGrid(allTracks);
     }
-
-
 
     private void loadInitialDirectoryFromDatabase() {
+        //For Playlist
         List<Integer> allIds = trackDAO.getAllIds();
+        //List <Track> t = trackDAO.getAllTracksArtworkAndTitle();
 
-        if (trackDAO.getTrackPath() != null) {
+        if(trackDAO.getTrackPath()!=null) {
             File dir = new File(trackDAO.getTrackPath());
             prevFiles = dir.listFiles((d, name) -> {
                 int dotIndex = name.lastIndexOf('.');
@@ -175,7 +171,7 @@ public class LibraryController {
             String ext = name.substring(dotIndex + 1).toLowerCase();
             return ext.equals("mp3") || ext.equals("wav");
         });
-        if (prevFiles != null && Arrays.equals(prevFiles, files)) {
+        if(prevFiles!= null && Arrays.equals(prevFiles, files)) {
             System.out.println("No songs changed in the directory");
             return;
         }
@@ -199,19 +195,21 @@ public class LibraryController {
             }
 
             List<Integer> allIds = trackDAO.getAllIds();
+            //List<Track> firstPage = trackDAO.getAllTracksArtworkAndTitle();
             System.out.println("Directory changed = " + dirChanged);
             Platform.runLater(() -> {
                 if (dirChanged) {
                     playbackService.setPlaylist(allIds, true);
-                    refreshGrid(allIds);
                     dirChanged = false;
-                } else
+                }
+                else
                     playbackService.setPlaylist(allIds, false);
+                // refreshGrid(firstPage); // if needed
             });
         });
     }
 
-   /* private void filterTracks(String query) {
+    private void filterTracks(String query) {
         restartFromStart = true;
         if (query == null || query.isEmpty()) {
             //refreshGrid(allTracks);
@@ -227,7 +225,7 @@ public class LibraryController {
                 .collect(Collectors.toList());
 
         //refreshGrid(filtered);
-    }*/
+    }
 
     private void refreshGrid(List<Integer> allIds) {
         songGrid.getChildren().clear();
@@ -256,12 +254,12 @@ public class LibraryController {
         cover.setPreserveRatio(true);
 
         Track track = trackDAO.getTrackArtworkAndTitleById(id);
-        /*byte[] artworkData = track.getCompressedArtworkData();
+        byte[] artworkData = track.getCompressedArtworkData();
         Image thumbnail = null;
-        if (artworkData != null) {
+        if(artworkData != null) {
             thumbnail = new Image(new ByteArrayInputStream(artworkData));
-        }*/
-        Image thumbnail = thumbnailCaching.loadThumbnail(id, track);
+        }
+        //Image thumbnail = thumbnailCaching.loadThumbnail(track);
         if (thumbnail != null) {
             cover.setImage(thumbnail);
         }
@@ -275,14 +273,12 @@ public class LibraryController {
         card.getChildren().addAll(cover, nameLabel);
 
         // --- Click Handler ---
-        card.setOnMouseClicked(e -> {
+        /*card.setOnMouseClicked(e -> {
             restartFromStart = false;
-            int index = PlaybackService.playlist.indexOf(id);
-            System.out.println("Id:" + id + " Corresponding index" + index);
             if (index != -1) {
                 playbackService.play(index);
             }
-        });
+        });*/
 
         return card;
     }

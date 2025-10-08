@@ -82,29 +82,6 @@ public class TrackDAO {
     }
 
 
-
-    /**
-     * Retrieves all tracks (optionally with LIMIT/OFFSET for lazy loading).
-     */
-    public List<Track> getAllTracks(int limit, int offset) {
-        List<Track> tracks = new ArrayList<>();
-        String sql = "SELECT * FROM songs LIMIT ? OFFSET ?";
-
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, limit);
-            ps.setInt(2, offset);
-
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                tracks.add(mapRowToTrack(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return tracks;
-    }
-
     /**
      * Searches tracks by keyword in title, artist, or album.
      */
@@ -154,7 +131,6 @@ public class TrackDAO {
     private Track mapRowToTrack(ResultSet rs) throws SQLException {
         String path = rs.getString("path");
 
-        // Reconstruct Track manually (without rereading file)
         return new Track(
                 path,
                 rs.getString("title"),
@@ -201,7 +177,7 @@ public class TrackDAO {
         return null;
     }
 
-    public List<Track> getTracks(int limit, int offset) {
+    public List<Track> getAllTracks(int limit, int offset) {
         List<Track> tracks = new ArrayList<>();
 
         String sql = "SELECT id, title, artist, album, length, path FROM songs LIMIT ? OFFSET ?";
@@ -229,6 +205,89 @@ public class TrackDAO {
 
         return tracks;
     }
+
+    public Track getTrackArtworkAndTitleById(Integer id) {
+        String sql = "SELECT title, compressed_artwork FROM songs WHERE id = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    Track t = new Track();
+                    t.setTitle(rs.getString("title"));
+                    t.setCompressedArtworkData(rs.getBytes("compressed_artwork"));
+                    return t;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // clearly indicates no track found
+    }
+
+    public List<Track> getAllTracksArtworkAndTitle() {
+        List<Track> tracks = new ArrayList<>();
+
+        // Only select title and artwork path
+        String sql = "SELECT title, compressed_artwork FROM songs";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                Track t = new Track();
+                t.setTitle(rs.getString("title"));
+                t.setCompressedArtworkData(rs.getBytes("compressed_artwork")); // assuming 'path' is the artwork path
+
+                tracks.add(t);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return tracks;
+    }
+
+    public List<Integer> getAllIdsSorted(String criteria, boolean ascending) {
+        List<Integer> ids = new ArrayList<>();
+        String order = ascending ? "ASC" : "DESC";
+        String sql;
+
+        switch (criteria) {
+            case "Title":
+                sql = "SELECT id FROM songs ORDER BY title " + order;
+                break;
+            case "Artist":
+                sql = "SELECT id FROM songs ORDER BY artist " + order;
+                break;
+            case "Album":
+                sql = "SELECT id FROM songs ORDER BY album " + order;
+                break;
+            case "Duration":
+                sql = "SELECT id FROM songs ORDER BY CAST(length AS INTEGER) " + order;
+                break;
+            case "Date Added":
+                sql = "SELECT id FROM songs ORDER BY rowid " + order; // assuming rowid is insertion order
+                break;
+            default:
+                sql = "SELECT id FROM songs ORDER BY title ASC"; // default
+                break;
+        }
+
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                ids.add(rs.getInt("id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ids;
+    }
+
+
+
+
 
 
 }
