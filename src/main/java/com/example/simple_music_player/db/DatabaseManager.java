@@ -53,7 +53,8 @@ public class DatabaseManager {
                         channels TEXT,
                         length TEXT,
                         artwork BLOB,
-                        compressed_artwork BLOB
+                        compressed_artwork BLOB,
+                        date_added TEXT
                     );
                 CREATE INDEX IF NOT EXISTS idx_songs_title ON songs(title);
                 CREATE INDEX IF NOT EXISTS idx_songs_artist ON songs(

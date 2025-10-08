@@ -22,8 +22,8 @@ public class TrackDAO {
     public void updateTracks(Track track) {
         String sql = """
             INSERT OR IGNORE INTO songs
-            (path, title, artist, album, genre, year, format, bitrate, sampleRate, channels, length, artwork, compressed_artwork)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (path, title, artist, album, genre, year, format, bitrate, sampleRate, channels, length, artwork, compressed_artwork, date_added)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -45,6 +45,7 @@ public class TrackDAO {
                 ps.setNull(12, Types.BLOB);
                 ps.setNull(13, Types.BLOB);
             }
+            ps.setString(14, track.getDateAdded());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -143,7 +144,8 @@ public class TrackDAO {
                 rs.getString("sampleRate"),
                 rs.getString("channels"),
                 rs.getString("length"),
-                rs.getBytes("artwork")
+                rs.getBytes("artwork"),
+                rs.getString("date_added")
         );
     }
 
@@ -250,7 +252,14 @@ public class TrackDAO {
 
     public List<Integer> getAllIdsSorted(String criteria, boolean ascending) {
         List<Integer> ids = new ArrayList<>();
-        String order = ascending ? "ASC" : "DESC";
+        String order;
+        if(!criteria.equals("Date Added")) {
+            order = "ASC";
+        } else {
+            order = "DESC";
+        }
+
+        //String order = ascending ? "ASC" : "DESC";
         String sql;
 
         switch (criteria) {
@@ -263,11 +272,11 @@ public class TrackDAO {
             case "Album":
                 sql = "SELECT id FROM songs ORDER BY album " + order;
                 break;
-            case "Duration":
+            case "Length":
                 sql = "SELECT id FROM songs ORDER BY CAST(length AS INTEGER) " + order;
                 break;
             case "Date Added":
-                sql = "SELECT id FROM songs ORDER BY rowid " + order; // assuming rowid is insertion order
+                sql = "SELECT id FROM songs ORDER BY date_added " + order; // assuming rowid is insertion order
                 break;
             default:
                 sql = "SELECT id FROM songs ORDER BY title ASC"; // default

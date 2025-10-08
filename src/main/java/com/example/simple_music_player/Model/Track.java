@@ -23,6 +23,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+
 import javafx.embed.swing.SwingFXUtils;
 
 @Getter
@@ -50,6 +55,7 @@ public class Track {
     private double coverHeight;
     private byte[] artworkData;
     private byte[] compressedArtworkData;
+    private String dateAdded;
 
 
     public Track(String filePath) {
@@ -67,6 +73,7 @@ public class Track {
         try {
             File file = new File(filePath);
             AudioFile audioFile = AudioFileIO.read(file);
+
 
             // --- TAG INFO ---
             Tag tag = audioFile.getTag();
@@ -96,6 +103,9 @@ public class Track {
                 ch  = header.getChannels();
                 len = header.getTrackLength();   //seconds
             }
+            this.dateAdded = String.valueOf(LocalDateTime.ofInstant(
+                    Instant.ofEpochMilli(file.lastModified()), ZoneId.systemDefault()
+            ));
 
         } catch (Exception e) {
             System.out.println("Error reading metadata for: " + filePath);
@@ -133,7 +143,8 @@ public class Track {
                  String sampleRate,
                  String channels,
                  String length,
-                 byte[] artworkData) {
+                 byte[] artworkData,
+                 String dateAdded) {
         this.path = path;
         this.title = title;
         this.artist = artist;
@@ -146,6 +157,7 @@ public class Track {
         this.channels = channels;
         this.length = length;
         this.artworkData = artworkData;
+        this.dateAdded = dateAdded;
 
         if (artworkData != null) {
             this.cover = new Image(new ByteArrayInputStream(artworkData));

@@ -17,7 +17,7 @@
                     <String fx:value="Title" />
                     <String fx:value="Artist" />
                     <String fx:value="Album" />
-                    <String fx:value="Duration" />
+                    <String fx:value="Length" />
                     <String fx:value="Date Added" />
                 </FXCollections>
             </items>

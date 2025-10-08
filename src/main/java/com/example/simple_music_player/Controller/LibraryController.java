@@ -216,11 +216,13 @@ public class LibraryController {
     private void filterTracks(String query) {
         // Get current sort criteria from comboBox
         String sortBy = sortComboBox.getValue() != null ? sortComboBox.getValue() : "title";
+        if(sortBy.equals("Date Added")) sortBy = "date_added";
         boolean ascending = true; // or maintain your ascending flag
 
+        String finalSortBy = sortBy;
         CompletableFuture.runAsync(() -> {
-            List<Integer> filteredIds = trackDAO.searchTrackIds(query, sortBy, ascending);
-
+            List<Integer> filteredIds = trackDAO.searchTrackIds(query, finalSortBy, ascending);
+            System.out.println("filteredIds = " + filteredIds);
             Platform.runLater(() -> {
                 refreshGrid(filteredIds);
             });
@@ -252,6 +254,7 @@ public class LibraryController {
         cover.setFitWidth(CARD_WIDTH);
         cover.setFitHeight(CARD_WIDTH);
         cover.setPreserveRatio(true);
+
 
         Track track = trackDAO.getTrackArtworkAndTitleById(id);
         /*byte[] artworkData = track.getCompressedArtworkData();
