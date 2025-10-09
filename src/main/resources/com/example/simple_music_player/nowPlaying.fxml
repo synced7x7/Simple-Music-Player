@@ -27,4 +27,5 @@
     <Label fx:id="formatLabel" alignment="CENTER" layoutX="103.0" layoutY="575.0" prefHeight="26.0" prefWidth="59.0" text="Format" />
     <Label fx:id="sampleRateLabel" alignment="CENTER" layoutX="189.0" layoutY="575.0" prefHeight="26.0" prefWidth="72.0" text="Samplerate" />
     <AnchorPane fx:id="visualizerHolder" layoutX="43.0" layoutY="605.0" prefHeight="62.0" prefWidth="362.0" />
+   <Button fx:id="infoButton" layoutX="33.0" layoutY="14.0" mnemonicParsing="false" onAction="#infoButtonHandler" text="𝒊" />
 </AnchorPane>

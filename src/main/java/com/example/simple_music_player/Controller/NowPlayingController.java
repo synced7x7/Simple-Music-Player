@@ -5,11 +5,18 @@ import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Services.VisualizerService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import lombok.Getter;
 
 import java.io.IOException;
@@ -27,6 +34,7 @@ public class NowPlayingController {
     @FXML private Label timeLabel;
     @FXML private Label sampleRateLabel;
     @FXML private AnchorPane visualizerHolder;
+    @FXML private Button infoButton;
 
 
     public static VisualizerService visualizerController;
@@ -115,5 +123,47 @@ public class NowPlayingController {
         //timeLabel is resetting in PlaybackService Class in play function by using listener
         System.out.println("Screen Cleared");
     }
+
+    @FXML
+    private void infoButtonHandler() {
+        Stage infoStage = new Stage();
+        infoStage.setTitle("About This App");
+
+        Label appName = new Label("🎵 SIMPLE MUSIC PLAYER");
+        appName.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+
+        Label version = new Label("Version 0.1.0");
+        Label author = new Label("Developed by: synced_x_");
+        Label mail = new Label("synced7x7@gmail.com");
+        Label credits = new Label("Releases");
+        credits.setStyle("-fx-text-fill: blue; -fx-underline: true;");
+        credits.setCursor(Cursor.HAND);
+
+        VBox root = new VBox(10, appName, version, author, mail, credits);
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(15));
+
+        Scene scene = new Scene(root, 300, 200);
+        infoStage.setScene(scene);
+        infoStage.initModality(Modality.APPLICATION_MODAL);
+        infoStage.setResizable(false);
+        infoStage.show();
+
+        // Easter egg: clicking anywhere in the window updates author name
+        root.setOnMouseClicked(event -> {
+            author.setText("Developed by: Tasnif Emran");
+            mail.setText("tasnifemran@gmail.com, Instagram: synced_x");
+        });
+
+        // Clicking "Updates" → open website
+        credits.setOnMouseClicked(event -> {
+            try {
+                java.awt.Desktop.getDesktop().browse(new java.net.URI("https://github.com/synced7x7/Simple-Music-Player/tags"));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+    }
+
 
 }
