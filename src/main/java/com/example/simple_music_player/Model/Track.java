@@ -61,6 +61,7 @@ public class Track {
     public Track(String filePath) {
         this.path = filePath;
 
+
         String t = null, a = null, al = null, g = null, y = null;
         String fmt = null, br = null, sr = null, ch = null;
         int len = 0;
@@ -88,7 +89,7 @@ public class Track {
                 if (art != null) {
                     imageData = art.getBinaryData();
                     c = new Image(new ByteArrayInputStream(imageData));
-                    compImageData = CompressionUtility.resizeAndCompress(c, 300, 300, 0.6f);
+                    compImageData = CompressionUtility.resizeAndCompress(c, 250, 250, 0.5f);
                     covW = c.getWidth();
                     covH = c.getHeight();
                 }

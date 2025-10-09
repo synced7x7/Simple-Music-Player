@@ -4,10 +4,10 @@
 <?import javafx.collections.FXCollections?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.GridPane?>
 
 <AnchorPane prefHeight="750" prefWidth="450" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.LibraryController">
     <children>
@@ -22,14 +22,12 @@
                 </FXCollections>
             </items>
         </ComboBox>
-        <ScrollPane layoutY="73.0" prefHeight="677.0" prefWidth="450">
-            <content>
-                <GridPane fx:id="songGrid" hgap="10" vgap="10" />
-            </content>
-        </ScrollPane>
+         <!-- Virtualized list for songs -->
+         <ListView fx:id="songListView" layoutY="92.0" prefHeight="659.0" prefWidth="450" />
       <TextField fx:id="searchField" layoutX="14.0" layoutY="11.0" prefHeight="26.0" prefWidth="263.0" />
       <Button fx:id="shuffleButton" layoutX="400.0" layoutY="41.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" text="🔀" />
       <Button fx:id="reverseButton" layoutX="366.0" layoutY="41.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" text="🔄" />
       <Button fx:id="directoryButton" layoutX="14.0" layoutY="41.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" text="📁" />
+      <Label fx:id="songCountLabel" alignment="CENTER" layoutX="198.0" layoutY="67.0" text="521 songs" />
     </children>
 </AnchorPane>

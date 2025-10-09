@@ -2,7 +2,6 @@ package com.example.simple_music_player.Controller;
 
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Services.PlaybackService;
-import com.example.simple_music_player.Utility.ThumbnailCaching;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.TrackDAO;
 import javafx.application.Platform;

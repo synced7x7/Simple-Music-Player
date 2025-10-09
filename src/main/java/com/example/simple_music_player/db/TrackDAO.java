@@ -208,7 +208,7 @@ public class TrackDAO {
         return tracks;
     }
 
-    public Track getTrackArtworkAndTitleById(Integer id) {
+    public Track getTrackCompressedArtworkAndTitleById(Integer id) {
         String sql = "SELECT title, compressed_artwork FROM songs WHERE id = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
