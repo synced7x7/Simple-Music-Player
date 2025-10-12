@@ -253,36 +253,21 @@ public class TrackDAO {
 
     public List<Integer> getAllIdsSorted(String criteria, boolean ascending) {
         List<Integer> ids = new ArrayList<>();
-        String order;
-        if(!criteria.equals("Date Added")) {
-            order = "ASC";
-        } else {
-            order = "DESC";
-        }
 
-        //String order = ascending ? "ASC" : "DESC";
+        if(criteria.equals("Date Added"))
+            ascending = !ascending;
+        String order = ascending ? "ASC" : "DESC";
         String sql;
-        //System.out.println("DB CRITERIA: " + criteria);
-        switch (criteria) {
-            case "Title":
-                sql = "SELECT id FROM songs ORDER BY title " + order;
-                break;
-            case "Artist":
-                sql = "SELECT id FROM songs ORDER BY artist " + order;
-                break;
-            case "Album":
-                sql = "SELECT id FROM songs ORDER BY album " + order;
-                break;
-            case "Length":
-                sql = "SELECT id FROM songs ORDER BY CAST(length AS INTEGER) " + order;
-                break;
-            case "Date Added":
-                sql = "SELECT id FROM songs ORDER BY date_added " + order; // assuming rowid is insertion order
-                break;
-            default:
-                sql = "SELECT id FROM songs ORDER BY title ASC"; // default
-                break;
-        }
+        System.out.println("DB CRITERIA: " + criteria +  " ORDER BY " + order);
+        sql = switch (criteria) {
+            case "Title" -> "SELECT id FROM songs ORDER BY title " + order;
+            case "Artist" -> "SELECT id FROM songs ORDER BY artist " + order;
+            case "Album" -> "SELECT id FROM songs ORDER BY album " + order;
+            case "Length" -> "SELECT id FROM songs ORDER BY CAST(length AS INTEGER) " + order;
+            case "Date Added" ->
+                    "SELECT id FROM songs ORDER BY date_added " + order; // assuming rowid is insertion order
+            default -> "SELECT id FROM songs ORDER BY title ASC"; // default
+        };
 
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -296,7 +281,7 @@ public class TrackDAO {
     }
 
     //for Searching through words
-    public List<Integer> searchTrackIds(String query, String sortBy, boolean ascending) {
+    public List<Integer> searchTrackIds (String query, String sortBy, boolean ascending) {
         List<Integer> ids = new ArrayList<>();
         if (query == null || query.isEmpty()) return getAllIdsSorted(sortBy, ascending);
 

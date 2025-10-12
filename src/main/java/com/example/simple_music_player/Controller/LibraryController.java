@@ -19,7 +19,6 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class LibraryController {
 
@@ -29,8 +28,7 @@ public class LibraryController {
     private TextField searchField;
     @FXML
     private ComboBox<String> sortComboBox;
-    @FXML
-    private Button shuffleButton;
+
     @FXML
     private Button reverseButton;
     @FXML
@@ -94,8 +92,6 @@ public class LibraryController {
             if (newVal != null) sortLibrary(newVal);
         });
 
-        // Shuffle & Reverse
-        shuffleButton.setOnAction(e -> sortLibrary("Shuffle"));
         reverseButton.setOnAction(e -> sortLibrary("Reverse"));
 
         // ListView Cell Factory (virtualized cards)
@@ -154,35 +150,34 @@ public class LibraryController {
 
     // --- Sorting ---
     private void sortLibrary(String criteria) {
-        if (!criteria.equals("Shuffle") && !criteria.equals("Reverse") && prevCriteria.equals(criteria)) {
+        if (!criteria.equals("Reverse") && prevCriteria.equals(criteria)) {
             System.out.println("prevCriteria equals Present criteria");
             return;
         }
-        //System.out.println("Criteria: " + criteria);
+        System.out.println("Criteria: " + criteria);
 
         restartFromStart = true;
         new Thread(() -> {
             int songId = -1;
             List<Integer> sortedIds;
-            switch (criteria) {
-                case "Shuffle" -> {
-                    sortedIds = new ArrayList<>(PlaybackService.getPlaylist());
-                    Collections.shuffle(sortedIds);
-                }
-                case "Reverse" -> {
-                    sortedIds = new ArrayList<>(PlaybackService.getPlaylist());
-                    Collections.reverse(sortedIds);
-                }
-                default -> {
-                    UserPref.sortingPref = criteria;
-                    //
-                    songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
-                   // System.out.println("Song id before sorting: " + songId + "|| Index: " + playbackService.getCurrentIndex());
-                    //
-                    sortedIds = trackDAO.getAllIdsSorted(criteria, ascending);
-                }
+
+            if (criteria.equals("Reverse")) {
+                UserPref.reverse = (UserPref.reverse == 0) ? 1 : 0;
+                sortedIds = new ArrayList<>(PlaybackService.getPlaylist());
+                songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
+                System.out.println("Song id before sorting: " + songId + "|| Index: " + playbackService.getCurrentIndex() + "|| Reverse: " + UserPref.reverse);
+                Collections.reverse(sortedIds);
+            } else {
+                UserPref.sortingPref = criteria;
+                //
+                songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
+                // System.out.println("Song id before sorting: " + songId + "|| Index: " + playbackService.getCurrentIndex());
+                if(UserPref.reverse == 1) ascending = false;
+                sortedIds = trackDAO.getAllIdsSorted(criteria, ascending);
             }
-            prevCriteria = criteria;
+
+            if(!criteria.equals("Reverse"))
+                prevCriteria = criteria;
 
 
             int finalSongId = songId; //safeguard mechanism of java so that multiple threads doesn't update the same variable
@@ -194,7 +189,7 @@ public class LibraryController {
                 int idx = PlaybackService.getPlaylist().indexOf(finalSongId);
                 playbackService.setCurrentIndex(idx);
                 UserPref.playlistNo = idx;
-               // System.out.println("Song id after sorting: " + finalSongId + "|| Index: " + idx);
+                System.out.println("Song id after sorting: " + finalSongId + "|| Index: " + idx);
             });
         }).start();
     }
@@ -203,6 +198,9 @@ public class LibraryController {
     private void loadInitialDirectoryFromDatabase() throws SQLException {
         String sortingPref = userPrefDAO.getSortingPref();
         List<Integer> idsToLoad;
+        int reverse = userPrefDAO.getReverse();
+        UserPref.reverse = reverse;
+        if(reverse==1) ascending = false;
 
         if (sortingPref != null && !sortingPref.isEmpty()) {
             // Fetch from DB in sorted order directly
@@ -216,6 +214,7 @@ public class LibraryController {
         int idx = userPrefDAO.getPlaylistNo();
         String status = userPrefDAO.getUserStatus();
         long ts = userPrefDAO.getTimeStamp();
+
 
         if (trackDAO.getTrackPath() != null) {
             File dir = new File(trackDAO.getTrackPath());
@@ -258,7 +257,10 @@ public class LibraryController {
                 }
             }
 
-            List<Integer> allIds = trackDAO.getAllIds();
+            List<Integer> allIds = trackDAO.getAllIds();//order by title
+            UserPref.setUserPref(0, 0, "Play" , "Title", 0);
+            ascending = true;
+            
             Platform.runLater(() -> {
                 countSongs(allIds.size());
                 playbackService.setPlaylist(allIds, dirChanged);

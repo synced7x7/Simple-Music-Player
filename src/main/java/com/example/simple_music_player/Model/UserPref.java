@@ -8,5 +8,15 @@ public class UserPref {
     public static long timestamp;
     public static String status;
     public static String sortingPref;
+    public static int reverse;
+
+    public static void setUserPref(int playlistNo, long timestamp, String status, String sortingPref, int reverse) {
+        UserPref.playlistNo = playlistNo;
+        UserPref.timestamp = timestamp;
+        UserPref.status = status;
+        UserPref.sortingPref = sortingPref;
+        UserPref.reverse = reverse;
+    }
 }
+
 

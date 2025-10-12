@@ -16,8 +16,8 @@ public class UserPrefDAO {
 
     public void setUserPref() throws SQLException {
         String sql = """
-                    INSERT OR REPLACE INTO user_pref (id, playlistNo, timestamp, status, sortingPref)
-                    VALUES (1, ?, ?, ?, ?)
+                    INSERT OR REPLACE INTO user_pref (id, playlistNo, timestamp, status, sortingPref, reverse)
+                    VALUES (1, ?, ?, ?, ?, ?)
                 """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -31,6 +31,8 @@ public class UserPrefDAO {
             if ((getSortingPref() == null || getSortingPref().isEmpty()) && (UserPref.sortingPref == null || UserPref.sortingPref.isEmpty())) UserPref.sortingPref = "Title"; //1st time
             if (UserPref.sortingPref !=null) ps.setString(4, UserPref.sortingPref); //when dropdown is not used, use db
             else ps.setString(4, getSortingPref()); //when dropdown is used
+
+            ps.setInt(5, UserPref.reverse);
 
             ps.executeUpdate();
         }
@@ -87,6 +89,19 @@ public class UserPrefDAO {
             }
         }
         return "";
+    }
+
+    public int getReverse() throws SQLException {
+        String sql = """
+                    SELECT reverse FROM user_pref
+        """;
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery()) {
+            if(rs.next()) {
+                return rs.getInt("reverse");
+            }
+        }
+        return 0;
     }
 
 }

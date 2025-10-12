@@ -65,7 +65,7 @@ public class DatabaseManager {
                         timestamp BIGINT,
                         status VARCHAR,
                         sortingPref VARCHAR,
-                        title VARCHAR
+                        reverse INTEGER
                     );
                 """;
 
