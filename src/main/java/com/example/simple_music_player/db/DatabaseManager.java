@@ -64,7 +64,8 @@ public class DatabaseManager {
                         playlistNo INTEGER,
                         timestamp BIGINT,
                         status VARCHAR,
-                        sortingPref VARCHAR
+                        sortingPref VARCHAR,
+                        title VARCHAR
                     );
                 """;
 

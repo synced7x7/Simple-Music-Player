@@ -262,7 +262,7 @@ public class TrackDAO {
 
         //String order = ascending ? "ASC" : "DESC";
         String sql;
-
+        //System.out.println("DB CRITERIA: " + criteria);
         switch (criteria) {
             case "Title":
                 sql = "SELECT id FROM songs ORDER BY title " + order;
@@ -295,6 +295,7 @@ public class TrackDAO {
         return ids;
     }
 
+    //for Searching through words
     public List<Integer> searchTrackIds(String query, String sortBy, boolean ascending) {
         List<Integer> ids = new ArrayList<>();
         if (query == null || query.isEmpty()) return getAllIdsSorted(sortBy, ascending);

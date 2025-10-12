@@ -19,6 +19,7 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LibraryController {
 
@@ -50,10 +51,9 @@ public class LibraryController {
     private boolean dirChanged = false;
 
     private boolean ascending = true;
-    private String prevCriteria = "Title";
+    private String prevCriteria = "";
 
     private final UserPrefDAO userPrefDAO = new UserPrefDAO(DatabaseManager.getConnection());
-
 
     @FXML
     public void initialize() throws SQLException {
@@ -155,12 +155,14 @@ public class LibraryController {
     // --- Sorting ---
     private void sortLibrary(String criteria) {
         if (!criteria.equals("Shuffle") && !criteria.equals("Reverse") && prevCriteria.equals(criteria)) {
+            System.out.println("prevCriteria equals Present criteria");
             return;
         }
+        //System.out.println("Criteria: " + criteria);
 
         restartFromStart = true;
-
         new Thread(() -> {
+            int songId = -1;
             List<Integer> sortedIds;
             switch (criteria) {
                 case "Shuffle" -> {
@@ -171,34 +173,63 @@ public class LibraryController {
                     sortedIds = new ArrayList<>(PlaybackService.getPlaylist());
                     Collections.reverse(sortedIds);
                 }
-                default -> sortedIds = trackDAO.getAllIdsSorted(criteria, ascending);
+                default -> {
+                    UserPref.sortingPref = criteria;
+                    //
+                    songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
+                   // System.out.println("Song id before sorting: " + songId + "|| Index: " + playbackService.getCurrentIndex());
+                    //
+                    sortedIds = trackDAO.getAllIdsSorted(criteria, ascending);
+                }
             }
             prevCriteria = criteria;
+
+
+            int finalSongId = songId; //safeguard mechanism of java so that multiple threads doesn't update the same variable
+                                        // so either use temp or atomic when using variable in a thread.
 
             Platform.runLater(() -> {
                 playbackService.setPlaylist(sortedIds, false);
                 songListView.getItems().setAll(sortedIds);
+                int idx = PlaybackService.getPlaylist().indexOf(finalSongId);
+                playbackService.setCurrentIndex(idx);
+                UserPref.playlistNo = idx;
+               // System.out.println("Song id after sorting: " + finalSongId + "|| Index: " + idx);
             });
         }).start();
     }
 
     // --- Initial load ---
     private void loadInitialDirectoryFromDatabase() throws SQLException {
-        List<Integer> allIds = trackDAO.getAllIds();
+        String sortingPref = userPrefDAO.getSortingPref();
+        List<Integer> idsToLoad;
+
+        if (sortingPref != null && !sortingPref.isEmpty()) {
+            // Fetch from DB in sorted order directly
+            idsToLoad = trackDAO.getAllIdsSorted(sortingPref, ascending);
+            System.out.println("Loaded sorted order based on: " + sortingPref);
+        } else {
+            // Default: order by title
+            idsToLoad = trackDAO.getAllIds();
+        }
+
         int idx = userPrefDAO.getPlaylistNo();
         String status = userPrefDAO.getUserStatus();
-        Long ts = userPrefDAO.getTimeStamp();
+        long ts = userPrefDAO.getTimeStamp();
+
         if (trackDAO.getTrackPath() != null) {
             File dir = new File(trackDAO.getTrackPath());
             prevFiles = dir.listFiles(this::isAudioFile);
         }
 
         Platform.runLater(() -> {
-            countSongs(allIds.size());
-            songListView.getItems().setAll(allIds);
-            playbackService.setPlaylist(allIds, idx, status, ts);
+            countSongs(idsToLoad.size());
+            songListView.getItems().setAll(idsToLoad);
+            playbackService.setPlaylist(idsToLoad, idx, status, ts);
         });
+
     }
+
 
     // --- Directory Load ---
     private void loadSongsFromDirectory(File dir) {

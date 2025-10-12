@@ -21,6 +21,8 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class PlaybackService {
+    @Getter
+    @Setter
     private int currentIndex = -1; //tracks the song that is active
     private MediaPlayer mediaPlayer; //plays sound
 
@@ -59,29 +61,12 @@ public class PlaybackService {
     @Getter
     private static final PlaybackService instance = new PlaybackService();
 
-    public PlaybackService() {
+    public PlaybackService() {}
+
+    public int getPlaylistId(int idx) {
+        System.out.println("Index: " + idx + " songId: " + playlist.get(idx));
+        return playlist.get(idx);
     }
-
-    // 👇 Add this inside PlaybackService class
-    private Runnable onMediaReadyCallback;
-
-    /**
-     * Call this before play(index) if you want to run something
-     * when media finishes loading (like restoring seek position).
-     */
-    public void setOnMediaReady(Runnable callback) {
-        this.onMediaReadyCallback = callback;
-    }
-
-    /**
-     * Seek the current track to a specific timestamp in milliseconds.
-     */
-    public void seek(long millis) {
-        if (mediaPlayer != null) {
-            mediaPlayer.seek(Duration.millis(millis));
-        }
-    }
-
 
     public void setPlaylist(List<Integer> ids, boolean autoPlay) {
         playlist = ids;
@@ -111,6 +96,7 @@ public class PlaybackService {
 
         // Prepare the player for the desired index
         currentIndex = idx;
+        System.out.println("Initial Playing: " + idx);
         UserPref.playlistNo = currentIndex;
         int songId = playlist.get(idx);
         Track t = trackDao.getTrackById(songId);
@@ -123,10 +109,11 @@ public class PlaybackService {
 
         Media media = new Media(new File(t.getPath()).toURI().toString());
         mediaPlayer = new MediaPlayer(media);
-
+        if(status == null) status = "Play";
+        String finalStatus = status; //emergency handling
         mediaPlayer.setOnReady(() -> {
             mediaPlayer.seek(Duration.millis(ts));
-            if (status.equals("Pause")) {
+            if (finalStatus.equals("Pause")) {
                 mediaPlayer.pause();
             } else {
                 mediaPlayer.play();

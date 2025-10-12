@@ -23,12 +23,15 @@ public class UserPrefDAO {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, UserPref.playlistNo);
             ps.setLong(2, UserPref.timestamp);
-            if (getUserStatus().isEmpty() && UserPref.status == null) UserPref.status = "Play";
-            if (UserPref.status != null)
-                ps.setString(3, UserPref.status);
-            else
-                ps.setString(3, getUserStatus());
-            ps.setString(4, UserPref.sortingPref);
+
+            if ((getUserStatus() == null || getUserStatus().isEmpty() ) && (UserPref.status == null || UserPref.status.isEmpty())) UserPref.status = "Play";
+            if (UserPref.status != null) ps.setString(3, UserPref.status);
+            else ps.setString(3, getUserStatus());
+
+            if ((getSortingPref() == null || getSortingPref().isEmpty()) && (UserPref.sortingPref == null || UserPref.sortingPref.isEmpty())) UserPref.sortingPref = "Title"; //1st time
+            if (UserPref.sortingPref !=null) ps.setString(4, UserPref.sortingPref); //when dropdown is not used, use db
+            else ps.setString(4, getSortingPref()); //when dropdown is used
+
             ps.executeUpdate();
         }
     }
