@@ -1,9 +1,11 @@
 package com.example.simple_music_player.Controller;
 
 import com.example.simple_music_player.Model.Track;
+import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.TrackDAO;
+import com.example.simple_music_player.db.UserPrefDAO;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -14,23 +16,32 @@ import javafx.stage.DirectoryChooser;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class LibraryController {
 
-    @FXML private ListView<Integer> songListView;
-    @FXML private TextField searchField;
-    @FXML private ComboBox<String> sortComboBox;
-    @FXML private Button shuffleButton;
-    @FXML private Button reverseButton;
-    @FXML private Button directoryButton;
-    @FXML private Label songCountLabel;
+    @FXML
+    private ListView<Integer> songListView;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private ComboBox<String> sortComboBox;
+    @FXML
+    private Button shuffleButton;
+    @FXML
+    private Button reverseButton;
+    @FXML
+    private Button directoryButton;
+    @FXML
+    private Label songCountLabel;
 
     private static final double CARD_WIDTH = 120;
     private static final double CARD_HEIGHT = 150;
 
     private final PlaybackService playbackService = NowPlayingController.getPlaybackService();
+
     private final TrackDAO trackDAO = new TrackDAO(DatabaseManager.getConnection());
 
     private File selectedDir;
@@ -41,8 +52,11 @@ public class LibraryController {
     private boolean ascending = true;
     private String prevCriteria = "Title";
 
+    private final UserPrefDAO userPrefDAO = new UserPrefDAO(DatabaseManager.getConnection());
+
+
     @FXML
-    public void initialize() {
+    public void initialize() throws SQLException {
         //Load initial library from DB
         loadInitialDirectoryFromDatabase();
 
@@ -135,6 +149,7 @@ public class LibraryController {
                 }
             }
         });
+
     }
 
     // --- Sorting ---
@@ -168,8 +183,11 @@ public class LibraryController {
     }
 
     // --- Initial load ---
-    private void loadInitialDirectoryFromDatabase() {
+    private void loadInitialDirectoryFromDatabase() throws SQLException {
         List<Integer> allIds = trackDAO.getAllIds();
+        int idx = userPrefDAO.getPlaylistNo();
+        String status = userPrefDAO.getUserStatus();
+        Long ts = userPrefDAO.getTimeStamp();
         if (trackDAO.getTrackPath() != null) {
             File dir = new File(trackDAO.getTrackPath());
             prevFiles = dir.listFiles(this::isAudioFile);
@@ -178,7 +196,7 @@ public class LibraryController {
         Platform.runLater(() -> {
             countSongs(allIds.size());
             songListView.getItems().setAll(allIds);
-            playbackService.setPlaylist(allIds, true);
+            playbackService.setPlaylist(allIds, idx, status, ts);
         });
     }
 
@@ -241,6 +259,7 @@ public class LibraryController {
         String ext = name.substring(dotIndex + 1).toLowerCase();
         return ext.equals("mp3") || ext.equals("wav");
     }
+
 
     public static boolean restartFromStart = false;
 }

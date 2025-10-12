@@ -4,10 +4,12 @@ import com.example.simple_music_player.Controller.AlbumCoverController;
 import com.example.simple_music_player.Controller.LibraryController;
 import com.example.simple_music_player.Controller.NowPlayingController;
 import com.example.simple_music_player.Model.Track;
+import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.TrackDAO;
+import com.example.simple_music_player.db.UserPrefDAO;
 import javafx.beans.property.*;
-import javafx.fxml.FXML;
+
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
@@ -15,6 +17,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.List;
 
 public class PlaybackService {
@@ -28,11 +31,21 @@ public class PlaybackService {
     private final StringProperty elapsedTime = new SimpleStringProperty("00:00");
     private final StringProperty remainingTime = new SimpleStringProperty("00:00");
 
-    public ReadOnlyStringProperty elapsedTimeProperty() { return elapsedTime; }
-    public ReadOnlyStringProperty remainingTimeProperty() { return remainingTime; }
+    public ReadOnlyStringProperty elapsedTimeProperty() {
+        return elapsedTime;
+    }
 
-    public ReadOnlyObjectProperty<Track> currentTrackProperty() { return currentTrack; }
-    public ReadOnlyDoubleProperty progressProperty() { return progress; }
+    public ReadOnlyStringProperty remainingTimeProperty() {
+        return remainingTime;
+    }
+
+    public ReadOnlyObjectProperty<Track> currentTrackProperty() {
+        return currentTrack;
+    }
+
+    public ReadOnlyDoubleProperty progressProperty() {
+        return progress;
+    }
 
     @Getter
     public static List<Integer> playlist; // just keep IDs of songs in order
@@ -41,10 +54,38 @@ public class PlaybackService {
     @Setter
     AlbumCoverController albumCoverController;
 
+    private final UserPrefDAO userPrefDAO = new UserPrefDAO(DatabaseManager.getConnection());
+
+    @Getter
+    private static final PlaybackService instance = new PlaybackService();
+
+    public PlaybackService() {
+    }
+
+    // 👇 Add this inside PlaybackService class
+    private Runnable onMediaReadyCallback;
+
+    /**
+     * Call this before play(index) if you want to run something
+     * when media finishes loading (like restoring seek position).
+     */
+    public void setOnMediaReady(Runnable callback) {
+        this.onMediaReadyCallback = callback;
+    }
+
+    /**
+     * Seek the current track to a specific timestamp in milliseconds.
+     */
+    public void seek(long millis) {
+        if (mediaPlayer != null) {
+            mediaPlayer.seek(Duration.millis(millis));
+        }
+    }
+
 
     public void setPlaylist(List<Integer> ids, boolean autoPlay) {
         playlist = ids;
-        if(playlist.isEmpty()) {
+        if (playlist.isEmpty()) {
             nowPlayingController.clearScreen();
             albumCoverController.clearCover();
             pause();
@@ -56,6 +97,47 @@ public class PlaybackService {
         }
     }
 
+    //Playlist for initial loading for directory
+    public void setPlaylist(List<Integer> ids, int idx, String status, long ts) {
+        playlist = ids;
+        if (playlist.isEmpty()) {
+            nowPlayingController.clearScreen();
+            albumCoverController.clearCover();
+            pause();
+            currentIndex = -1;
+            return;
+        }
+
+
+        // Prepare the player for the desired index
+        currentIndex = idx;
+        UserPref.playlistNo = currentIndex;
+        int songId = playlist.get(idx);
+        Track t = trackDao.getTrackById(songId);
+        currentTrack.set(t);
+
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.dispose();
+        }
+
+        Media media = new Media(new File(t.getPath()).toURI().toString());
+        mediaPlayer = new MediaPlayer(media);
+
+        mediaPlayer.setOnReady(() -> {
+            mediaPlayer.seek(Duration.millis(ts));
+            if (status.equals("Pause")) {
+                mediaPlayer.pause();
+            } else {
+                mediaPlayer.play();
+            }
+        });
+
+        mediaPlayer.setOnEndOfMedia(this::next);
+
+    }
+
+
     public void clearList() {
         playlist.clear();
         System.out.println("Playlist Cleared");
@@ -64,6 +146,9 @@ public class PlaybackService {
     public void play(int index) {
         if (index < 0 || index >= playlist.size()) return;
         System.out.println("Currently playing " + index);
+        //
+        UserPref.playlistNo = index;
+        //
         currentIndex = index;
         int songId = playlist.get(index);
         Track t = trackDao.getTrackById(songId);  // fetch from DB only now
@@ -83,7 +168,7 @@ public class PlaybackService {
 
         //Duration formatter
         mediaPlayer.currentTimeProperty().addListener((obs, oldT, newT) -> {
-            if(playlist == null || playlist.isEmpty()) {
+            if (playlist == null || playlist.isEmpty()) {
                 progress.set(0);
                 elapsedTime.set("00:00");
                 remainingTime.set("00:00");
@@ -103,7 +188,7 @@ public class PlaybackService {
 
                 // calculate run-up (elapsed)
                 int currentSec = (int) newT.toSeconds();
-                int totalSec   = (int) total.toSeconds();
+                int totalSec = (int) total.toSeconds();
 
                 elapsedTime.set(formatTime(currentSec));
 
@@ -128,12 +213,27 @@ public class PlaybackService {
             play(currentIndex);
         }
     }
-    public void pause() { if (mediaPlayer != null) mediaPlayer.pause(); }
+
+    public void pause() {
+        if (mediaPlayer != null) {
+            mediaPlayer.pause();
+            System.out.println("Media paused");
+        }
+    }
 
     public void togglePlayPause() {
-        if (mediaPlayer == null) { play(); return; }
+        if (mediaPlayer == null) {
+            play();
+            return;
+        }
         MediaPlayer.Status s = mediaPlayer.getStatus();
-        if (s == MediaPlayer.Status.PLAYING) pause(); else play();
+        if (s == MediaPlayer.Status.PLAYING) {
+            UserPref.status = "Pause";
+            pause();
+        } else {
+            UserPref.status = "Play";
+            play();
+        }
     }
 
     public void next() {
@@ -164,11 +264,19 @@ public class PlaybackService {
     }
 
     private boolean checkRestartFromStart() {
-        if(LibraryController.restartFromStart){
+        if (LibraryController.restartFromStart) {
             LibraryController.restartFromStart = false;
             return true;
         }
         return false;
+    }
+
+    public void closePlaybackService() throws SQLException {
+        if (mediaPlayer != null) {
+            Duration currentTime = mediaPlayer.getCurrentTime();
+            UserPref.timestamp = (long) currentTime.toMillis();
+        }
+        userPrefDAO.setUserPref();
     }
 
 }

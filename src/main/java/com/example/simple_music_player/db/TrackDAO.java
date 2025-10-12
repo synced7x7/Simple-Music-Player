@@ -1,6 +1,7 @@
 package com.example.simple_music_player.db;
 
 import com.example.simple_music_player.Model.Track;
+import com.example.simple_music_player.Model.UserPref;
 
 import java.io.File;
 import java.sql.*;
@@ -319,9 +320,4 @@ public class TrackDAO {
         }
         return ids;
     }
-
-
-
-
-
 }

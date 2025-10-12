@@ -1,5 +1,7 @@
 package com.example.simple_music_player;
 
+import com.example.simple_music_player.Controller.NowPlayingController;
+import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.db.DatabaseManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -7,9 +9,11 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class SimpleMusicPlayer extends Application {
 
+    PlaybackService playbackService = NowPlayingController.getPlaybackService();
     @Override
     public void start(Stage stage) throws IOException {
         DatabaseManager.initialize();
@@ -27,7 +31,10 @@ public class SimpleMusicPlayer extends Application {
     }
 
     @Override
-    public void stop() {
+    public void stop() throws SQLException {
+        if (playbackService != null) {
+            playbackService.closePlaybackService();
+        }
         DatabaseManager.close();
     }
 }

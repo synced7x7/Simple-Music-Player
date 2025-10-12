@@ -9,9 +9,7 @@ public class DatabaseManager {
     private static final String DB_FOLDER = ".myplayer";  // will be inside user.home
     private static Connection connection;
 
-    /**
-     * Initializes the SQLite database connection and creates tables if not existing.
-     */
+
     public static void initialize() {
         try {
             // Determine database path inside user's home directory
@@ -33,12 +31,9 @@ public class DatabaseManager {
         }
     }
 
-    /**
-     * Creates required tables if they do not exist.
-     */
     private static void createTables() throws SQLException {
         String createSongsTable = """
-                    --DROP TABLE IF EXISTS songs;
+                    --DROP TABLE if EXISTS songs;
                     CREATE TABLE IF NOT EXISTS songs (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         path TEXT UNIQUE NOT NULL,
@@ -56,14 +51,29 @@ public class DatabaseManager {
                         compressed_artwork BLOB,
                         date_added TEXT
                     );
-                CREATE INDEX IF NOT EXISTS idx_songs_title ON songs(title);
-                CREATE INDEX IF NOT EXISTS idx_songs_artist ON songs(
-                            artist);
-                CREATE INDEX IF NOT EXISTS idx_songs_album ON songs(album);
                 """;
-        //BLOB = binary large object //here used for images
+
+        String createIndexTitle = "CREATE INDEX IF NOT EXISTS idx_songs_title ON songs(title);";
+        String createIndexArtist = "CREATE INDEX IF NOT EXISTS idx_songs_artist ON songs(artist);";
+        String createIndexAlbum = "CREATE INDEX IF NOT EXISTS idx_songs_album ON songs(album);";
+
+        String createUserPrefTable = """
+                    --DROP TABLE IF EXISTS user_pref;
+                    CREATE TABLE IF NOT EXISTS user_pref (
+                        id INTEGER PRIMARY KEY,
+                        playlistNo INTEGER,
+                        timestamp BIGINT,
+                        status VARCHAR,
+                        sortingPref VARCHAR
+                    );
+                """;
+
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createSongsTable);
+            stmt.execute(createIndexTitle);
+            stmt.execute(createIndexArtist);
+            stmt.execute(createIndexAlbum);
+            stmt.execute(createUserPrefTable);
         }
     }
 
