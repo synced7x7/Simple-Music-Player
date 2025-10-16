@@ -173,7 +173,7 @@ public class TrackDAO {
         }
         return ids;
     }
-    
+
     public List<Integer> searchTrackIds (String query, String sortBy, boolean ascending) {
         List<Integer> ids = new ArrayList<>();
         if (query == null || query.isEmpty()) return getAllIdsSorted(sortBy, ascending);

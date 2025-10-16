@@ -13,9 +13,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
-import lombok.Getter;
-import lombok.Setter;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.sql.SQLException;

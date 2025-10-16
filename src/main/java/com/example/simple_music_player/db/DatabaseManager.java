@@ -72,19 +72,35 @@ public class DatabaseManager {
                     );
                 """;
 
+        String createPlaylistsTable = """
+                    CREATE TABLE IF NOT EXISTS playlists (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name VARCHAR NOT NULL
+                    );
+                """;
+
+        String createPlaylistSongsTable = """
+                    CREATE TABLE IF NOT EXISTS playlist_songs (
+                        playlist_id INTEGER NOT NULL,
+                        song_id INTEGER NOT NULL,
+                        PRIMARY KEY (playlist_id, song_id),
+                        FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
+                        FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE
+                    );
+                """;
+
+
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createSongsTable);
             stmt.execute(createIndexTitle);
             stmt.execute(createIndexArtist);
             stmt.execute(createIndexAlbum);
             stmt.execute(createUserPrefTable);
+            stmt.execute(createPlaylistsTable);
+            stmt.execute(createPlaylistSongsTable);
         }
     }
 
-
-    /**
-     * Returns the shared database connection.
-     */
     public static Connection getConnection() {
         if (connection == null) {
             initialize();
@@ -92,9 +108,6 @@ public class DatabaseManager {
         return connection;
     }
 
-    /**
-     * Closes the database connection gracefully on app exit.
-     */
     public static void close() {
         if (connection != null) {
             try {

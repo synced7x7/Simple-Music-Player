@@ -192,7 +192,6 @@ public class NowPlayingController {
         if (UserPref.shuffle == 1) UserPref.shuffle = 0;
         else UserPref.shuffle = 1;
 
-
         System.out.println("User Shuffle status after toggling: " + UserPref.shuffle);
     }
 
