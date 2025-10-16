@@ -1,9 +1,11 @@
 package com.example.simple_music_player.Controller;
 
+import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.db.DatabaseManager;
+import com.example.simple_music_player.db.PlaylistsDAO;
 import com.example.simple_music_player.db.TrackDAO;
 import com.example.simple_music_player.db.UserPrefDAO;
 import javafx.application.Platform;
@@ -13,6 +15,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.sql.SQLException;
@@ -51,13 +54,13 @@ public class LibraryController {
     private String prevCriteria = "";
 
     private final UserPrefDAO userPrefDAO = new UserPrefDAO(DatabaseManager.getConnection());
+    private final PlaylistsDAO playlistsDAO = new PlaylistsDAO(DatabaseManager.getConnection());
 
     @FXML
     public void initialize() throws SQLException {
         //Load initial library from DB
         loadInitialDirectoryFromDatabase();
-
-
+        PlaybackService.setLibraryController(this);
         if (trackDAO.getTrackPath() != null) {
             selectedDir = new File(trackDAO.getTrackPath());
         }
@@ -81,18 +84,25 @@ public class LibraryController {
             }
 
             selectedDir = newDir;
-            loadSongsFromDirectory(selectedDir);
+            try {
+                loadSongsFromDirectory(selectedDir);
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
         });
 
         // Setup search
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterTracks(newVal));
-
         // Sort ComboBox
         sortComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) sortLibrary(newVal);
+            if (newVal != null && UserPref.shuffle == 0) sortLibrary(newVal);
+            else System.out.println("Shuffle Mode is active. Can't sort");
         });
 
-        reverseButton.setOnAction(e -> sortLibrary("Reverse"));
+        reverseButton.setOnAction(e -> {
+            if (UserPref.shuffle == 0) sortLibrary("Reverse");
+            else System.out.println("Shuffle Mode is active. Can't reverse");
+        });
 
         // ListView Cell Factory (virtualized cards)
         songListView.setCellFactory(list -> new ListCell<>() {
@@ -184,8 +194,8 @@ public class LibraryController {
             // so either use temp or atomic when using variable in a thread.
 
             Platform.runLater(() -> {
-                playbackService.setPlaylist(sortedIds, false);
                 songListView.getItems().setAll(sortedIds);
+                playbackService.setPlaylist(sortedIds, false);
                 int idx = PlaybackService.getPlaylist().indexOf(finalSongId);
                 playbackService.setCurrentIndex(idx);
                 UserPref.playlistNo = idx;
@@ -198,29 +208,35 @@ public class LibraryController {
     private void loadInitialDirectoryFromDatabase() throws SQLException {
         //User Pref Setter
         String sortingPref = userPrefDAO.getSortingPref();
-        List<Integer> idsToLoad;
+        UserPref.sortingPref = sortingPref;
         int reverse = userPrefDAO.getReverse();
         UserPref.reverse = reverse;
         UserPref.repeat = userPrefDAO.getRepeat();
         UserPref.shuffle = userPrefDAO.getShuffle();
         UserPref.isRundown = userPrefDAO.getIsRundown();
         //
-
-        if (reverse == 1) ascending = false;
-
-        if (sortingPref != null && !sortingPref.isEmpty()) {
-            // Fetch from DB in sorted order directly
-            idsToLoad = trackDAO.getAllIdsSorted(sortingPref, ascending);
-            System.out.println("Loaded sorted order based on: " + sortingPref);
-        } else {
-            // Default: order by title
-            idsToLoad = trackDAO.getAllIds();
-        }
-
         int idx = userPrefDAO.getPlaylistNo();
         String status = userPrefDAO.getUserStatus();
         long ts = userPrefDAO.getTimeStamp();
+        List<Integer> idsToLoad;
+        //
 
+        if (reverse == 1) ascending = false;
+
+        if (UserPref.shuffle == 0) {
+            if (sortingPref != null && !sortingPref.isEmpty()) {
+                // Fetch from DB in sorted order directly
+                idsToLoad = trackDAO.getAllIdsSorted(sortingPref, ascending);
+                System.out.println("Loaded sorted order based on: " + sortingPref);
+            } else {
+                // Default: order by title
+                idsToLoad = trackDAO.getAllIds();
+                System.out.println("Loaded songs based on default (Title)");
+            }
+        } else {
+            idsToLoad = playlistsDAO.getSongsFromPlaylist(1);
+            System.out.println("Loaded songs based on shuffling");
+        }
 
         if (trackDAO.getTrackPath() != null) {
             File dir = new File(trackDAO.getTrackPath());
@@ -237,8 +253,11 @@ public class LibraryController {
 
 
     // --- Directory Load ---
-    private void loadSongsFromDirectory(File dir) {
+    private void loadSongsFromDirectory(File dir) throws SQLException {
         if (dir == null || !dir.exists() || !dir.isDirectory()) return;
+        toggleSort(false);
+        //Clear shuffled playlist
+        playlistsDAO.deleteShuffledPlaylistSongs();
 
         File[] files = dir.listFiles(this::isAudioFile);
         if (Arrays.equals(prevFiles, files)) {
@@ -301,4 +320,14 @@ public class LibraryController {
 
 
     public static boolean restartFromStart = false;
+
+    public void toggleSort(boolean disable) {
+        if (disable) {
+            sortComboBox.setDisable(true);
+            reverseButton.setDisable(true);
+        } else {
+            sortComboBox.setDisable(false);
+            reverseButton.setDisable(false);
+        }
+    }
 }

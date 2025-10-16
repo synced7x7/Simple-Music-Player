@@ -3,6 +3,7 @@ package com.example.simple_music_player.Services;
 import com.example.simple_music_player.Controller.AlbumCoverController;
 import com.example.simple_music_player.Controller.LibraryController;
 import com.example.simple_music_player.Controller.NowPlayingController;
+import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.db.DatabaseManager;
@@ -18,6 +19,7 @@ import lombok.Setter;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 
 public class PlaybackService {
@@ -59,6 +61,10 @@ public class PlaybackService {
 
     @Getter
     private static final PlaybackService instance = new PlaybackService();
+
+    @Getter
+    @Setter
+    private static LibraryController libraryController;
 
     public PlaybackService() {
     }
@@ -165,7 +171,7 @@ public class PlaybackService {
 
     public void play(int index) {
         if (index < 0 || index >= playlist.size()) return;
-        System.out.println("Currently playing " + index);
+        System.out.println("Currently playing::: songID: " + playlist.get(currentIndex) + " , Index: " +  index);
         //
         UserPref.playlistNo = index;
         //
@@ -269,6 +275,35 @@ public class PlaybackService {
     public void initialTimePropertyBinding() {
         nowPlayingController.bindTextPropertyToTime();
     }
+
+    public void shufflePlaylist() {
+        if (playlist.isEmpty() || currentIndex < 0 || currentIndex >= playlist.size()) {
+            System.err.println("Invalid currentIndex or empty playlist");
+            return;
+        }
+        libraryController.toggleSort(true);
+        System.out.println("Playlist before shuffling: " + playlist);
+        int songId = playlist.get(currentIndex);
+        playlist.remove(Integer.valueOf(songId));
+        Collections.shuffle(playlist);
+        currentIndex = 0;
+        playlist.addFirst(songId);
+        System.out.println("Playlist after shuffling: " + playlist);
+    }
+
+    public void songRelocator() {
+        System.out.println("Playlist before relocation: " + playlist);
+        SongLocator songLocator = SongLocator.getCurrent();
+        int currentSongId =  playlist.get(currentIndex);
+        String sort = songLocator.getLastSortBS();
+        boolean rev = songLocator.getLastReverseBS() != 1;
+        playlist.clear();
+        playlist = trackDao.getAllIdsSorted(sort, rev);
+        currentIndex = playlist.indexOf(currentSongId);
+        System.out.println("Playlist after relocation: " + playlist);
+        libraryController.toggleSort(false);
+    }
+
 
 
 }

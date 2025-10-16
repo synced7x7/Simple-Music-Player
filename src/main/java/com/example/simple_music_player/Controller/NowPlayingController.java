@@ -1,5 +1,6 @@
 package com.example.simple_music_player.Controller;
 
+import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Services.VisualizerService;
@@ -189,8 +190,20 @@ public class NowPlayingController {
 
     @FXML
     private void toggleShuffle() {
-        if (UserPref.shuffle == 1) UserPref.shuffle = 0;
-        else UserPref.shuffle = 1;
+        if (UserPref.shuffle == 1) { //turn off
+            UserPref.shuffle = 0;
+            new Thread(() -> {
+                playbackService.songRelocator();
+                SongLocator.delete();
+            }).start();
+        }
+        else {
+            UserPref.shuffle = 1;
+            new Thread(() -> {
+                SongLocator.create(UserPref.sortingPref, UserPref.reverse);
+                playbackService.shufflePlaylist();
+            }).start();
+        }
 
         System.out.println("User Shuffle status after toggling: " + UserPref.shuffle);
     }

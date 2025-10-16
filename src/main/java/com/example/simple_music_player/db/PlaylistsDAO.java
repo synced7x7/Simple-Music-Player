@@ -2,7 +2,10 @@ package com.example.simple_music_player.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlaylistsDAO {
     private final Connection conn;
@@ -32,15 +35,32 @@ public class PlaylistsDAO {
 
     public void insertSongsInPlaylist(int playlistId, int songId) throws SQLException {
         String insertSongs = """
-            INSERT INTO playlist_songs (playlist_id, song_id)
-            VALUES (?, ?)
-        """;
+                    INSERT INTO playlist_songs (playlist_id, song_id)
+                    VALUES (?, ?)
+                """;
         try (PreparedStatement ps = conn.prepareStatement(insertSongs)) {
             ps.setInt(1, playlistId);
             ps.setInt(2, songId);
             ps.executeUpdate();
         }
     }
-    
+
+    public List<Integer> getSongsFromPlaylist(int playlistId) throws SQLException {
+        String sql = "SELECT song_id FROM playlist_songs WHERE playlist_id = ?";
+
+        List<Integer> songIds = new ArrayList<>();
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, playlistId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    songIds.add(rs.getInt("song_id"));
+                }
+            }
+        }
+        return songIds;
+    }
+
 
 }
