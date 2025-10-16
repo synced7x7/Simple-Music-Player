@@ -17,9 +17,6 @@ public class TrackDAO {
         this.conn = connection;
     }
 
-    /**
-     * Inserts a track into the database, ignores if path already exists.
-     */
     public void updateTracks(Track track) {
         String sql = """
             INSERT OR IGNORE INTO songs
@@ -83,53 +80,6 @@ public class TrackDAO {
         return null;
     }
 
-
-    /**
-     * Searches tracks by keyword in title, artist, or album.
-     */
-    public List<Track> searchTracks(String keyword, int limit, int offset) {
-        List<Track> tracks = new ArrayList<>();
-        String sql = """
-            SELECT * FROM songs
-            WHERE title LIKE ? OR artist LIKE ? OR album LIKE ?
-            LIMIT ? OFFSET ?
-        """;
-
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            String like = "%" + keyword + "%";
-            ps.setString(1, like);
-            ps.setString(2, like);
-            ps.setString(3, like);
-            ps.setInt(4, limit);
-            ps.setInt(5, offset);
-
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                tracks.add(mapRowToTrack(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return tracks;
-    }
-
-    /**
-     * Deletes a track by path.
-     */
-    public void deleteTrackByPath(String path) {
-        String sql = "DELETE FROM songs WHERE path = ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, path);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Maps a SQL row to a Track object.
-     */
     private Track mapRowToTrack(ResultSet rs) throws SQLException {
         String path = rs.getString("path");
 
@@ -150,7 +100,6 @@ public class TrackDAO {
         );
     }
 
-    // return all stored ids (ordered by title). Use for playlist building (lightweight)
     public List<Integer> getAllIds() {
         List<Integer> ids = new ArrayList<>();
         String sql = "SELECT id FROM songs ORDER BY title";
@@ -165,8 +114,6 @@ public class TrackDAO {
         return ids;
     }
 
-
-    // get a single Track reconstructed from DB row (no re-parsing of audio file)
     public Track getTrackById(Integer id) {
         String sql = "SELECT * FROM songs WHERE id = ? LIMIT 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -178,35 +125,6 @@ public class TrackDAO {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public List<Track> getAllTracks(int limit, int offset) {
-        List<Track> tracks = new ArrayList<>();
-
-        String sql = "SELECT id, title, artist, album, length, path FROM songs LIMIT ? OFFSET ?";
-
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, limit);
-            pstmt.setInt(2, offset);
-
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    Track t = new Track();
-                    t.setId(rs.getInt("id"));
-                    t.setTitle(rs.getString("title"));
-                    t.setArtist(rs.getString("artist"));
-                    t.setAlbum(rs.getString("album"));
-                    t.setLength(String.valueOf(rs.getInt("length")));
-                    t.setPath(rs.getString("path"));
-
-                    tracks.add(t);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return tracks;
     }
 
     public Track getTrackCompressedArtworkAndTitleById(Integer id) {
@@ -224,7 +142,7 @@ public class TrackDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null; // clearly indicates no track found
+        return null;
     }
 
     public List<Integer> getAllIdsSorted(String criteria, boolean ascending) {
@@ -255,8 +173,7 @@ public class TrackDAO {
         }
         return ids;
     }
-
-    //for Searching through words
+    
     public List<Integer> searchTrackIds (String query, String sortBy, boolean ascending) {
         List<Integer> ids = new ArrayList<>();
         if (query == null || query.isEmpty()) return getAllIdsSorted(sortBy, ascending);
