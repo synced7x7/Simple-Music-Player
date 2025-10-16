@@ -227,30 +227,6 @@ public class TrackDAO {
         return null; // clearly indicates no track found
     }
 
-    public List<Track> getAllTracksArtworkAndTitle() {
-        List<Track> tracks = new ArrayList<>();
-
-        // Only select title and artwork path
-        String sql = "SELECT title, compressed_artwork FROM songs";
-
-        try (PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-
-            while (rs.next()) {
-                Track t = new Track();
-                t.setTitle(rs.getString("title"));
-                t.setCompressedArtworkData(rs.getBytes("compressed_artwork")); // assuming 'path' is the artwork path
-
-                tracks.add(t);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return tracks;
-    }
-
     public List<Integer> getAllIdsSorted(String criteria, boolean ascending) {
         List<Integer> ids = new ArrayList<>();
 

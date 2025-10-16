@@ -1,5 +1,6 @@
 package com.example.simple_music_player.Controller;
 
+import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Services.VisualizerService;
 import javafx.fxml.FXML;
@@ -17,7 +18,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Getter;
 
+import java.awt.*;
 import java.io.IOException;
+import java.net.URI;
 
 public class NowPlayingController {
     @FXML
@@ -46,31 +49,30 @@ public class NowPlayingController {
     private AnchorPane visualizerHolder;
     @FXML
     private Button infoButton;
+    @FXML
+    private Button repeatButton;
+    @FXML
+    private Button shuffleButton;
 
 
     public static VisualizerService visualizerController;
     @Getter
     private static final PlaybackService playbackService = new PlaybackService(); //one instance to be shared among all
-    private Boolean countdown = true;
 
     @FXML
     public void initialize() throws IOException {
-
         playbackService.setNowPlayingController(this);
-
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/simple_music_player/visualizer.fxml"));
         AnchorPane visualizer = loader.load();
         visualizerController = loader.getController();
         visualizerHolder.getChildren().add(visualizer);
 
-
         // Anchor it to fill the holder
         AnchorPane.setTopAnchor(visualizer, 0.0);
         AnchorPane.setBottomAnchor(visualizer, 0.0);
         AnchorPane.setLeftAnchor(visualizer, 0.0);
         AnchorPane.setRightAnchor(visualizer, 0.0);
-
 
         playbackService.currentTrackProperty().addListener((obs, oldT, newT) -> {
             /*if (newT != null && visualizerController != null) {
@@ -82,8 +84,8 @@ public class NowPlayingController {
         nextButton.setOnAction(e -> playbackService.next());
         prevButton.setOnAction(e -> playbackService.previous());
 
-        //Time
-        timeLabel.textProperty().bind(playbackService.remainingTimeProperty());
+        /*//Time
+        timeLabel.textProperty().bind(playbackService.remainingTimeProperty());*/
         //Song Metadata
         playbackService.currentTrackProperty().addListener((obs, oldT, newT) -> {
             //Name
@@ -107,19 +109,27 @@ public class NowPlayingController {
                 albumCover.setImage(null);
             }
         });
-
-
     }
-
 
     @FXML
     public void toggleCountdown() {
-        countdown = !countdown;
-        System.out.println("countdown: " + countdown);
-        if (countdown) {
+        if (UserPref.isRundown == 0) {
             timeLabel.textProperty().bind(playbackService.remainingTimeProperty());
+            UserPref.isRundown = 1;
         } else {
             timeLabel.textProperty().bind(playbackService.elapsedTimeProperty());
+            UserPref.isRundown = 0;
+        }
+        System.out.println("Countdown after toggling: " + UserPref.isRundown);
+    }
+
+    public void bindTextPropertyToTime() {
+        if (UserPref.isRundown == 1) {
+            timeLabel.textProperty().bind(playbackService.remainingTimeProperty());
+            System.out.println("Remaining time property bound.");
+        } else {
+            timeLabel.textProperty().bind(playbackService.elapsedTimeProperty());
+            System.out.println("Elapsed time property bound.");
         }
     }
 
@@ -137,6 +147,7 @@ public class NowPlayingController {
 
     @FXML
     private void infoButtonHandler() {
+        UserPref.userPrefChecker();
         Stage infoStage = new Stage();
         infoStage.setTitle("About This App");
 
@@ -169,12 +180,30 @@ public class NowPlayingController {
         // Clicking "Updates" → open website
         credits.setOnMouseClicked(event -> {
             try {
-                java.awt.Desktop.getDesktop().browse(new java.net.URI("https://github.com/synced7x7/Simple-Music-Player/tags"));
+                Desktop.getDesktop().browse(new URI("https://github.com/synced7x7/Simple-Music-Player/tags"));
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         });
     }
+
+    @FXML
+    private void toggleShuffle() {
+        if (UserPref.shuffle == 1) UserPref.shuffle = 0;
+        else UserPref.shuffle = 1;
+
+
+        System.out.println("User Shuffle status after toggling: " + UserPref.shuffle);
+    }
+
+    @FXML
+    private void toggleRepeat() {
+        if (UserPref.repeat == 1) UserPref.repeat = 0;
+        else UserPref.repeat = 1;
+
+        System.out.println("User Repeat status after toggling: " + UserPref.repeat);
+    }
+
 
 
 }

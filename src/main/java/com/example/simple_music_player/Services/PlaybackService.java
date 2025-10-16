@@ -50,22 +50,17 @@ public class PlaybackService {
     }
 
     @Getter
-    public static List<Integer> playlist; // just keep IDs of songs in order
+    public static List<Integer> playlist;// just keep IDs of songs in order
     @Setter
     NowPlayingController nowPlayingController;
     @Setter
     AlbumCoverController albumCoverController;
-
     private final UserPrefDAO userPrefDAO = new UserPrefDAO(DatabaseManager.getConnection());
 
     @Getter
     private static final PlaybackService instance = new PlaybackService();
 
-    public PlaybackService() {}
-
-    public int getPlaylistId(int idx) {
-        System.out.println("Index: " + idx + " songId: " + playlist.get(idx));
-        return playlist.get(idx);
+    public PlaybackService() {
     }
 
     public void setPlaylist(List<Integer> ids, boolean autoPlay) {
@@ -93,7 +88,6 @@ public class PlaybackService {
             return;
         }
 
-
         // Prepare the player for the desired index
         currentIndex = idx;
         System.out.println("Initial Playing: " + idx);
@@ -109,7 +103,8 @@ public class PlaybackService {
 
         Media media = new Media(new File(t.getPath()).toURI().toString());
         mediaPlayer = new MediaPlayer(media);
-        if(status == null) status = "Play";
+        setupDurationListener(mediaPlayer);
+        if (status == null) status = "Play";
         String finalStatus = status; //emergency handling
         mediaPlayer.setOnReady(() -> {
             mediaPlayer.seek(Duration.millis(ts));
@@ -123,6 +118,44 @@ public class PlaybackService {
         mediaPlayer.setOnEndOfMedia(this::next);
 
     }
+
+    private void setupDurationListener(MediaPlayer player) {
+        player.currentTimeProperty().addListener((obs, oldT, newT) -> {
+            if (playlist == null || playlist.isEmpty()) {
+                progress.set(0);
+                elapsedTime.set("00:00");
+                remainingTime.set("00:00");
+                return;
+            }
+
+            Duration total = player.getTotalDuration();
+
+            if (total != null && !total.isUnknown() && total.toMillis() > 0) {
+                double prog = newT.toMillis() / total.toMillis();
+                progress.set(prog);
+
+                // update waveform progress
+                if (currentTrack.get() != null &&
+                        NowPlayingController.visualizerController != null &&
+                        !VisualizerService.progressBarDraggingCap) {
+                    NowPlayingController.visualizerController.updateProgress(prog);
+                }
+
+                int currentSec = (int) newT.toSeconds();
+                int totalSec = (int) total.toSeconds();
+
+                elapsedTime.set(formatTime(currentSec));
+
+                int remaining = Math.max(totalSec - currentSec, 0);
+                remainingTime.set(formatTime(remaining));
+            } else {
+                progress.set(0);
+                elapsedTime.set("00:00");
+                remainingTime.set("00:00");
+            }
+        });
+    }
+
 
 
     public void clearList() {
@@ -153,41 +186,7 @@ public class PlaybackService {
             mediaPlayer.play();
         });
 
-        //Duration formatter
-        mediaPlayer.currentTimeProperty().addListener((obs, oldT, newT) -> {
-            if (playlist == null || playlist.isEmpty()) {
-                progress.set(0);
-                elapsedTime.set("00:00");
-                remainingTime.set("00:00");
-                return;
-            }
-
-            Duration total = mediaPlayer.getTotalDuration();
-
-            if (total != null && !total.isUnknown() && total.toMillis() > 0) {
-                double prog = newT.toMillis() / total.toMillis();
-                progress.set(prog);
-
-                // update waveform progress
-                if (currentTrack.get() != null && NowPlayingController.visualizerController != null && VisualizerService.progressBarDraggingCap == false) {
-                    NowPlayingController.visualizerController.updateProgress(prog);
-                }
-
-                // calculate run-up (elapsed)
-                int currentSec = (int) newT.toSeconds();
-                int totalSec = (int) total.toSeconds();
-
-                elapsedTime.set(formatTime(currentSec));
-
-                // calculate countdown (remaining)
-                int remaining = Math.max(totalSec - currentSec, 0);
-                remainingTime.set(formatTime(remaining));
-            } else {
-                progress.set(0);
-                elapsedTime.set("00:00");
-                remainingTime.set("00:00");
-            }
-        });
+        setupDurationListener(mediaPlayer);
 
 
         mediaPlayer.setOnEndOfMedia(this::next); //when song finishes automatically move to next song
@@ -260,10 +259,16 @@ public class PlaybackService {
 
     public void closePlaybackService() throws SQLException {
         if (mediaPlayer != null) {
-            Duration currentTime = mediaPlayer.getCurrentTime();
+            Duration currentTime;
+            currentTime = mediaPlayer.getCurrentTime();
             UserPref.timestamp = (long) currentTime.toMillis();
         }
         userPrefDAO.setUserPref();
     }
+
+    public void initialTimePropertyBinding() {
+        nowPlayingController.bindTextPropertyToTime();
+    }
+
 
 }

@@ -65,7 +65,10 @@ public class DatabaseManager {
                         timestamp BIGINT,
                         status VARCHAR,
                         sortingPref VARCHAR,
-                        reverse INTEGER
+                        reverse INTEGER,
+                        repeat INTEGER,
+                        shuffle INTEGER,
+                        isRundown INTEGER
                     );
                 """;
 

@@ -13,6 +13,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -57,6 +59,7 @@ public class LibraryController {
     public void initialize() throws SQLException {
         //Load initial library from DB
         loadInitialDirectoryFromDatabase();
+
 
         if (trackDAO.getTrackPath() != null) {
             selectedDir = new File(trackDAO.getTrackPath());
@@ -172,16 +175,16 @@ public class LibraryController {
                 //
                 songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
                 // System.out.println("Song id before sorting: " + songId + "|| Index: " + playbackService.getCurrentIndex());
-                if(UserPref.reverse == 1) ascending = false;
+                if (UserPref.reverse == 1) ascending = false;
                 sortedIds = trackDAO.getAllIdsSorted(criteria, ascending);
             }
 
-            if(!criteria.equals("Reverse"))
+            if (!criteria.equals("Reverse"))
                 prevCriteria = criteria;
 
 
             int finalSongId = songId; //safeguard mechanism of java so that multiple threads doesn't update the same variable
-                                        // so either use temp or atomic when using variable in a thread.
+            // so either use temp or atomic when using variable in a thread.
 
             Platform.runLater(() -> {
                 playbackService.setPlaylist(sortedIds, false);
@@ -196,11 +199,17 @@ public class LibraryController {
 
     // --- Initial load ---
     private void loadInitialDirectoryFromDatabase() throws SQLException {
+        //User Pref Setter
         String sortingPref = userPrefDAO.getSortingPref();
         List<Integer> idsToLoad;
         int reverse = userPrefDAO.getReverse();
         UserPref.reverse = reverse;
-        if(reverse==1) ascending = false;
+        UserPref.repeat = userPrefDAO.getRepeat();
+        UserPref.shuffle = userPrefDAO.getShuffle();
+        UserPref.isRundown = userPrefDAO.getIsRundown();
+        //
+
+        if (reverse == 1) ascending = false;
 
         if (sortingPref != null && !sortingPref.isEmpty()) {
             // Fetch from DB in sorted order directly
@@ -225,8 +234,8 @@ public class LibraryController {
             countSongs(idsToLoad.size());
             songListView.getItems().setAll(idsToLoad);
             playbackService.setPlaylist(idsToLoad, idx, status, ts);
+            playbackService.initialTimePropertyBinding();
         });
-
     }
 
 
@@ -258,9 +267,9 @@ public class LibraryController {
             }
 
             List<Integer> allIds = trackDAO.getAllIds();//order by title
-            UserPref.setUserPref(0, 0, "Play" , "Title", 0);
+            UserPref.setUserPref(0, 0, "Play", "Title", 0, 0, 0, 1);
             ascending = true;
-            
+
             Platform.runLater(() -> {
                 countSongs(allIds.size());
                 playbackService.setPlaylist(allIds, dirChanged);

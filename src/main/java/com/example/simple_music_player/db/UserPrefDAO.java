@@ -16,8 +16,8 @@ public class UserPrefDAO {
 
     public void setUserPref() throws SQLException {
         String sql = """
-                    INSERT OR REPLACE INTO user_pref (id, playlistNo, timestamp, status, sortingPref, reverse)
-                    VALUES (1, ?, ?, ?, ?, ?)
+                    INSERT OR REPLACE INTO user_pref (id, playlistNo, timestamp, status, sortingPref, reverse, repeat, shuffle, isRundown)
+                    VALUES (1, ?, ?, ?, ?, ?, ? ,?, ?)
                 """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -29,10 +29,15 @@ public class UserPrefDAO {
             else ps.setString(3, getUserStatus());
 
             if ((getSortingPref() == null || getSortingPref().isEmpty()) && (UserPref.sortingPref == null || UserPref.sortingPref.isEmpty())) UserPref.sortingPref = "Title"; //1st time
-            if (UserPref.sortingPref !=null) ps.setString(4, UserPref.sortingPref); //when dropdown is not used, use db
-            else ps.setString(4, getSortingPref()); //when dropdown is used
+            if (UserPref.sortingPref !=null) ps.setString(4, UserPref.sortingPref);
+            else ps.setString(4, getSortingPref());
+
+            if(UserPref.repeat != 0) ps.setInt(4, UserPref.repeat);
 
             ps.setInt(5, UserPref.reverse);
+            ps.setInt(6, UserPref.repeat);
+            ps.setInt(7, UserPref.shuffle);
+            ps.setInt(8, UserPref.isRundown);
 
             ps.executeUpdate();
         }
@@ -77,7 +82,7 @@ public class UserPrefDAO {
         }
         return 0;
     }
-    
+
     public String getSortingPref() throws SQLException {
         String sql = """
                     SELECT sortingPref FROM user_pref
@@ -99,6 +104,45 @@ public class UserPrefDAO {
         ResultSet rs = ps.executeQuery()) {
             if(rs.next()) {
                 return rs.getInt("reverse");
+            }
+        }
+        return 0;
+    }
+
+    public int getShuffle() throws SQLException {
+        String sql = """
+                    SELECT shuffle FROM user_pref
+        """;
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery()) {
+            if(rs.next()) {
+                return rs.getInt("shuffle");
+            }
+        }
+        return 0;
+    }
+
+    public int getRepeat() throws SQLException {
+        String sql = """
+                    SELECT repeat FROM user_pref
+        """;
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery()) {
+            if(rs.next()) {
+                return rs.getInt("repeat");
+            }
+        }
+        return 0;
+    }
+
+    public int getIsRundown() throws SQLException {
+        String sql = """
+                    SELECT isRundown FROM user_pref
+        """;
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery()) {
+            if(rs.next()) {
+                return rs.getInt("isRundown");
             }
         }
         return 0;
