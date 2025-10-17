@@ -14,30 +14,22 @@ public class PlaylistsDAO {
         this.conn = connection;
     }
 
-    public void insertShuffledPlaylist() throws SQLException {
-        String insertPlaylist = """
-                    INSERT OR IGNORE INTO playlists (id, name)
-                    VALUES (1, 'Shuffled Playlist')
+    public void deletePlaylist(int playlistId) throws SQLException {
+        String deletePlaylist = """
+                DELETE FROM playlist_songs WHERE playlist_id = ?
                 """;
-        try (PreparedStatement ps = conn.prepareStatement(insertPlaylist)) {
-            ps.executeUpdate();
-        }
-    }
 
-    public void deleteShuffledPlaylistSongs() throws SQLException {
-        String deleteExisting = """
-                    DELETE FROM playlist_songs WHERE playlist_id = 1
-                """;
-        try (PreparedStatement ps = conn.prepareStatement(deleteExisting)) {
+        try (PreparedStatement ps = conn.prepareStatement(deletePlaylist)) {
+            ps.setInt(1, playlistId);
             ps.executeUpdate();
         }
     }
 
     public void insertSongsInPlaylist(int playlistId, List<Integer> songIds) throws SQLException {
         String insertSongs = """
-            INSERT INTO playlist_songs (playlist_id, song_id)
-            VALUES (?, ?)
-            """;
+                INSERT INTO playlist_songs (playlist_id, song_id)
+                VALUES (?, ?)
+                """;
         try (PreparedStatement ps = conn.prepareStatement(insertSongs)) {
             for (Integer songId : songIds) {
                 ps.setInt(1, playlistId);
@@ -66,14 +58,66 @@ public class PlaylistsDAO {
         return songIds;
     }
 
-    public void createPlaylist() throws SQLException {
+    public void createShuffledPlaylist() throws SQLException {
         String createPlaylist = """
-                INSERT OR IGNORE INTO playlists (id, name) VALUES (1, 'Shuffled Playlist')
-        """;
+                        INSERT OR IGNORE INTO playlists (id, name) VALUES (1, 'Shuffled Playlist')
+                """;
         try (PreparedStatement ps = conn.prepareStatement(createPlaylist)) {
             ps.executeUpdate();
         }
     }
 
+    public void createNormalPlaylist() throws SQLException {
+        String createPlaylist = """
+                INSERT OR IGNORE INTO playlists (id, name) VALUES (2, 'Normal')
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(createPlaylist)) {
+            ps.executeUpdate();
+        }
+    }
+
+    public void replaceSongsInPlaylist(int playlistId, List<Integer> newSongIds) throws SQLException {
+        String deleteSql = "DELETE FROM playlist_songs WHERE playlist_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
+            ps.setInt(1, playlistId);
+            ps.executeUpdate();
+        }
+
+        String insertSql = """
+                INSERT INTO playlist_songs (playlist_id, song_id)
+                VALUES (?, ?)
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
+            for (Integer songId : newSongIds) {
+                ps.setInt(1, playlistId);
+                ps.setInt(2, songId);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
+    }
+
+    public int getPlaylistSongsIdx(int playlistId, int songId) throws SQLException {
+        String sql = """
+        SELECT row_number FROM (
+            SELECT song_id,
+                   ROW_NUMBER() OVER (ORDER BY id) AS row_number
+            FROM playlist_songs
+            WHERE playlist_id = ?
+        )
+        WHERE song_id = ?
+        """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, playlistId);
+            ps.setInt(2, songId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("row_number") - 1;
+                }
+            }
+        }
+        return -1; // not found
+    }
 
 }

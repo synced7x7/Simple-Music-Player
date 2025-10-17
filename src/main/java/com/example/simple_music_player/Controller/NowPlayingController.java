@@ -82,9 +82,27 @@ public class NowPlayingController {
             }*/
         });
 
-        playButton.setOnAction(e -> playbackService.togglePlayPause());
-        nextButton.setOnAction(e -> playbackService.next());
-        prevButton.setOnAction(e -> playbackService.previous());
+        playButton.setOnAction(e -> {
+            try {
+                playbackService.togglePlayPause();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        nextButton.setOnAction(e -> {
+            try {
+                playbackService.next();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        prevButton.setOnAction(e -> {
+            try {
+                playbackService.previous();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
 
         /*//Time
         timeLabel.textProperty().bind(playbackService.remainingTimeProperty());*/

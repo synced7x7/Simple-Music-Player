@@ -15,6 +15,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
+import lombok.Getter;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -24,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class LibraryController {
 
+    @Getter
     @FXML
     private ListView<Integer> songListView;
     @FXML
@@ -148,7 +150,13 @@ public class LibraryController {
                     card.setOnMouseClicked(e -> {
                         LibraryController.restartFromStart = false;
                         int index = PlaybackService.playlist.indexOf(id);
-                        if (index != -1) playbackService.play(index);
+                        if (index != -1) {
+                            try {
+                                playbackService.play(index);
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        }
                     });
 
                     setGraphic(card);
@@ -189,13 +197,23 @@ public class LibraryController {
             if (!criteria.equals("Reverse"))
                 prevCriteria = criteria;
 
+            try {
+                playlistsDAO.replaceSongsInPlaylist(2, sortedIds);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+
 
             int finalSongId = songId; //safeguard mechanism of java so that multiple threads doesn't update the same variable
             // so either use temp or atomic when using variable in a thread.
 
             Platform.runLater(() -> {
                 songListView.getItems().setAll(sortedIds);
-                playbackService.setPlaylist(sortedIds, false);
+                try {
+                    playbackService.setPlaylist(sortedIds, false);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
                 int idx = PlaybackService.getPlaylist().indexOf(finalSongId);
                 playbackService.setCurrentIndex(idx);
                 UserPref.playlistNo = idx;
@@ -258,12 +276,20 @@ public class LibraryController {
             if (UserPref.shuffle == 0) {
                 countSongs(finalIdsToLoad.size());
                 songListView.getItems().setAll(finalIdsToLoad);
-                playbackService.setPlaylist(finalIdsToLoad, idx, status, ts);
+                try {
+                    playbackService.setPlaylist(finalIdsToLoad, idx, status, ts);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
                 playbackService.initialTimePropertyBinding();
             } else {
                 countSongs(idsToLoad.size());
                 songListView.getItems().setAll(idsToLoad);
-                playbackService.setPlaylist(finalShuffleIdsToLoad, idx, status, ts);
+                try {
+                    playbackService.setPlaylist(finalShuffleIdsToLoad, idx, status, ts);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
                 playbackService.initialTimePropertyBinding();
             }
         });
@@ -275,8 +301,10 @@ public class LibraryController {
         if (dir == null || !dir.exists() || !dir.isDirectory()) return;
         toggleSort(false);
         //Clear shuffled playlist
-        playlistsDAO.deleteShuffledPlaylistSongs();
-        playlistsDAO.createPlaylist();
+        playlistsDAO.deletePlaylist(1);
+        playlistsDAO.deletePlaylist(2);
+        playlistsDAO.createShuffledPlaylist();
+        playlistsDAO.createNormalPlaylist();
 
         File[] files = dir.listFiles(this::isAudioFile);
         if (Arrays.equals(prevFiles, files)) {
@@ -297,17 +325,27 @@ public class LibraryController {
                     Track t = new Track(f.getAbsolutePath());
                     trackDAO.updateTracks(t);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    throw new RuntimeException(ex);
                 }
             }
 
-            List<Integer> allIds = trackDAO.getAllIds();//order by title
+            List<Integer> allIds = trackDAO.getAllIds();
             UserPref.setUserPref(0, 0, "Play", "Title", 0, 0, 0, 1);
             ascending = true;
 
+            try {
+                playlistsDAO.insertSongsInPlaylist(2, allIds);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+
             Platform.runLater(() -> {
                 countSongs(allIds.size());
-                playbackService.setPlaylist(allIds, dirChanged);
+                try {
+                    playbackService.setPlaylist(allIds, dirChanged);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
                 songListView.getItems().setAll(allIds);
                 dirChanged = false;
             });

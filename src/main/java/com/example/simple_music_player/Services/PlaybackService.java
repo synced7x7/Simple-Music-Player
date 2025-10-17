@@ -10,6 +10,7 @@ import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.PlaylistsDAO;
 import com.example.simple_music_player.db.TrackDAO;
 import com.example.simple_music_player.db.UserPrefDAO;
+import javafx.application.Platform;
 import javafx.beans.property.*;
 
 import javafx.scene.media.Media;
@@ -71,7 +72,7 @@ public class PlaybackService {
     public PlaybackService() {
     }
 
-    public void setPlaylist(List<Integer> ids, boolean autoPlay) {
+    public void setPlaylist(List<Integer> ids, boolean autoPlay) throws SQLException {
         playlist = ids;
         if (playlist.isEmpty()) {
             nowPlayingController.clearScreen();
@@ -86,7 +87,7 @@ public class PlaybackService {
     }
 
     //Playlist for initial loading for directory
-    public void setPlaylist(List<Integer> ids, int idx, String status, long ts) {
+    public void setPlaylist(List<Integer> ids, int idx, String status, long ts) throws SQLException {
         playlist = ids;
         if (playlist.isEmpty()) {
             nowPlayingController.clearScreen();
@@ -128,10 +129,27 @@ public class PlaybackService {
                 mediaPlayer.seek(Duration.ZERO);
                 mediaPlayer.play();
             } else {
-                next();
+                try {
+                    next();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
 
+        if(UserPref.shuffle == 0) setListViewFocus(idx);
+        else setListViewFocus(playlistsDAO.getPlaylistSongsIdx(2, songId));
+    }
+
+    private void setListViewFocus(int idx) {
+        if (libraryController != null) {
+            Platform.runLater(() -> {
+                libraryController.getSongListView()
+                        .getSelectionModel().select(idx);
+                libraryController.getSongListView()
+                        .scrollTo(idx);
+            });
+        }
     }
 
     private void setupDurationListener(MediaPlayer player) {
@@ -169,6 +187,7 @@ public class PlaybackService {
                 remainingTime.set("00:00");
             }
         });
+
     }
 
 
@@ -178,7 +197,7 @@ public class PlaybackService {
         System.out.println("Playlist Cleared");
     }
 
-    public void play(int index) {
+    public void play(int index) throws SQLException {
         if (index < 0 || index >= playlist.size()) return;
         //
         UserPref.playlistNo = index;
@@ -209,12 +228,19 @@ public class PlaybackService {
                 mediaPlayer.seek(Duration.ZERO);
                 mediaPlayer.play();
             } else {
-                next();
+                try {
+                    next();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
+
+        if(UserPref.shuffle == 0) setListViewFocus(index);
+        else setListViewFocus(playlistsDAO.getPlaylistSongsIdx(2, songId));
     }
 
-    public void play() {
+    public void play() throws SQLException {
         if (mediaPlayer != null) {
             mediaPlayer.play();
         } else if (currentIndex >= 0) {
@@ -229,7 +255,7 @@ public class PlaybackService {
         }
     }
 
-    public void togglePlayPause() {
+    public void togglePlayPause() throws SQLException {
         if (mediaPlayer == null) {
             play();
             return;
@@ -244,7 +270,7 @@ public class PlaybackService {
         }
     }
 
-    public void next() {
+    public void next() throws SQLException {
         if (playlist.isEmpty()) return;
         int nextIndex;
         if (checkRestartFromStart()) {
@@ -255,7 +281,7 @@ public class PlaybackService {
         play(nextIndex);
     }
 
-    public void previous() {
+    public void previous() throws SQLException {
         if (playlist.isEmpty()) return;
         if (checkRestartFromStart()) currentIndex = 1;
         int prevIndex = (currentIndex - 1 + playlist.size()) % playlist.size();
@@ -291,7 +317,7 @@ public class PlaybackService {
         }
         userPrefDAO.setUserPref();
        // if(UserPref.shuffle == 1) playlistsDAO.insertSongsInPlaylist(1, playlist);
-        if(UserPref.shuffle == 0) playlistsDAO.deleteShuffledPlaylistSongs();
+        if(UserPref.shuffle == 0) playlistsDAO.deletePlaylist(1);
     }
 
     public void initialTimePropertyBinding() {
@@ -310,7 +336,7 @@ public class PlaybackService {
         Collections.shuffle(playlist);
         currentIndex = 0;
         playlist.addFirst(songId);
-        playlistsDAO.deleteShuffledPlaylistSongs();
+        playlistsDAO.deletePlaylist(1);
         playlistsDAO.insertSongsInPlaylist(1, playlist);
         UserPref.playlistNo = currentIndex;
         System.out.println("Playlist after shuffling: " + playlist);
