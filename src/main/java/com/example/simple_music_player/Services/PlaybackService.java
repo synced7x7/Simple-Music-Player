@@ -7,6 +7,7 @@ import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.db.DatabaseManager;
+import com.example.simple_music_player.db.PlaylistsDAO;
 import com.example.simple_music_player.db.TrackDAO;
 import com.example.simple_music_player.db.UserPrefDAO;
 import javafx.beans.property.*;
@@ -58,6 +59,7 @@ public class PlaybackService {
     @Setter
     AlbumCoverController albumCoverController;
     private final UserPrefDAO userPrefDAO = new UserPrefDAO(DatabaseManager.getConnection());
+    private final PlaylistsDAO playlistsDAO = new PlaylistsDAO(DatabaseManager.getConnection());
 
     @Getter
     private static final PlaybackService instance = new PlaybackService();
@@ -106,7 +108,7 @@ public class PlaybackService {
             mediaPlayer.stop();
             mediaPlayer.dispose();
         }
-
+        System.out.println("Currently Playing:-> Song Id:: " + songId + " , Index:: " + idx);
         Media media = new Media(new File(t.getPath()).toURI().toString());
         mediaPlayer = new MediaPlayer(media);
         setupDurationListener(mediaPlayer);
@@ -171,7 +173,6 @@ public class PlaybackService {
 
     public void play(int index) {
         if (index < 0 || index >= playlist.size()) return;
-        System.out.println("Currently playing::: songID: " + playlist.get(currentIndex) + " , Index: " +  index);
         //
         UserPref.playlistNo = index;
         //
@@ -179,6 +180,7 @@ public class PlaybackService {
         int songId = playlist.get(index);
         Track t = trackDao.getTrackById(songId);  // fetch from DB only now
         currentTrack.set(t);
+        System.out.println("Currently Playing:-> Song Id:: " + songId + " , Index:: " + index);
 
         if (mediaPlayer != null) {
             mediaPlayer.stop();
@@ -230,8 +232,12 @@ public class PlaybackService {
 
     public void next() {
         if (playlist.isEmpty()) return;
-        if (checkRestartFromStart()) currentIndex = -1;
-        int nextIndex = (currentIndex + 1) % playlist.size();
+        int nextIndex;
+        if (checkRestartFromStart()) {
+            currentIndex = 0;
+            nextIndex = 0;
+        } else
+            nextIndex = (currentIndex + 1) % playlist.size();
         play(nextIndex);
     }
 
@@ -270,13 +276,15 @@ public class PlaybackService {
             UserPref.timestamp = (long) currentTime.toMillis();
         }
         userPrefDAO.setUserPref();
+       // if(UserPref.shuffle == 1) playlistsDAO.insertSongsInPlaylist(1, playlist);
+        if(UserPref.shuffle == 0) playlistsDAO.deleteShuffledPlaylistSongs();
     }
 
     public void initialTimePropertyBinding() {
         nowPlayingController.bindTextPropertyToTime();
     }
 
-    public void shufflePlaylist() {
+    public void shufflePlaylist() throws SQLException {
         if (playlist.isEmpty() || currentIndex < 0 || currentIndex >= playlist.size()) {
             System.err.println("Invalid currentIndex or empty playlist");
             return;
@@ -288,11 +296,14 @@ public class PlaybackService {
         Collections.shuffle(playlist);
         currentIndex = 0;
         playlist.addFirst(songId);
+        playlistsDAO.deleteShuffledPlaylistSongs();
+        playlistsDAO.insertSongsInPlaylist(1, playlist);
+        UserPref.playlistNo = currentIndex;
         System.out.println("Playlist after shuffling: " + playlist);
     }
 
     public void songRelocator() {
-        System.out.println("Playlist before relocation: " + playlist);
+        //System.out.println("Playlist before relocation: " + playlist);
         SongLocator songLocator = SongLocator.getCurrent();
         int currentSongId =  playlist.get(currentIndex);
         String sort = songLocator.getLastSortBS();
@@ -300,7 +311,7 @@ public class PlaybackService {
         playlist.clear();
         playlist = trackDao.getAllIdsSorted(sort, rev);
         currentIndex = playlist.indexOf(currentSongId);
-        System.out.println("Playlist after relocation: " + playlist);
+        //System.out.println("Playlist after relocation: " + playlist);
         libraryController.toggleSort(false);
     }
 

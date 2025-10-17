@@ -33,20 +33,24 @@ public class PlaylistsDAO {
         }
     }
 
-    public void insertSongsInPlaylist(int playlistId, int songId) throws SQLException {
+    public void insertSongsInPlaylist(int playlistId, List<Integer> songIds) throws SQLException {
         String insertSongs = """
-                    INSERT INTO playlist_songs (playlist_id, song_id)
-                    VALUES (?, ?)
-                """;
+            INSERT INTO playlist_songs (playlist_id, song_id)
+            VALUES (?, ?)
+            """;
         try (PreparedStatement ps = conn.prepareStatement(insertSongs)) {
-            ps.setInt(1, playlistId);
-            ps.setInt(2, songId);
-            ps.executeUpdate();
+            for (Integer songId : songIds) {
+                ps.setInt(1, playlistId);
+                ps.setInt(2, songId);
+                ps.addBatch();
+            }
+            ps.executeBatch();
         }
     }
 
+
     public List<Integer> getSongsFromPlaylist(int playlistId) throws SQLException {
-        String sql = "SELECT song_id FROM playlist_songs WHERE playlist_id = ?";
+        String sql = "SELECT song_id FROM playlist_songs WHERE playlist_id = ? ORDER BY id";
 
         List<Integer> songIds = new ArrayList<>();
 
@@ -60,6 +64,15 @@ public class PlaylistsDAO {
             }
         }
         return songIds;
+    }
+
+    public void createPlaylist() throws SQLException {
+        String createPlaylist = """
+                INSERT OR IGNORE INTO playlists (id, name) VALUES (1, 'Shuffled Playlist')
+        """;
+        try (PreparedStatement ps = conn.prepareStatement(createPlaylist)) {
+            ps.executeUpdate();
+        }
     }
 
 

@@ -219,23 +219,29 @@ public class LibraryController {
         String status = userPrefDAO.getUserStatus();
         long ts = userPrefDAO.getTimeStamp();
         List<Integer> idsToLoad;
+        List<Integer> shuffleIdsToLoad = List.of();
         //
 
         if (reverse == 1) ascending = false;
 
-        if (UserPref.shuffle == 0) {
-            if (sortingPref != null && !sortingPref.isEmpty()) {
-                // Fetch from DB in sorted order directly
-                idsToLoad = trackDAO.getAllIdsSorted(sortingPref, ascending);
-                System.out.println("Loaded sorted order based on: " + sortingPref);
-            } else {
-                // Default: order by title
-                idsToLoad = trackDAO.getAllIds();
-                System.out.println("Loaded songs based on default (Title)");
-            }
+        if (sortingPref != null && !sortingPref.isEmpty()) {
+            // Fetch from DB in sorted order directly
+            idsToLoad = trackDAO.getAllIdsSorted(sortingPref, ascending);
+            System.out.println("Loaded sorted order based on: " + sortingPref);
         } else {
-            idsToLoad = playlistsDAO.getSongsFromPlaylist(1);
+            // Default: order by title
+            idsToLoad = trackDAO.getAllIds();
+            System.out.println("Loaded songs based on default (Title)");
+        }
+
+        if (UserPref.shuffle == 1) {
+            //Persistent Shuffling
+            shuffleIdsToLoad = playlistsDAO.getSongsFromPlaylist(1);
+            SongLocator.create(UserPref.sortingPref, UserPref.reverse);
             System.out.println("Loaded songs based on shuffling");
+            toggleSort(true);
+            //new SongLocator(sortingPref, reverse);
+            //
         }
 
         if (trackDAO.getTrackPath() != null) {
@@ -243,11 +249,23 @@ public class LibraryController {
             prevFiles = dir.listFiles(this::isAudioFile);
         }
 
+        List<Integer> finalIdsToLoad = idsToLoad;
+        List<Integer> finalShuffleIdsToLoad = shuffleIdsToLoad;
+        System.out.println("Ids to load: " + idsToLoad);
+        System.out.println("Shuffle Ids to load: " + shuffleIdsToLoad);
+
         Platform.runLater(() -> {
-            countSongs(idsToLoad.size());
-            songListView.getItems().setAll(idsToLoad);
-            playbackService.setPlaylist(idsToLoad, idx, status, ts);
-            playbackService.initialTimePropertyBinding();
+            if (UserPref.shuffle == 0) {
+                countSongs(finalIdsToLoad.size());
+                songListView.getItems().setAll(finalIdsToLoad);
+                playbackService.setPlaylist(finalIdsToLoad, idx, status, ts);
+                playbackService.initialTimePropertyBinding();
+            } else {
+                countSongs(idsToLoad.size());
+                songListView.getItems().setAll(idsToLoad);
+                playbackService.setPlaylist(finalShuffleIdsToLoad, idx, status, ts);
+                playbackService.initialTimePropertyBinding();
+            }
         });
     }
 
@@ -258,6 +276,7 @@ public class LibraryController {
         toggleSort(false);
         //Clear shuffled playlist
         playlistsDAO.deleteShuffledPlaylistSongs();
+        playlistsDAO.createPlaylist();
 
         File[] files = dir.listFiles(this::isAudioFile);
         if (Arrays.equals(prevFiles, files)) {

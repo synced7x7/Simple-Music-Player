@@ -22,6 +22,7 @@ import lombok.Getter;
 import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
+import java.sql.SQLException;
 
 public class NowPlayingController {
     @FXML
@@ -201,7 +202,11 @@ public class NowPlayingController {
             UserPref.shuffle = 1;
             new Thread(() -> {
                 SongLocator.create(UserPref.sortingPref, UserPref.reverse);
-                playbackService.shufflePlaylist();
+                try {
+                    playbackService.shufflePlaylist();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }).start();
         }
 

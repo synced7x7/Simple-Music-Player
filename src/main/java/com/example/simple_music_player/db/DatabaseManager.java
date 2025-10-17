@@ -81,9 +81,9 @@ public class DatabaseManager {
 
         String createPlaylistSongsTable = """
                     CREATE TABLE IF NOT EXISTS playlist_songs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
                         playlist_id INTEGER NOT NULL,
                         song_id INTEGER NOT NULL,
-                        PRIMARY KEY (playlist_id, song_id),
                         FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
                         FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE
                     );
