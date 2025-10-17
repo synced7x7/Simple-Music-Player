@@ -215,8 +215,12 @@ public class NowPlayingController {
 
     @FXML
     private void toggleRepeat() {
-        if (UserPref.repeat == 1) UserPref.repeat = 0;
-        else UserPref.repeat = 1;
+        if (UserPref.repeat == 1) { //turn OFF
+            UserPref.repeat = 0;
+        }
+        else {
+            UserPref.repeat = 1;
+        }
 
         System.out.println("User Repeat status after toggling: " + UserPref.repeat);
     }

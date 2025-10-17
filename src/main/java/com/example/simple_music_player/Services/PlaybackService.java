@@ -123,7 +123,14 @@ public class PlaybackService {
             }
         });
 
-        mediaPlayer.setOnEndOfMedia(this::next);
+        mediaPlayer.setOnEndOfMedia(() -> {
+            if (UserPref.repeat == 1) {
+                mediaPlayer.seek(Duration.ZERO);
+                mediaPlayer.play();
+            } else {
+                next();
+            }
+        });
 
     }
 
@@ -197,7 +204,14 @@ public class PlaybackService {
         setupDurationListener(mediaPlayer);
 
 
-        mediaPlayer.setOnEndOfMedia(this::next); //when song finishes automatically move to next song
+        mediaPlayer.setOnEndOfMedia(() -> {
+            if (UserPref.repeat == 1) {
+                mediaPlayer.seek(Duration.ZERO);
+                mediaPlayer.play();
+            } else {
+                next();
+            }
+        });
     }
 
     public void play() {
