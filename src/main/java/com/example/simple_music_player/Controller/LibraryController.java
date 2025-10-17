@@ -232,6 +232,7 @@ public class LibraryController {
         UserPref.repeat = userPrefDAO.getRepeat();
         UserPref.shuffle = userPrefDAO.getShuffle();
         UserPref.isRundown = userPrefDAO.getIsRundown();
+        UserPref.volume = userPrefDAO.getVolume();
         //
         int idx = userPrefDAO.getPlaylistNo();
         String status = userPrefDAO.getUserStatus();
@@ -239,6 +240,7 @@ public class LibraryController {
         List<Integer> idsToLoad;
         List<Integer> shuffleIdsToLoad = List.of();
         //
+
 
         if (reverse == 1) ascending = false;
 
@@ -292,6 +294,12 @@ public class LibraryController {
                 }
                 playbackService.initialTimePropertyBinding();
             }
+            NowPlayingController npc = NowPlayingController.getInstance();
+            if (npc != null) {
+                npc.setInitialVolumeSliderControllerValue(UserPref.volume);
+            } else {
+                System.out.println("NowPlayingController not initialized yet!");
+            }
         });
     }
 
@@ -330,7 +338,12 @@ public class LibraryController {
             }
 
             List<Integer> allIds = trackDAO.getAllIds();
-            UserPref.setUserPref(0, 0, "Play", "Title", 0, 0, 0, 1);
+
+            if (UserPref.volume == 0) UserPref.volume = 0.75;
+
+
+
+            UserPref.setUserPref(0, 0, "Play", "Title", 0, 0, 0, 1, UserPref.volume);
             ascending = true;
 
             try {
@@ -348,6 +361,12 @@ public class LibraryController {
                 }
                 songListView.getItems().setAll(allIds);
                 dirChanged = false;
+                NowPlayingController npc = NowPlayingController.getInstance();
+                if (npc != null) {
+                    npc.setInitialVolumeSliderControllerValue(UserPref.volume);
+                } else {
+                    System.out.println("NowPlayingController not initialized yet!");
+                }
             });
         });
     }

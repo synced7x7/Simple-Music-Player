@@ -12,6 +12,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
@@ -55,15 +56,31 @@ public class NowPlayingController {
     private Button repeatButton;
     @FXML
     private Button shuffleButton;
+    @FXML
+    private Slider volumeSlider;
 
 
     public static VisualizerService visualizerController;
     @Getter
     private static final PlaybackService playbackService = new PlaybackService(); //one instance to be shared among all
 
+    @Getter
+    private static NowPlayingController instance;  // static reference
+
+    public NowPlayingController() {
+        instance = this;   // set when FXML is loaded
+    }
+
     @FXML
     public void initialize() throws IOException {
         playbackService.setNowPlayingController(this);
+
+        // Bind slider to PlaybackService
+        volumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            playbackService.setVolume(newVal.doubleValue());
+            UserPref.volume = newVal.doubleValue();
+        });
+        //
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/simple_music_player/visualizer.fxml"));
         AnchorPane visualizer = loader.load();
@@ -77,9 +94,9 @@ public class NowPlayingController {
         AnchorPane.setRightAnchor(visualizer, 0.0);
 
         playbackService.currentTrackProperty().addListener((obs, oldT, newT) -> {
-            /*if (newT != null && visualizerController != null) {
+            if (newT != null && visualizerController != null) {
                 visualizerController.loadWaveform(new java.io.File(newT.getPath()));
-            }*/
+            }
         });
 
         playButton.setOnAction(e -> {
@@ -104,8 +121,6 @@ public class NowPlayingController {
             }
         });
 
-        /*//Time
-        timeLabel.textProperty().bind(playbackService.remainingTimeProperty());*/
         //Song Metadata
         playbackService.currentTrackProperty().addListener((obs, oldT, newT) -> {
             //Name
@@ -243,6 +258,10 @@ public class NowPlayingController {
         System.out.println("User Repeat status after toggling: " + UserPref.repeat);
     }
 
+    public void setInitialVolumeSliderControllerValue(double value) {
+        volumeSlider.setValue(value);
+        playbackService.setVolume(volumeSlider.getValue());
+    }
 
 
 }

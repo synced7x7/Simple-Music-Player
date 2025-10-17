@@ -12,8 +12,9 @@ public class UserPref {
     public static int repeat;
     public static int shuffle;
     public static int isRundown;
+    public static double volume;
 
-    public static void setUserPref(int playlistNo, long timestamp, String status, String sortingPref, int reverse , int repeat, int shuffle, int isRundown) {
+    public static void setUserPref(int playlistNo, long timestamp, String status, String sortingPref, int reverse , int repeat, int shuffle, int isRundown, double volume) {
         UserPref.playlistNo = playlistNo;
         UserPref.timestamp = timestamp;
         UserPref.status = status;
@@ -22,6 +23,7 @@ public class UserPref {
         UserPref.repeat = repeat;
         UserPref.shuffle = shuffle;
         UserPref.isRundown = isRundown;
+        UserPref.volume = volume;
     }
 
     public static void userPrefChecker () {
@@ -34,6 +36,7 @@ public class UserPref {
         System.out.println("repeat: " + UserPref.repeat);
         System.out.println("shuffle: " + UserPref.shuffle);
         System.out.println("isRundown: " + UserPref.isRundown);
+        System.out.println("volume: " + UserPref.volume);
     }
 }
 

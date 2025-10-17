@@ -19,6 +19,7 @@ import javafx.util.Duration;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.sound.sampled.FloatControl;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -71,6 +72,8 @@ public class PlaybackService {
 
     public PlaybackService() {
     }
+
+
 
     public void setPlaylist(List<Integer> ids, boolean autoPlay) throws SQLException {
         playlist = ids;
@@ -137,7 +140,7 @@ public class PlaybackService {
             }
         });
 
-        if(UserPref.shuffle == 0) setListViewFocus(idx);
+        if (UserPref.shuffle == 0) setListViewFocus(idx);
         else setListViewFocus(playlistsDAO.getPlaylistSongsIdx(2, songId));
     }
 
@@ -169,8 +172,8 @@ public class PlaybackService {
 
                 // update waveform progress
                 if (currentTrack.get() != null &&
-                        NowPlayingController.visualizerController != null &&
-                        !VisualizerService.progressBarDraggingCap) {
+                    NowPlayingController.visualizerController != null &&
+                    !VisualizerService.progressBarDraggingCap) {
                     NowPlayingController.visualizerController.updateProgress(prog);
                 }
 
@@ -191,13 +194,13 @@ public class PlaybackService {
     }
 
 
-
     public void clearList() {
         playlist.clear();
         System.out.println("Playlist Cleared");
     }
 
     public void play(int index) throws SQLException {
+        NowPlayingController.visualizerController.cleanup();
         if (index < 0 || index >= playlist.size()) return;
         //
         UserPref.playlistNo = index;
@@ -236,9 +239,16 @@ public class PlaybackService {
             }
         });
 
-        if(UserPref.shuffle == 0) setListViewFocus(index);
+        if (UserPref.shuffle == 0) setListViewFocus(index);
         else setListViewFocus(playlistsDAO.getPlaylistSongsIdx(2, songId));
     }
+
+    public void setVolume(double volume) {
+        if (mediaPlayer != null) {
+            mediaPlayer.setVolume(volume);
+        } else System.out.println("MediaPlayer is null in setVolume function");
+    }
+
 
     public void play() throws SQLException {
         if (mediaPlayer != null) {
@@ -316,8 +326,8 @@ public class PlaybackService {
             UserPref.timestamp = (long) currentTime.toMillis();
         }
         userPrefDAO.setUserPref();
-       // if(UserPref.shuffle == 1) playlistsDAO.insertSongsInPlaylist(1, playlist);
-        if(UserPref.shuffle == 0) playlistsDAO.deletePlaylist(1);
+        // if(UserPref.shuffle == 1) playlistsDAO.insertSongsInPlaylist(1, playlist);
+        if (UserPref.shuffle == 0) playlistsDAO.deletePlaylist(1);
     }
 
     public void initialTimePropertyBinding() {
@@ -345,7 +355,7 @@ public class PlaybackService {
     public void songRelocator() {
         //System.out.println("Playlist before relocation: " + playlist);
         SongLocator songLocator = SongLocator.getCurrent();
-        int currentSongId =  playlist.get(currentIndex);
+        int currentSongId = playlist.get(currentIndex);
         String sort = songLocator.getLastSortBS();
         boolean rev = songLocator.getLastReverseBS() != 1;
         playlist.clear();
@@ -354,7 +364,6 @@ public class PlaybackService {
         //System.out.println("Playlist after relocation: " + playlist);
         libraryController.toggleSort(false);
     }
-
 
 
 }

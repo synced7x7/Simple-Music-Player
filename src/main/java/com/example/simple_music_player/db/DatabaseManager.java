@@ -58,7 +58,6 @@ public class DatabaseManager {
         String createIndexAlbum = "CREATE INDEX IF NOT EXISTS idx_songs_album ON songs(album);";
 
         String createUserPrefTable = """
-                    --DROP TABLE IF EXISTS user_pref;
                     CREATE TABLE IF NOT EXISTS user_pref (
                         id INTEGER PRIMARY KEY,
                         playlistNo INTEGER,
@@ -68,7 +67,8 @@ public class DatabaseManager {
                         reverse INTEGER,
                         repeat INTEGER,
                         shuffle INTEGER,
-                        isRundown INTEGER
+                        isRundown INTEGER,
+                        volume DOUBLE
                     );
                 """;
 
