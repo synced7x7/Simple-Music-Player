@@ -243,6 +243,7 @@ public class NowPlayingController {
             }).start();
         }
 
+        updateShuffleButtonStyle();
         System.out.println("User Shuffle status after toggling: " + UserPref.shuffle);
     }
 
@@ -254,13 +255,30 @@ public class NowPlayingController {
         else {
             UserPref.repeat = 1;
         }
-
+        updateRepeatButtonStyle();
         System.out.println("User Repeat status after toggling: " + UserPref.repeat);
     }
 
     public void setInitialVolumeSliderControllerValue(double value) {
         volumeSlider.setValue(value);
         playbackService.setVolume(volumeSlider.getValue());
+    }
+
+
+    public void updateShuffleButtonStyle() {
+        if (UserPref.shuffle == 1) {
+            shuffleButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+        } else {
+            shuffleButton.setStyle("");
+        }
+    }
+
+    public void updateRepeatButtonStyle() {
+        if (UserPref.repeat == 1) {
+            repeatButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+        } else {
+            repeatButton.setStyle("");
+        }
     }
 
 

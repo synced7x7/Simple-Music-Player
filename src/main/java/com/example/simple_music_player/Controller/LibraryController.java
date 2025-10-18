@@ -295,8 +295,10 @@ public class LibraryController {
                 playbackService.initialTimePropertyBinding();
             }
             NowPlayingController npc = NowPlayingController.getInstance();
-            if (npc != null) {
+            if (npc != null) { //initialize Controller
                 npc.setInitialVolumeSliderControllerValue(UserPref.volume);
+                npc.updateShuffleButtonStyle();
+                npc.updateRepeatButtonStyle();
             } else {
                 System.out.println("NowPlayingController not initialized yet!");
             }
@@ -362,8 +364,10 @@ public class LibraryController {
                 songListView.getItems().setAll(allIds);
                 dirChanged = false;
                 NowPlayingController npc = NowPlayingController.getInstance();
-                if (npc != null) {
+                if (npc != null) { //initialize Controller
                     npc.setInitialVolumeSliderControllerValue(UserPref.volume);
+                    npc.updateShuffleButtonStyle();
+                    npc.updateRepeatButtonStyle();
                 } else {
                     System.out.println("NowPlayingController not initialized yet!");
                 }

@@ -13,6 +13,9 @@ import javax.sound.sampled.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javazoom.jl.decoder.Bitstream;
 import javazoom.jl.decoder.Decoder;
@@ -103,64 +106,69 @@ public class VisualizerService {
             Bitstream bitstream = new Bitstream(fis);
             Decoder decoder = new Decoder();
 
-            int targetSize = 500;
-            waveform = new float[targetSize];
-
-            // Pre-allocate with fixed size instead of dynamic ArrayList
-            int samplesPerBar = 0;
-            int barIndex = 0;
-            float maxInBar = 0;
+            int targetSize = 300;
+            List<Float> allMaxValues = new ArrayList<>();
 
             javazoom.jl.decoder.Header frameHeader;
-            long totalSamples = 0;
+            int frameCount = 0;
+            int frameSkip = 2; // Process every 2nd frame only
 
-            // First pass: count samples to calculate step size
+            // Collect max values from frames
             while ((frameHeader = bitstream.readFrame()) != null) {
+                frameCount++;
+
+                // Skip frames for speed
+                if (frameCount % frameSkip != 0) {
+                    bitstream.closeFrame();
+                    continue;
+                }
+
                 SampleBuffer output = (SampleBuffer) decoder.decodeFrame(frameHeader, bitstream);
-                totalSamples += output.getBufferLength();
+                short[] buffer = output.getBuffer();
+
+                // Find max in this frame
+                float maxInFrame = 0;
+                for (short s : buffer) {
+                    float normalized = Math.abs(s) / 32768.0f;
+                    maxInFrame = Math.max(maxInFrame, normalized);
+                }
+
+                allMaxValues.add(maxInFrame);
                 bitstream.closeFrame();
             }
 
-            samplesPerBar = (int) (totalSamples / targetSize);
-            if (samplesPerBar == 0) samplesPerBar = 1;
+            // Now downsample the collected values to targetSize
+            waveform = new float[targetSize];
+            int collectedSize = allMaxValues.size();
 
-            // Close and reopen stream for second pass
-            bitstream.close();
-            fis.close();
-
-            // Second pass: downsample on the fly
-            try (InputStream fis2 = new FileInputStream(mp3File)) {
-                bitstream = new Bitstream(fis2);
-                decoder = new Decoder();
-
-                int sampleCount = 0;
-
-                while ((frameHeader = bitstream.readFrame()) != null && barIndex < targetSize) {
-                    SampleBuffer output = (SampleBuffer) decoder.decodeFrame(frameHeader, bitstream);
-                    short[] buffer = output.getBuffer();
-
-                    for (short s : buffer) {
-                        float normalized = Math.abs(s) / 32768.0f;
-                        maxInBar = Math.max(maxInBar, normalized);
-                        sampleCount++;
-
-                        if (sampleCount >= samplesPerBar) {
-                            if (waveform != null)
-                                waveform[barIndex++] = maxInBar;
-                            maxInBar = 0;
-                            sampleCount = 0;
-
-                            if (barIndex >= targetSize) break;
-                        }
-                    }
-                    bitstream.closeFrame();
+            if (collectedSize == 0) {
+                // No data collected
+                Arrays.fill(waveform, 0);
+            } else if (collectedSize <= targetSize) {
+                // We have less data than target, stretch it
+                for (int i = 0; i < targetSize; i++) {
+                    int srcIndex = (int) ((double) i / targetSize * collectedSize);
+                    srcIndex = Math.min(srcIndex, collectedSize - 1);
+                    waveform[i] = allMaxValues.get(srcIndex);
                 }
+            } else {
+                // We have more data, downsample by taking max of groups
+                float step = (float) collectedSize / targetSize;
+                for (int i = 0; i < targetSize; i++) {
+                    int startIdx = (int) (i * step);
+                    int endIdx = (int) ((i + 1) * step);
+                    endIdx = Math.min(endIdx, collectedSize);
 
-                // Fill remaining if needed
-                while (barIndex < targetSize) {
-                    waveform[barIndex++] = maxInBar;
+                    // Take max of this range
+                    float maxInRange = 0;
+                    for (int j = startIdx; j < endIdx; j++) {
+                        maxInRange = Math.max(maxInRange, allMaxValues.get(j));
+                    }
+                    waveform[i] = maxInRange;
                 }
             }
+
+            bitstream.close();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -173,31 +181,78 @@ public class VisualizerService {
 
             int bytesPerFrame = format.getFrameSize();
             if (bytesPerFrame == AudioSystem.NOT_SPECIFIED) {
-                bytesPerFrame = 1;
+                bytesPerFrame = 2; // Assume 16-bit mono
             }
 
             long frameLength = audioStream.getFrameLength();
-            int targetSize = 500;
-            waveform = new float[targetSize];
+            int targetSize = 300;
 
-            int samplesPerBar = (int) (frameLength / targetSize);
-            if (samplesPerBar == 0) samplesPerBar = 1;
+            // Skip frames for faster processing
+            int frameSkip = 2; // Process every 2nd frame
+            List<Float> allMaxValues = new ArrayList<>();
 
-            byte[] buffer = new byte[bytesPerFrame * samplesPerBar];
-            int barIndex = 0;
+            // Calculate chunk size for reading
+            int framesPerChunk = 4096; // Read in chunks
+            byte[] buffer = new byte[bytesPerFrame * framesPerChunk];
 
-            while (barIndex < targetSize) {
+            long framesProcessed = 0;
+
+            while (framesProcessed < frameLength) {
                 int bytesRead = audioStream.read(buffer);
                 if (bytesRead <= 0) break;
 
-                float maxInBar = 0;
-                for (int i = 0; i + 1 < bytesRead; i += 2) {
-                    short sample = (short) ((buffer[i + 1] << 8) | (buffer[i] & 0xff));
+                int samplesRead = bytesRead / bytesPerFrame;
+
+                // Process samples with skipping
+                float maxInChunk = 0;
+                for (int i = 0; i < bytesRead - 1; i += bytesPerFrame * frameSkip) {
+                    short sample;
+
+                    // Handle different bit depths
+                    if (bytesPerFrame >= 2) {
+                        sample = (short) ((buffer[i + 1] << 8) | (buffer[i] & 0xff));
+                    } else {
+                        sample = buffer[i];
+                    }
+
                     float normalized = Math.abs(sample) / 32768.0f;
-                    maxInBar = Math.max(maxInBar, normalized);
+                    maxInChunk = Math.max(maxInChunk, normalized);
                 }
 
-                waveform[barIndex++] = maxInBar;
+                if (maxInChunk > 0) {
+                    allMaxValues.add(maxInChunk);
+                }
+
+                framesProcessed += samplesRead;
+            }
+
+            // Downsample to target size
+            waveform = new float[targetSize];
+            int collectedSize = allMaxValues.size();
+
+            if (collectedSize == 0) {
+                Arrays.fill(waveform, 0);
+            } else if (collectedSize <= targetSize) {
+                // Stretch to target size
+                for (int i = 0; i < targetSize; i++) {
+                    int srcIndex = (int) ((double) i / targetSize * collectedSize);
+                    srcIndex = Math.min(srcIndex, collectedSize - 1);
+                    waveform[i] = allMaxValues.get(srcIndex);
+                }
+            } else {
+                // Downsample by taking max of groups
+                float step = (float) collectedSize / targetSize;
+                for (int i = 0; i < targetSize; i++) {
+                    int startIdx = (int) (i * step);
+                    int endIdx = (int) ((i + 1) * step);
+                    endIdx = Math.min(endIdx, collectedSize);
+
+                    float maxInRange = 0;
+                    for (int j = startIdx; j < endIdx; j++) {
+                        maxInRange = Math.max(maxInRange, allMaxValues.get(j));
+                    }
+                    waveform[i] = maxInRange;
+                }
             }
 
         } catch (Exception e) {
@@ -222,7 +277,7 @@ public class VisualizerService {
 
             for (int i = 0; i < length; i++) {
                 double value = waveform[i];
-                double barHeight = value * canvasHeight * 0.8;
+                double barHeight = value * canvasHeight * 0.7;
                 imgGc.fillRect(i * barWidth, (canvasHeight - barHeight) / 2, barWidth, barHeight);
             }
 
