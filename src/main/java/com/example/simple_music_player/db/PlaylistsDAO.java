@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class PlaylistsDAO {
@@ -40,6 +41,27 @@ public class PlaylistsDAO {
         }
     }
 
+    public void deleteSongsFromPlaylist(int playlistId, List<Integer> songIds) throws SQLException {
+        if (songIds == null || songIds.isEmpty()) return; // nothing to delete
+
+        // Build the placeholders (?, ?, ?, ...)
+        String placeholders = String.join(", ", Collections.nCopies(songIds.size(), "?"));
+
+        String deleteSql = """
+        DELETE FROM playlist_songs
+        WHERE playlist_id = ?
+        AND song_id IN (""" + placeholders + ")";
+
+        try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
+            ps.setInt(1, playlistId);
+            for (int i = 0; i < songIds.size(); i++) {
+                ps.setInt(i + 2, songIds.get(i)); // +2 because index 1 is playlistId
+            }
+            ps.executeUpdate();
+        }
+    }
+
+
 
     public List<Integer> getSongsFromPlaylist(int playlistId) throws SQLException {
         String sql = "SELECT song_id FROM playlist_songs WHERE playlist_id = ? ORDER BY id";
@@ -58,6 +80,29 @@ public class PlaylistsDAO {
         return songIds;
     }
 
+    public boolean isSongInPlaylist(int playlistId, int songId) throws SQLException {
+        String sql = """
+        SELECT EXISTS(
+            SELECT 1 FROM playlist_songs
+            WHERE playlist_id = ?
+            AND song_id = ?
+        )
+    """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, playlistId);
+            ps.setInt(2, songId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) == 1;
+                }
+            }
+        }
+        return false;
+    }
+
+
     public void createShuffledPlaylist() throws SQLException {
         String createPlaylist = """
                         INSERT OR IGNORE INTO playlists (id, name) VALUES (1, 'Shuffled Playlist')
@@ -75,6 +120,16 @@ public class PlaylistsDAO {
             ps.executeUpdate();
         }
     }
+
+    public void createFavPlaylist() throws SQLException {
+        String createPlaylist = """
+                INSERT OR IGNORE INTO playlists (id, name) VALUES (3, 'Favourite')
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(createPlaylist)) {
+            ps.executeUpdate();
+        }
+    }
+
 
     public void replaceSongsInPlaylist(int playlistId, List<Integer> newSongIds) throws SQLException {
         String deleteSql = "DELETE FROM playlist_songs WHERE playlist_id = ?";

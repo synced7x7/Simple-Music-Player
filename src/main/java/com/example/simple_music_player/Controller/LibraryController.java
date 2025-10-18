@@ -4,6 +4,7 @@ import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.Services.PlaybackService;
+import com.example.simple_music_player.Utility.SongIdAndIndexUtility;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.PlaylistsDAO;
 import com.example.simple_music_player.db.TrackDAO;
@@ -132,31 +133,36 @@ public class LibraryController {
                 favButton.setLayoutY(CARD_HEIGHT - 25);
                 favButton.setText("♡");
 
-                favButton.setOnAction(e -> {
-
-                    if (favButton.getText().equals("♡")) {
-                        favButton.setText("♥");
-                        favButton.setStyle("-fx-background-color: transparent; -fx-text-fill: red; -fx-font-size: 16px;");
-                    } else {
-                        favButton.setText("♡");
-                        favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 16px;");
-                    }
-                });
-
                 card.getChildren().addAll(cover, nameLabel, favButton);
             }
 
 
             @Override
             protected void updateItem(Integer id, boolean empty) {
-                super.updateItem(id, empty); //Old songs are cleared automatically
-
+                super.updateItem(id, empty);
                 if (empty || id == null) {
                     setGraphic(null);
                 } else {
                     Track track = trackDAO.getTrackCompressedArtworkAndTitleById(id);
                     nameLabel.setText(track.getTitle());
                     cover.setImage(null);
+
+                    // CHECK IF THIS SONG IS IN FAVORITES (Playlist 3)
+                    boolean isFavorite = false;
+                    try {
+                        isFavorite = playlistsDAO.isSongInPlaylist(3, id);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+
+                    // UPDATE FAV BUTTON BASED ON DATABASE STATE
+                    if (isFavorite) {
+                        favButton.setText("♥");
+                        favButton.setStyle("-fx-background-color: transparent; -fx-text-fill: red; -fx-font-size: 16px;");
+                    } else {
+                        favButton.setText("♡");
+                        favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 16px;");
+                    }
 
                     // Async thumbnail load
                     CompletableFuture
@@ -169,32 +175,22 @@ public class LibraryController {
 
                     // --- Queue Menu ---
                     MenuItem addToQueue = new MenuItem("Add to Queue");
-// addToQueue.setOnAction(ae -> playbackService.addToQueue(id));
-
                     MenuItem removeFromQueue = new MenuItem("Remove from Queue");
-                    // removeFromQueue.setOnAction(ae -> playbackService.removeFromQueue(id));
-
                     Menu queueMenu = new Menu("Queue");
                     queueMenu.getItems().addAll(addToQueue, removeFromQueue);
 
                     // --- Playlist Menu ---
                     MenuItem addToPlaylist = new MenuItem("Add to Playlist");
-                    // addToPlaylist.setOnAction(ae -> playbackService.addToPlaylist(id));
-
                     MenuItem removeFromPlaylist = new MenuItem("Remove from Playlist");
-                    // removeFromPlaylist.setOnAction(ae -> playbackService.removeFromPlaylist(id));
-
                     Menu playlistMenu = new Menu("Playlist");
                     playlistMenu.getItems().addAll(addToPlaylist, removeFromPlaylist);
 
                     // --- Other Options ---
                     MenuItem viewDetails = new MenuItem("View Details");
-                    // viewDetails.setOnAction(ae -> showTrackDetails(id));
 
                     // --- Attach to ContextMenu ---
                     ContextMenu contextMenu = new ContextMenu();
                     contextMenu.getItems().addAll(queueMenu, playlistMenu, viewDetails);
-
 
                     card.setOnMouseClicked(e -> {
                         if (e.getButton() == MouseButton.PRIMARY) {
@@ -215,8 +211,34 @@ public class LibraryController {
                             if (contextMenu.isShowing()) {
                                 contextMenu.hide();
                             }
+                            int idx = SongIdAndIndexUtility.getIndexFromSongId(id);
+                            System.out.println("SongId: " + id + " Index: " + idx);
                             contextMenu.show(card, e.getScreenX(), e.getScreenY());
                             e.consume();
+                        }
+                    });
+
+                    favButton.setOnAction(e -> {
+                        if (favButton.getText().equals("♡")) {
+                            favButton.setText("♥");
+                            favButton.setStyle("-fx-background-color: transparent; -fx-text-fill: red; -fx-font-size: 16px;");
+                            List<Integer> songIds = new ArrayList<>();
+                            songIds.add(id);
+                            try {
+                                playlistsDAO.insertSongsInPlaylist(3, songIds);
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        } else {
+                            favButton.setText("♡");
+                            favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 16px;");
+                            List<Integer> songIds = new ArrayList<>();
+                            songIds.add(id);
+                            try {
+                                playlistsDAO.deleteSongsFromPlaylist(3, songIds);
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
                         }
                     });
 
@@ -376,6 +398,7 @@ public class LibraryController {
         playlistsDAO.deletePlaylist(2);
         playlistsDAO.createShuffledPlaylist();
         playlistsDAO.createNormalPlaylist();
+        playlistsDAO.createFavPlaylist();
 
         File[] files = dir.listFiles(this::isAudioFile);
         if (Arrays.equals(prevFiles, files)) {
