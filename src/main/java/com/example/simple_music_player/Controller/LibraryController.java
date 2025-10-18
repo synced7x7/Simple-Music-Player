@@ -13,6 +13,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
 import lombok.Getter;
@@ -111,6 +112,7 @@ public class LibraryController {
             private final AnchorPane card = new AnchorPane();
             private final ImageView cover = new ImageView();
             private final Label nameLabel = new Label();
+            private final Button favButton = new Button();
 
             {
                 card.setPrefSize(CARD_WIDTH, CARD_HEIGHT);
@@ -124,8 +126,26 @@ public class LibraryController {
                 nameLabel.setLayoutY(CARD_WIDTH + 5);
                 nameLabel.setWrapText(true);
 
-                card.getChildren().addAll(cover, nameLabel);
+                // --- Favorite Button Styling ---
+                favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 16px;");
+                favButton.setLayoutX(CARD_WIDTH - 25); // bottom-right corner
+                favButton.setLayoutY(CARD_HEIGHT - 25);
+                favButton.setText("♡");
+
+                favButton.setOnAction(e -> {
+
+                    if (favButton.getText().equals("♡")) {
+                        favButton.setText("♥");
+                        favButton.setStyle("-fx-background-color: transparent; -fx-text-fill: red; -fx-font-size: 16px;");
+                    } else {
+                        favButton.setText("♡");
+                        favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 16px;");
+                    }
+                });
+
+                card.getChildren().addAll(cover, nameLabel, favButton);
             }
+
 
             @Override
             protected void updateItem(Integer id, boolean empty) {
@@ -147,15 +167,56 @@ public class LibraryController {
                                 }
                             });
 
+                    // --- Queue Menu ---
+                    MenuItem addToQueue = new MenuItem("Add to Queue");
+// addToQueue.setOnAction(ae -> playbackService.addToQueue(id));
+
+                    MenuItem removeFromQueue = new MenuItem("Remove from Queue");
+                    // removeFromQueue.setOnAction(ae -> playbackService.removeFromQueue(id));
+
+                    Menu queueMenu = new Menu("Queue");
+                    queueMenu.getItems().addAll(addToQueue, removeFromQueue);
+
+                    // --- Playlist Menu ---
+                    MenuItem addToPlaylist = new MenuItem("Add to Playlist");
+                    // addToPlaylist.setOnAction(ae -> playbackService.addToPlaylist(id));
+
+                    MenuItem removeFromPlaylist = new MenuItem("Remove from Playlist");
+                    // removeFromPlaylist.setOnAction(ae -> playbackService.removeFromPlaylist(id));
+
+                    Menu playlistMenu = new Menu("Playlist");
+                    playlistMenu.getItems().addAll(addToPlaylist, removeFromPlaylist);
+
+                    // --- Other Options ---
+                    MenuItem viewDetails = new MenuItem("View Details");
+                    // viewDetails.setOnAction(ae -> showTrackDetails(id));
+
+                    // --- Attach to ContextMenu ---
+                    ContextMenu contextMenu = new ContextMenu();
+                    contextMenu.getItems().addAll(queueMenu, playlistMenu, viewDetails);
+
+
                     card.setOnMouseClicked(e -> {
-                        LibraryController.restartFromStart = false;
-                        int index = PlaybackService.playlist.indexOf(id);
-                        if (index != -1) {
-                            try {
-                                playbackService.play(index);
-                            } catch (SQLException ex) {
-                                throw new RuntimeException(ex);
+                        if (e.getButton() == MouseButton.PRIMARY) {
+                            LibraryController.restartFromStart = false;
+                            int index = PlaybackService.playlist.indexOf(id);
+                            if (index != -1) {
+                                try {
+                                    playbackService.play(index);
+                                } catch (SQLException ex) {
+                                    throw new RuntimeException(ex);
+                                }
                             }
+                            if (contextMenu.isShowing()) {
+                                contextMenu.hide();
+                            }
+                            e.consume();
+                        } else if (e.getButton() == MouseButton.SECONDARY) {
+                            if (contextMenu.isShowing()) {
+                                contextMenu.hide();
+                            }
+                            contextMenu.show(card, e.getScreenX(), e.getScreenY());
+                            e.consume();
                         }
                     });
 
@@ -342,7 +403,6 @@ public class LibraryController {
             List<Integer> allIds = trackDAO.getAllIds();
 
             if (UserPref.volume == 0) UserPref.volume = 0.75;
-
 
 
             UserPref.setUserPref(0, 0, "Play", "Title", 0, 0, 0, 1, UserPref.volume);
