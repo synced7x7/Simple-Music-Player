@@ -19,7 +19,6 @@ import javafx.util.Duration;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.sound.sampled.FloatControl;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -327,7 +326,7 @@ public class PlaybackService {
         }
         userPrefDAO.setUserPref();
         // if(UserPref.shuffle == 1) playlistsDAO.insertSongsInPlaylist(1, playlist);
-        if (UserPref.shuffle == 0) playlistsDAO.deletePlaylist(1);
+        if (UserPref.shuffle == 0) playlistsDAO.deleteAllSongsFromPlaylist(1);
     }
 
     public void initialTimePropertyBinding() {
@@ -346,7 +345,7 @@ public class PlaybackService {
         Collections.shuffle(playlist);
         currentIndex = 0;
         playlist.addFirst(songId);
-        playlistsDAO.deletePlaylist(1);
+        playlistsDAO.deleteAllSongsFromPlaylist(1);
         playlistsDAO.insertSongsInPlaylist(1, playlist);
         UserPref.playlistNo = currentIndex;
         System.out.println("Playlist after shuffling: " + playlist);

@@ -1,5 +1,7 @@
 package com.example.simple_music_player.db;
 
+import com.example.simple_music_player.Model.Playlist;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,7 +17,7 @@ public class PlaylistsDAO {
         this.conn = connection;
     }
 
-    public void deletePlaylist(int playlistId) throws SQLException {
+    public void deleteAllSongsFromPlaylist(int playlistId) throws SQLException {
         String deletePlaylist = """
                 DELETE FROM playlist_songs WHERE playlist_id = ?
                 """;
@@ -174,5 +176,62 @@ public class PlaylistsDAO {
         }
         return -1; // not found
     }
+
+    public void createPlaylist(String name) throws SQLException {
+        String getMaxId = "SELECT MAX(id) FROM playlists";
+        int nextId = 4;
+
+        try (PreparedStatement ps = conn.prepareStatement(getMaxId);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                int maxId = rs.getInt(1);
+                nextId = maxId + 1;
+            }
+        }
+
+        // Insert with the calculated ID
+        String createPlaylist = "INSERT INTO playlists (id, name) VALUES (?, ?)";
+
+        try (PreparedStatement ps = conn.prepareStatement(createPlaylist)) {
+            ps.setInt(1, nextId);
+            ps.setString(2, name);
+            ps.executeUpdate();
+        }
+    }
+
+    public List<Playlist> getAllPlaylistsAboveId(int minId) throws SQLException {
+        String sql = "SELECT id, name FROM playlists WHERE id > ?";
+        List<Playlist> playlists = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, minId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    playlists.add(new Playlist(rs.getInt("id"), rs.getString("name")));
+                }
+            }
+        }
+        return playlists;
+    }
+
+    public void renamePlaylist(int playlistId, String newName) throws SQLException {
+        String sql = "UPDATE playlists SET name = ? WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newName);
+            ps.setInt(2, playlistId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void deletePlaylist(int playlistId) throws SQLException {
+        String del = """
+                DELETE FROM playlists WHERE id = ?
+                """;
+        deleteAllSongsFromPlaylist(playlistId);
+        try(PreparedStatement ps = conn.prepareStatement(del)) {
+            ps.setInt(1, playlistId);
+            ps.executeUpdate();
+        }
+    }
+
 
 }

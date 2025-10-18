@@ -4,6 +4,7 @@ import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.Services.PlaybackService;
+import com.example.simple_music_player.Services.PlaylistService;
 import com.example.simple_music_player.Utility.SongIdAndIndexUtility;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.PlaylistsDAO;
@@ -181,16 +182,17 @@ public class LibraryController {
 
                     // --- Playlist Menu ---
                     MenuItem addToPlaylist = new MenuItem("Add to Playlist");
-                    MenuItem removeFromPlaylist = new MenuItem("Remove from Playlist");
-                    Menu playlistMenu = new Menu("Playlist");
-                    playlistMenu.getItems().addAll(addToPlaylist, removeFromPlaylist);
+                    addToPlaylist.setOnAction((event) -> {
+                        PlaylistService playlistService = new PlaylistService();
+                        playlistService.openPlaylistSelectionWindow(id);
+                    });
 
                     // --- Other Options ---
                     MenuItem viewDetails = new MenuItem("View Details");
 
                     // --- Attach to ContextMenu ---
                     ContextMenu contextMenu = new ContextMenu();
-                    contextMenu.getItems().addAll(queueMenu, playlistMenu, viewDetails);
+                    contextMenu.getItems().addAll(queueMenu, addToPlaylist, viewDetails);
 
                     card.setOnMouseClicked(e -> {
                         if (e.getButton() == MouseButton.PRIMARY) {
@@ -248,6 +250,8 @@ public class LibraryController {
         });
 
     }
+
+
 
     // --- Sorting ---
     private void sortLibrary(String criteria) {
@@ -394,8 +398,8 @@ public class LibraryController {
         if (dir == null || !dir.exists() || !dir.isDirectory()) return;
         toggleSort(false);
         //Clear shuffled playlist
-        playlistsDAO.deletePlaylist(1);
-        playlistsDAO.deletePlaylist(2);
+        playlistsDAO.deleteAllSongsFromPlaylist(1);
+        playlistsDAO.deleteAllSongsFromPlaylist(2);
         playlistsDAO.createShuffledPlaylist();
         playlistsDAO.createNormalPlaylist();
         playlistsDAO.createFavPlaylist();
