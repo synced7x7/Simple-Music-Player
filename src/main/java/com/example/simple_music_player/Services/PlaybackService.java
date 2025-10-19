@@ -337,8 +337,6 @@ public class PlaybackService {
             UserPref.timestamp = (long) currentTime.toMillis();
         }
         userPrefDAO.setUserPref();
-        // if(UserPref.shuffle == 1) playlistsDAO.insertSongsInPlaylist(1, playlist);
-        if (UserPref.shuffle == 0) playlistsDAO.deleteAllSongsFromPlaylist(1);
     }
 
     public void initialTimePropertyBinding() {
@@ -363,7 +361,7 @@ public class PlaybackService {
         System.out.println("Playlist after shuffling: " + playlist);
     }
 
-    public void songRelocator() {
+    public void songRelocator() throws SQLException {
         //System.out.println("Playlist before relocation: " + playlist);
         SongLocator songLocator = SongLocator.getCurrent();
         int currentSongId = playlist.get(currentIndex);
@@ -374,6 +372,7 @@ public class PlaybackService {
         currentIndex = playlist.indexOf(currentSongId);
         //System.out.println("Playlist after relocation: " + playlist);
         libraryController.toggleSort(false);
+        playlistsDAO.deleteAllSongsFromPlaylist(1);
     }
 
 

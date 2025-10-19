@@ -118,7 +118,11 @@ public class PlaylistService {
                         System.out.println("Loading playlist: " + name.getText());
                         LibraryController libraryController = LibraryController.getInstance();
                         if (libraryController != null) {
-                            libraryController.loadPlaylistView(playlist.getId(), playlist.getName());
+                            try {
+                                libraryController.loadPlaylistView(playlist.getId(), playlist.getName());
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
                             Stage currentStage = (Stage) name.getScene().getWindow();
                             currentStage.close();
                         }

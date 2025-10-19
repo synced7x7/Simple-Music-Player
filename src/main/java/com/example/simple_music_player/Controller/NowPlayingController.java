@@ -227,7 +227,11 @@ public class NowPlayingController {
         if (UserPref.shuffle == 1) { //turn off
             UserPref.shuffle = 0;
             new Thread(() -> {
-                playbackService.songRelocator();
+                try {
+                    playbackService.songRelocator();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
                 SongLocator.delete();
             }).start();
         }

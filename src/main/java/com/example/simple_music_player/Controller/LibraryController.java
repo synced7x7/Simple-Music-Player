@@ -65,7 +65,8 @@ public class LibraryController {
     @Getter
     private static LibraryController instance;
     public static boolean isPlaylistChanged = false;
-    private int currentPlaylistId;
+    @Getter
+    public int currentPlaylistId;
 
     @FXML
     public void initialize() throws SQLException {
@@ -213,7 +214,11 @@ public class LibraryController {
                             if(isPlaylistChanged) {
                                 isPlaylistChanged = false;
                                 try {
-                                    List<Integer> playlistSongs = playlistsDAO.getSongsFromPlaylist(UserPref.playlistId);
+                                    currentPlaylistId = UserPref.playlistId;
+                                    int reverse =  playlistsDAO.getReverse(currentPlaylistId);
+                                    String sort = playlistsDAO.getSortingPref(currentPlaylistId);
+                                    if (reverse == 1) ascending = false;
+                                    List<Integer> playlistSongs = trackDAO.getAllIdsSorted(currentPlaylistId, sort, ascending);
                                     playbackService.setPlaylist(playlistSongs, false);
                                 } catch (SQLException ex) {
                                     throw new RuntimeException(ex);
@@ -330,7 +335,6 @@ public class LibraryController {
         }).start();
     }
 
-    // --- Initial load ---
     private void loadInitialDirectoryFromDatabase() throws SQLException {
         //User Pref Setter
         int playlistId = userPrefDAO.getPlaylistId();
@@ -533,29 +537,26 @@ public class LibraryController {
         playlistService.openPlaylistSelectionWindow(-1);
     }
 
-    public void loadPlaylistView(int playlistId, String playlistName) {
+    public void loadPlaylistView(int playlistId, String playlistName) throws SQLException {
         isPlaylistChanged = true;
         UserPref.playlistId = playlistId;
+        int reverse =  playlistsDAO.getReverse(playlistId);
+        String sort = playlistsDAO.getSortingPref(playlistId);
+        if (reverse == 1) ascending = false;
         /*UserPref.shuffle = 1;
         NowPlayingController npc = NowPlayingController.getInstance();
         if (npc != null) {
             npc.toggleShuffle();
         }*/
         CompletableFuture.runAsync(() -> {
-            try {
-                List<Integer> playlistSongs = playlistsDAO.getSongsFromPlaylist(playlistId);
-                System.out.println("Playlist Songs -> " + playlistSongs);
+            List<Integer> playlistSongs = trackDAO.getAllIdsSorted(playlistId, sort, ascending);
+            System.out.println("Playlist Songs -> " + playlistSongs);
 
-                Platform.runLater(() -> {
-                    songListView.getItems().setAll(playlistSongs);
-                    countSongs(playlistSongs.size());
-                    songCountLabel.setText(playlistName + " - " + playlistSongs.size() + " songs");
-
-
-                });
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+            Platform.runLater(() -> {
+                songListView.getItems().setAll(playlistSongs);
+                countSongs(playlistSongs.size());
+                songCountLabel.setText(playlistName + " - " + playlistSongs.size() + " songs");
+            });
         });
     }
 }

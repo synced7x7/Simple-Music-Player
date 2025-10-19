@@ -1,5 +1,6 @@
 package com.example.simple_music_player.db;
 
+import com.example.simple_music_player.Controller.LibraryController;
 import com.example.simple_music_player.Model.UserPref;
 
 import java.sql.Connection;
@@ -21,6 +22,7 @@ public class UserPrefDAO {
         VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)
     """;
 
+        LibraryController libraryController = LibraryController.getInstance();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             // 1 -> playlistNo
             ps.setInt(1, UserPref.playlistNo);
@@ -48,7 +50,7 @@ public class UserPrefDAO {
             ps.setDouble(7, UserPref.volume);
 
             // 8 -> playlistId
-            ps.setInt(8, UserPref.playlistId);
+            ps.setInt(8, libraryController.getCurrentPlaylistId());
 
             ps.executeUpdate();
         }

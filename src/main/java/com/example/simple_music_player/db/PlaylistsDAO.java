@@ -153,29 +153,6 @@ public class PlaylistsDAO {
         }
     }
 
-    public int getPlaylistSongsIdx(int playlistId, int songId) throws SQLException {
-        String sql = """
-                SELECT row_number FROM (
-                    SELECT song_id,
-                           ROW_NUMBER() OVER (ORDER BY id) AS row_number
-                    FROM playlist_songs
-                    WHERE playlist_id = ?
-                )
-                WHERE song_id = ?
-                """;
-
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, playlistId);
-            ps.setInt(2, songId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("row_number") - 1;
-                }
-            }
-        }
-        return -1;
-    }
-
     public int getPlaylistSongsIdx(int playlistId, int songId, String criteria, boolean ascending) throws SQLException {
         if (criteria.equals("Date Added"))
             ascending = !ascending;
