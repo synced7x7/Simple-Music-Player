@@ -291,7 +291,7 @@ public class LibraryController {
                     sortedIds = new ArrayList<>(PlaybackService.getPlaylist());
                     songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
                     Collections.reverse(sortedIds);
-                    int reverse = playlistsDAO.getReverse(currentPlaylistId);
+                    int reverse = playlistsDAO.getReverse(UserPref.playlistId);
                     reverse = reverse == 0 ? 1 : 0;
                     playlistsDAO.setPlaylistRev(UserPref.playlistId, reverse);
                     playlistsDAO.setPlaylistRev(1, reverse);
@@ -301,7 +301,7 @@ public class LibraryController {
             } else {
                 try {
                     songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
-                    boolean asc = getReverseStatusOfPlaylist(currentPlaylistId);
+                    boolean asc = getReverseStatusOfPlaylist(UserPref.playlistId);
                     sortedIds = trackDAO.getAllIdsSorted(UserPref.playlistId, criteria, asc);
                     playlistsDAO.setPlaylistSort(UserPref.playlistId, criteria);
                 } catch (SQLException e) {
@@ -314,15 +314,19 @@ public class LibraryController {
             // so either use temp or atomic when using variable in a thread.
 
             Platform.runLater(() -> {
-                songListView.getItems().setAll(sortedIds);
                 try {
-                    playbackService.setPlaylist(sortedIds, false);
+                    songListView.getItems().setAll(sortedIds);
+                    if(currentPlaylistId == UserPref.playlistId) {
+                        playbackService.setPlaylist(sortedIds, false);
+                        int idx = PlaybackService.getPlaylist().indexOf(finalSongId);
+                        playbackService.setCurrentIndex(idx);
+                        UserPref.playlistNo = idx;
+                    }
+                    else
+                        System.out.println("Playlist not in focus");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
-                int idx = PlaybackService.getPlaylist().indexOf(finalSongId);
-                playbackService.setCurrentIndex(idx);
-                UserPref.playlistNo = idx;
             });
         }).start();
     }
