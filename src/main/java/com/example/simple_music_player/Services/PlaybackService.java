@@ -348,6 +348,7 @@ public class PlaybackService {
             System.err.println("Invalid currentIndex or empty playlist");
             return;
         }
+        SongLocator.create(libraryController.getSortStatusOfPlaylist(libraryController.getCurrentPlaylistId()), playlistsDAO.getReverse(libraryController.getCurrentPlaylistId()));
         libraryController.toggleSort(true);
         System.out.println("Playlist before shuffling: " + playlist);
         int songId = playlist.get(currentIndex);

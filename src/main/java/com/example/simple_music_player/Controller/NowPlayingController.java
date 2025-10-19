@@ -238,7 +238,6 @@ public class NowPlayingController {
         else {
             UserPref.shuffle = 1;
             new Thread(() -> {
-                SongLocator.create(UserPref.sortingPref, UserPref.reverse);
                 try {
                     playbackService.shufflePlaylist();
                 } catch (SQLException e) {

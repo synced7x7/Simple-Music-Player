@@ -57,9 +57,6 @@ public class LibraryController {
     private File[] prevFiles = null;
     private boolean dirChanged = false;
 
-    private boolean ascending = true;
-    private String prevCriteria = "";
-
     private final UserPrefDAO userPrefDAO = new UserPrefDAO(DatabaseManager.getConnection());
     private final PlaylistsDAO playlistsDAO = new PlaylistsDAO(DatabaseManager.getConnection());
     @Getter
@@ -153,7 +150,7 @@ public class LibraryController {
                     setGraphic(null);
                 } else {
                     Track track = trackDAO.getTrackCompressedArtworkAndTitleById(id);
-                    if(track == null) {
+                    if (track == null) {
                         System.out.println("No track found for id " + id + ". Removing...");
                         try {
                             playlistsDAO.deleteSongsFromPlaylist(UserPref.playlistId, Collections.singletonList(id));
@@ -211,13 +208,13 @@ public class LibraryController {
 
                     card.setOnMouseClicked(e -> {
                         if (e.getButton() == MouseButton.PRIMARY) {
-                            if(isPlaylistChanged) {
+                            if (isPlaylistChanged) {
                                 isPlaylistChanged = false;
                                 try {
                                     currentPlaylistId = UserPref.playlistId;
-                                    int reverse =  playlistsDAO.getReverse(currentPlaylistId);
+                                    int reverse = playlistsDAO.getReverse(currentPlaylistId);
                                     String sort = playlistsDAO.getSortingPref(currentPlaylistId);
-                                    if (reverse == 1) ascending = false;
+                                    boolean ascending = reverse != 1;
                                     List<Integer> playlistSongs = trackDAO.getAllIdsSorted(currentPlaylistId, sort, ascending);
                                     playbackService.setPlaylist(playlistSongs, false);
                                 } catch (SQLException ex) {
@@ -280,42 +277,37 @@ public class LibraryController {
     }
 
 
-
     // --- Sorting ---
     private void sortLibrary(String criteria) {
         System.out.println("sortLibrary() --> criteria: " + criteria);
 
         restartFromStart = true;
         new Thread(() -> {
-            int songId = -1;
+            int songId;
             List<Integer> sortedIds;
 
             if (criteria.equals("Reverse")) {
-                UserPref.reverse = (UserPref.reverse == 0) ? 1 : 0;
-                sortedIds = new ArrayList<>(PlaybackService.getPlaylist());
-                songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
-                Collections.reverse(sortedIds);
                 try {
-                    playlistsDAO.setPlaylistRev(UserPref.playlistId, UserPref.reverse);
-                    playlistsDAO.setPlaylistRev(1, UserPref.reverse);
+                    sortedIds = new ArrayList<>(PlaybackService.getPlaylist());
+                    songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
+                    Collections.reverse(sortedIds);
+                    int reverse = playlistsDAO.getReverse(currentPlaylistId);
+                    reverse = reverse == 0 ? 1 : 0;
+                    playlistsDAO.setPlaylistRev(UserPref.playlistId, reverse);
+                    playlistsDAO.setPlaylistRev(1, reverse);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             } else {
-                UserPref.sortingPref = criteria;
-                //
-                songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
-                if (UserPref.reverse == 1) ascending = false;
-
-                sortedIds = trackDAO.getAllIdsSorted(UserPref.playlistId, criteria, ascending);
-
                 try {
+                    songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
+                    boolean asc = getReverseStatusOfPlaylist(currentPlaylistId);
+                    sortedIds = trackDAO.getAllIdsSorted(UserPref.playlistId, criteria, asc);
                     playlistsDAO.setPlaylistSort(UserPref.playlistId, criteria);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             }
-
 
 
             int finalSongId = songId; //safeguard mechanism of java so that multiple threads doesn't update the same variable
@@ -342,14 +334,12 @@ public class LibraryController {
         currentPlaylistId = playlistId;
 
         String sortingPref = playlistsDAO.getSortingPref(playlistId);
-        UserPref.sortingPref = sortingPref;
         int reverse = playlistsDAO.getReverse(playlistId);
-        UserPref.reverse = reverse;
         UserPref.repeat = userPrefDAO.getRepeat();
         UserPref.shuffle = userPrefDAO.getShuffle();
         UserPref.isRundown = userPrefDAO.getIsRundown();
         UserPref.volume = userPrefDAO.getVolume();
-        System.out.println("Playlist Id: " + playlistId +  " Sorting Pref: " + sortingPref + " Rev: " + reverse);
+        System.out.println("Playlist Id: " + playlistId + " Sorting Pref: " + sortingPref + " Rev: " + reverse);
         //
 
         int idx = userPrefDAO.getPlaylistNo();
@@ -360,16 +350,13 @@ public class LibraryController {
         //
 
 
-
-
-        if (reverse == 1) ascending = false;
+        boolean ascending = reverse != 1;
 
         if (sortingPref != null && !sortingPref.isEmpty()) {
             // Fetch from DB in sorted order directly
             idsToLoad = trackDAO.getAllIdsSorted(UserPref.playlistId, sortingPref, ascending);
             System.out.println("Loaded sorted order based on: " + sortingPref);
         } else {
-            UserPref.sortingPref = "Title";
             idsToLoad = trackDAO.getAllIdsSorted(UserPref.playlistId, "Title", ascending);
             System.out.println("Loaded songs based on default (Title)");
         }
@@ -377,11 +364,9 @@ public class LibraryController {
         if (UserPref.shuffle == 1) {
             //Persistent Shuffling
             shuffleIdsToLoad = playlistsDAO.getSongsFromPlaylist(1);
-            SongLocator.create(UserPref.sortingPref, UserPref.reverse);
+            SongLocator.create(sortingPref, reverse);
             System.out.println("Loaded songs based on shuffling");
             toggleSort(true);
-            //new SongLocator(sortingPref, reverse);
-            //
         }
 
         if (trackDAO.getTrackPath() != null) {
@@ -465,9 +450,7 @@ public class LibraryController {
             if (UserPref.volume == 0) UserPref.volume = 0.75;
 
 
-            UserPref.setUserPref(0, 0, "Play", "Title", 0, 0, 0, 1, UserPref.volume, 2);
-            ascending = true;
-
+            UserPref.setUserPref(0, 0, "Play", 0, 0, 1, UserPref.volume, 2);
             try {
                 playlistsDAO.insertSongsInPlaylist(2, allIds);
             } catch (SQLException e) {
@@ -506,7 +489,7 @@ public class LibraryController {
 
         String finalSortBy = sortBy;
         CompletableFuture.runAsync(() -> {
-            List<Integer> filteredIds = trackDAO.searchTrackIds(UserPref.playlistId, query, finalSortBy, ascending);
+            List<Integer> filteredIds = trackDAO.searchTrackIds(UserPref.playlistId, query, finalSortBy, true);
             Platform.runLater(() -> songListView.getItems().setAll(filteredIds));
         });
     }
@@ -540,9 +523,8 @@ public class LibraryController {
     public void loadPlaylistView(int playlistId, String playlistName) throws SQLException {
         isPlaylistChanged = true;
         UserPref.playlistId = playlistId;
-        int reverse =  playlistsDAO.getReverse(playlistId);
-        String sort = playlistsDAO.getSortingPref(playlistId);
-        if (reverse == 1) ascending = false;
+        boolean ascending = getReverseStatusOfPlaylist(playlistId);
+        String sort = getSortStatusOfPlaylist(playlistId);
         /*UserPref.shuffle = 1;
         NowPlayingController npc = NowPlayingController.getInstance();
         if (npc != null) {
@@ -559,4 +541,15 @@ public class LibraryController {
             });
         });
     }
+
+    public boolean getReverseStatusOfPlaylist(int playlistId) throws SQLException {
+        int reverse = playlistsDAO.getReverse(playlistId);
+        return reverse != 1;
+    }
+
+    public String getSortStatusOfPlaylist(int playlistId) throws SQLException {
+        return playlistsDAO.getSortingPref(playlistId);
+    }
+
+
 }
