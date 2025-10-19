@@ -176,7 +176,7 @@ public class NowPlayingController {
         bitRateLabel.setText("Bitrate");
         sampleRateLabel.setText("Samplerate");
         albumCover.setImage(null);
-        //timeLabel is resetting in PlaybackService Class in play function by using listener
+        visualizerController.cleanup();
         System.out.println("Screen Cleared");
     }
 

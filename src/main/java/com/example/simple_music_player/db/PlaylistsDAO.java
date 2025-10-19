@@ -116,7 +116,7 @@ public class PlaylistsDAO {
 
     public void createNormalPlaylist() throws SQLException {
         String createPlaylist = """
-                INSERT OR IGNORE INTO playlists (id, name) VALUES (2, 'Normal')
+                INSERT OR IGNORE INTO playlists (id, name) VALUES (2, 'All Songs')
                 """;
         try (PreparedStatement ps = conn.prepareStatement(createPlaylist)) {
             ps.executeUpdate();
@@ -174,7 +174,7 @@ public class PlaylistsDAO {
                 }
             }
         }
-        return -1; // not found
+        return -1;
     }
 
     public void createPlaylist(String name) throws SQLException {

@@ -68,7 +68,8 @@ public class DatabaseManager {
                         repeat INTEGER,
                         shuffle INTEGER,
                         isRundown INTEGER,
-                        volume DOUBLE
+                        volume DOUBLE,
+                        playlistId INTEGER
                     );
                 """;
 

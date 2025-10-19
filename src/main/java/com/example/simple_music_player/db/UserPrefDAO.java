@@ -16,8 +16,8 @@ public class UserPrefDAO {
 
     public void setUserPref() throws SQLException {
         String sql = """
-                    INSERT OR REPLACE INTO user_pref (id, playlistNo, timestamp, status, sortingPref, reverse, repeat, shuffle, isRundown, volume)
-                    VALUES (1, ?, ?, ?, ?, ?, ? ,?, ?, ?)
+                    INSERT OR REPLACE INTO user_pref (id, playlistNo, timestamp, status, sortingPref, reverse, repeat, shuffle, isRundown, volume, playlistId)
+                    VALUES (1, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?)
                 """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -39,6 +39,7 @@ public class UserPrefDAO {
             ps.setInt(7, UserPref.shuffle);
             ps.setInt(8, UserPref.isRundown);
             ps.setDouble(9, UserPref.volume);
+            ps.setInt(10, UserPref.playlistId);
 
             ps.executeUpdate();
         }
@@ -159,6 +160,20 @@ public class UserPrefDAO {
                 return rs.getDouble("volume");
             }
         }
+        return -1;
+    }
+
+    public int getPlaylistId() throws SQLException {
+        String sql = """
+                SELECT playlistId FROM user_pref
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery()) {
+            if(rs.next()) {
+                return rs.getInt("playlistId");
+            }
+        }
+        System.out.println("No playlist id found in the table");
         return -1;
     }
 

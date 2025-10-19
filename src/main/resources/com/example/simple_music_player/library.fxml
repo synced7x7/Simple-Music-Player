@@ -28,5 +28,6 @@
       <Button fx:id="reverseButton" layoutX="400.0" layoutY="41.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" text="🔄" />
       <Button fx:id="directoryButton" layoutX="14.0" layoutY="41.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" text="📁" />
       <Label fx:id="songCountLabel" alignment="CENTER" layoutX="198.0" layoutY="67.0" text="521 songs" />
+      <Button fx:id="playlistManagerButton" layoutX="55.0" layoutY="41.0" mnemonicParsing="false" onAction="#openPlaylistManager" prefHeight="26.0" prefWidth="34.0" text="🎼" />
     </children>
 </AnchorPane>

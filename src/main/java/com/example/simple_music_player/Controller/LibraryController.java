@@ -42,6 +42,8 @@ public class LibraryController {
     private Button directoryButton;
     @FXML
     private Label songCountLabel;
+    @FXML
+    private Button playlistManagerButton;
 
     private static final double CARD_WIDTH = 120;
     private static final double CARD_HEIGHT = 150;
@@ -60,9 +62,13 @@ public class LibraryController {
 
     private final UserPrefDAO userPrefDAO = new UserPrefDAO(DatabaseManager.getConnection());
     private final PlaylistsDAO playlistsDAO = new PlaylistsDAO(DatabaseManager.getConnection());
+    @Getter
+    private static LibraryController instance;
+    public static boolean isPlaylistChanged = false;
 
     @FXML
     public void initialize() throws SQLException {
+        instance = this;
         //Load initial library from DB
         loadInitialDirectoryFromDatabase();
         PlaybackService.setLibraryController(this);
@@ -148,7 +154,6 @@ public class LibraryController {
                     nameLabel.setText(track.getTitle());
                     cover.setImage(null);
 
-                    // CHECK IF THIS SONG IS IN FAVORITES (Playlist 3)
                     boolean isFavorite = false;
                     try {
                         isFavorite = playlistsDAO.isSongInPlaylist(3, id);
@@ -156,7 +161,6 @@ public class LibraryController {
                         e.printStackTrace();
                     }
 
-                    // UPDATE FAV BUTTON BASED ON DATABASE STATE
                     if (isFavorite) {
                         favButton.setText("♥");
                         favButton.setStyle("-fx-background-color: transparent; -fx-text-fill: red; -fx-font-size: 16px;");
@@ -196,6 +200,11 @@ public class LibraryController {
 
                     card.setOnMouseClicked(e -> {
                         if (e.getButton() == MouseButton.PRIMARY) {
+
+                            if(isPlaylistChanged) {
+                                PlaylistService playlistService = PlaylistService.getInstance();
+                                UserPref.playlistId = playlistService.getCurrentPlaylistId();
+                            }
                             LibraryController.restartFromStart = false;
                             int index = PlaybackService.playlist.indexOf(id);
                             if (index != -1) {
@@ -218,6 +227,7 @@ public class LibraryController {
                             contextMenu.show(card, e.getScreenX(), e.getScreenY());
                             e.consume();
                         }
+                        isPlaylistChanged = false;
                     });
 
                     favButton.setOnAction(e -> {
@@ -320,6 +330,7 @@ public class LibraryController {
         UserPref.shuffle = userPrefDAO.getShuffle();
         UserPref.isRundown = userPrefDAO.getIsRundown();
         UserPref.volume = userPrefDAO.getVolume();
+        UserPref.playlistId = userPrefDAO.getPlaylistId();
         //
         int idx = userPrefDAO.getPlaylistNo();
         String status = userPrefDAO.getUserStatus();
@@ -432,7 +443,7 @@ public class LibraryController {
             if (UserPref.volume == 0) UserPref.volume = 0.75;
 
 
-            UserPref.setUserPref(0, 0, "Play", "Title", 0, 0, 0, 1, UserPref.volume);
+            UserPref.setUserPref(0, 0, "Play", "Title", 0, 0, 0, 1, UserPref.volume, 2);
             ascending = true;
 
             try {
@@ -496,5 +507,36 @@ public class LibraryController {
             sortComboBox.setDisable(false);
             reverseButton.setDisable(false);
         }
+    }
+
+    @FXML
+    private void openPlaylistManager() {
+        PlaylistService playlistService = new PlaylistService();
+        playlistService.openPlaylistSelectionWindow(-1);
+    }
+
+    public void loadPlaylistView(int playlistId, String playlistName) {
+        isPlaylistChanged = true;
+        /*CompletableFuture.runAsync(() -> {
+            try {
+                List<Integer> playlistSongs = playlistsDAO.getSongsFromPlaylist(playlistId);
+                System.out.println("Playlist Songs -> " + playlistSongs);
+
+                Platform.runLater(() -> {
+                    songListView.getItems().setAll(playlistSongs);
+                    countSongs(playlistSongs.size());
+                    songCountLabel.setText(playlistName + " - " + playlistSongs.size() + " songs");
+
+
+                    try {
+                        playbackService.setPlaylist(playlistSongs, false);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                });
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });*/
     }
 }

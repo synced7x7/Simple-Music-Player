@@ -1,5 +1,6 @@
 package com.example.simple_music_player.Services;
 
+import com.example.simple_music_player.Controller.LibraryController;
 import com.example.simple_music_player.Model.Playlist;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.PlaylistsDAO;
@@ -13,6 +14,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import lombok.Getter;
 
 import java.sql.SQLException;
 import java.util.Collections;
@@ -21,9 +23,19 @@ import java.util.List;
 public class PlaylistService {
     private final PlaylistsDAO playlistsDAO = new PlaylistsDAO(DatabaseManager.getConnection());
 
+    @Getter
+    private int currentPlaylistId;
+
+    @Getter
+    private static PlaylistService instance;
+
     public void openPlaylistSelectionWindow(int songId) {
+        instance = this;
         Stage stage = new Stage();
         stage.setTitle("Add to Playlist");
+        if(songId == -1){
+            stage.setTitle("Playlist Manager");
+        }
 
         VBox root = new VBox(10);
         root.setPadding(new Insets(10));
@@ -60,7 +72,7 @@ public class PlaylistService {
         playlistContainer.getChildren().clear();
 
         try {
-            List<Playlist> playlists = playlistsDAO.getAllPlaylistsAboveId(3);
+            List<Playlist> playlists = playlistsDAO.getAllPlaylistsAboveId(1);
 
             if (playlists.isEmpty()) {
                 Label emptyLabel = new Label("No playlists yet. Create one!");
@@ -83,9 +95,13 @@ public class PlaylistService {
                 editField.setVisible(false);
                 editField.setPrefWidth(200);
 
-                Button addBtn = new Button("✚");
+                Button  addBtn = new Button("✚");
                 addBtn.setMinWidth(35);
                 addBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+                if(songId==-1) {
+                    addBtn.setVisible(false);
+                    addBtn.setDisable(true);
+                }
 
                 Button editBtn = new Button("✎");
                 editBtn.setMinWidth(35);
@@ -93,6 +109,28 @@ public class PlaylistService {
                 Button deleteBtn = new Button("🗑");
                 deleteBtn.setMinWidth(35);
                 deleteBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white;");
+
+                if(playlist.getId() <4 ) {
+                    addBtn.setVisible(false);
+                    addBtn.setDisable(true);
+                    editBtn.setVisible(false);
+                    editBtn.setDisable(true);
+                    deleteBtn.setVisible(false);
+                    deleteBtn.setDisable(true);
+                }
+
+                name.setOnMouseClicked(e -> {
+                    if(songId == -1) {
+                        System.out.println("Loading playlist: " + name.getText());
+                        LibraryController libraryController = LibraryController.getInstance();
+                        if (libraryController != null) {
+                            libraryController.loadPlaylistView(playlist.getId(), playlist.getName());
+                            currentPlaylistId = playlist.getId();
+                            Stage currentStage = (Stage) name.getScene().getWindow();
+                            currentStage.close();
+                        }
+                    }
+                });
 
                 addBtn.setOnAction(e -> {
                     try {
