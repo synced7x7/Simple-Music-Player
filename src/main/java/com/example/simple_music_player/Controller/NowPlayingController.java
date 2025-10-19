@@ -223,7 +223,7 @@ public class NowPlayingController {
     }
 
     @FXML
-    private void toggleShuffle() {
+    public void toggleShuffle() {
         if (UserPref.shuffle == 1) { //turn off
             UserPref.shuffle = 0;
             new Thread(() -> {

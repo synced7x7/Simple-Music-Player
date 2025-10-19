@@ -1,7 +1,6 @@
 package com.example.simple_music_player.db;
 
 import com.example.simple_music_player.Model.Track;
-import com.example.simple_music_player.Model.UserPref;
 
 import java.io.File;
 import java.sql.*;
@@ -100,7 +99,7 @@ public class TrackDAO {
         );
     }
 
-    public List<Integer> getAllIds() {
+    public List<Integer> getAllIdsSortByDefault() {
         List<Integer> ids = new ArrayList<>();
         String sql = "SELECT id FROM songs ORDER BY title";
         try (PreparedStatement ps = conn.prepareStatement(sql);
@@ -145,38 +144,50 @@ public class TrackDAO {
         return null;
     }
 
-    public List<Integer> getAllIdsSorted(String criteria, boolean ascending) {
+    public List<Integer> getAllIdsSorted(int playlistId, String criteria, boolean ascending) {
         List<Integer> ids = new ArrayList<>();
 
-        if(criteria.equals("Date Added"))
-            ascending = !ascending;
+        if (criteria.equals("Date Added"))
+            ascending = !ascending;  // reverse for date added if that's your behavior
+
         String order = ascending ? "ASC" : "DESC";
-        String sql;
-        System.out.println("DB CRITERIA: " + criteria +  " ORDER BY " + order);
-        sql = switch (criteria) {
-            case "Title" -> "SELECT id FROM songs ORDER BY title " + order;
-            case "Artist" -> "SELECT id FROM songs ORDER BY artist " + order;
-            case "Album" -> "SELECT id FROM songs ORDER BY album " + order;
-            case "Length" -> "SELECT id FROM songs ORDER BY CAST(length AS INTEGER) " + order;
-            case "Date Added" ->
-                    "SELECT id FROM songs ORDER BY date_added " + order; // assuming rowid is insertion order
-            default -> "SELECT id FROM songs ORDER BY title ASC"; // default
+
+        // Determine the sorting column in songs table
+        String orderByColumn = switch (criteria) {
+            case "Title" -> "s.title";
+            case "Artist" -> "s.artist";
+            case "Album" -> "s.album";
+            case "Length" -> "CAST(s.length AS INTEGER)";
+            case "Date Added" -> "s.date_added";
+            default -> "s.title"; // fallback
         };
 
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                ids.add(rs.getInt("id"));
+        String sql = """
+        SELECT s.id
+        FROM playlist_songs ps
+        JOIN songs s ON ps.song_id = s.id
+        WHERE ps.playlist_id = ?
+        ORDER BY %s %s
+    """.formatted(orderByColumn, order);
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, playlistId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ids.add(rs.getInt("id"));
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return ids;
     }
 
-    public List<Integer> searchTrackIds (String query, String sortBy, boolean ascending) {
+
+    public List<Integer> searchTrackIds (int playlistId, String query, String sortBy, boolean ascending) {
         List<Integer> ids = new ArrayList<>();
-        if (query == null || query.isEmpty()) return getAllIdsSorted(sortBy, ascending);
+        if (query == null || query.isEmpty()) return getAllIdsSorted(playlistId, sortBy, ascending);
 
         String sql = """
         SELECT id FROM songs

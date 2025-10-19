@@ -65,6 +65,7 @@ public class LibraryController {
     @Getter
     private static LibraryController instance;
     public static boolean isPlaylistChanged = false;
+    private int currentPlaylistId;
 
     @FXML
     public void initialize() throws SQLException {
@@ -151,6 +152,15 @@ public class LibraryController {
                     setGraphic(null);
                 } else {
                     Track track = trackDAO.getTrackCompressedArtworkAndTitleById(id);
+                    if(track == null) {
+                        System.out.println("No track found for id " + id + ". Removing...");
+                        try {
+                            playlistsDAO.deleteSongsFromPlaylist(UserPref.playlistId, Collections.singletonList(id));
+                        } catch (SQLException e) {
+                            throw new RuntimeException(e);
+                        }
+                        return;
+                    }
                     nameLabel.setText(track.getTitle());
                     cover.setImage(null);
 
@@ -200,6 +210,15 @@ public class LibraryController {
 
                     card.setOnMouseClicked(e -> {
                         if (e.getButton() == MouseButton.PRIMARY) {
+                            if(isPlaylistChanged) {
+                                isPlaylistChanged = false;
+                                try {
+                                    List<Integer> playlistSongs = playlistsDAO.getSongsFromPlaylist(UserPref.playlistId);
+                                    playbackService.setPlaylist(playlistSongs, false);
+                                } catch (SQLException ex) {
+                                    throw new RuntimeException(ex);
+                                }
+                            }
                             LibraryController.restartFromStart = false;
                             int index = PlaybackService.playlist.indexOf(id);
                             if (index != -1) {
@@ -222,7 +241,6 @@ public class LibraryController {
                             contextMenu.show(card, e.getScreenX(), e.getScreenY());
                             e.consume();
                         }
-                        isPlaylistChanged = false;
                     });
 
                     favButton.setOnAction(e -> {
@@ -283,14 +301,14 @@ public class LibraryController {
                 songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
                 // System.out.println("Song id before sorting: " + songId + "|| Index: " + playbackService.getCurrentIndex());
                 if (UserPref.reverse == 1) ascending = false;
-                sortedIds = trackDAO.getAllIdsSorted(criteria, ascending);
+                sortedIds = trackDAO.getAllIdsSorted(UserPref.playlistId, criteria, ascending);
             }
 
             if (!criteria.equals("Reverse"))
                 prevCriteria = criteria;
 
             try {
-                playlistsDAO.replaceSongsInPlaylist(2, sortedIds);
+                playlistsDAO.replaceSongsInPlaylist(UserPref.playlistId, sortedIds);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -326,7 +344,7 @@ public class LibraryController {
         UserPref.isRundown = userPrefDAO.getIsRundown();
         UserPref.volume = userPrefDAO.getVolume();
         UserPref.playlistId = userPrefDAO.getPlaylistId();
-
+        currentPlaylistId = UserPref.playlistId;
         //
         int idx = userPrefDAO.getPlaylistNo();
         String status = userPrefDAO.getUserStatus();
@@ -340,11 +358,11 @@ public class LibraryController {
 
         if (sortingPref != null && !sortingPref.isEmpty()) {
             // Fetch from DB in sorted order directly
-            idsToLoad = trackDAO.getAllIdsSorted(sortingPref, ascending);
+            idsToLoad = trackDAO.getAllIdsSorted(UserPref.playlistId, sortingPref, ascending);
             System.out.println("Loaded sorted order based on: " + sortingPref);
         } else {
-            // Default: order by title
-            idsToLoad = trackDAO.getAllIds();
+            UserPref.sortingPref = "Title";
+            idsToLoad = trackDAO.getAllIdsSorted(UserPref.playlistId, "Title", ascending);
             System.out.println("Loaded songs based on default (Title)");
         }
 
@@ -434,7 +452,7 @@ public class LibraryController {
                 }
             }
 
-            List<Integer> allIds = trackDAO.getAllIds();
+            List<Integer> allIds = trackDAO.getAllIdsSortByDefault();
 
             if (UserPref.volume == 0) UserPref.volume = 0.75;
 
@@ -480,7 +498,7 @@ public class LibraryController {
 
         String finalSortBy = sortBy;
         CompletableFuture.runAsync(() -> {
-            List<Integer> filteredIds = trackDAO.searchTrackIds(query, finalSortBy, ascending);
+            List<Integer> filteredIds = trackDAO.searchTrackIds(UserPref.playlistId, query, finalSortBy, ascending);
             Platform.runLater(() -> songListView.getItems().setAll(filteredIds));
         });
     }
@@ -512,9 +530,13 @@ public class LibraryController {
     }
 
     public void loadPlaylistView(int playlistId, String playlistName) {
-        restartFromStart = true;
         isPlaylistChanged = true;
         UserPref.playlistId = playlistId;
+        /*UserPref.shuffle = 1;
+        NowPlayingController npc = NowPlayingController.getInstance();
+        if (npc != null) {
+            npc.toggleShuffle();
+        }*/
         CompletableFuture.runAsync(() -> {
             try {
                 List<Integer> playlistSongs = playlistsDAO.getSongsFromPlaylist(playlistId);
@@ -525,11 +547,7 @@ public class LibraryController {
                     countSongs(playlistSongs.size());
                     songCountLabel.setText(playlistName + " - " + playlistSongs.size() + " songs");
 
-                    try {
-                        playbackService.setPlaylist(playlistSongs, false);
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
+
                 });
             } catch (SQLException e) {
                 throw new RuntimeException(e);

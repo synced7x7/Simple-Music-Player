@@ -146,10 +146,12 @@ public class PlaybackService {
     private void setListViewFocus(int idx) {
         if (libraryController != null) {
             Platform.runLater(() -> {
-                libraryController.getSongListView()
-                        .getSelectionModel().select(idx);
-                libraryController.getSongListView()
-                        .scrollTo(idx);
+                if(!LibraryController.isPlaylistChanged) {
+                    libraryController.getSongListView()
+                            .getSelectionModel().select(idx);
+                    libraryController.getSongListView()
+                            .scrollTo(idx);
+                }
             });
         }
     }
@@ -358,7 +360,7 @@ public class PlaybackService {
         String sort = songLocator.getLastSortBS();
         boolean rev = songLocator.getLastReverseBS() != 1;
         playlist.clear();
-        playlist = trackDao.getAllIdsSorted(sort, rev);
+        playlist = trackDao.getAllIdsSorted(UserPref.playlistId, sort, rev);
         currentIndex = playlist.indexOf(currentSongId);
         //System.out.println("Playlist after relocation: " + playlist);
         libraryController.toggleSort(false);
