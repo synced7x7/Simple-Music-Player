@@ -144,7 +144,7 @@ public class PlaybackService {
             SongLocator songLocator = SongLocator.getCurrent();
             int reverse = songLocator.getLastReverseBS();
             boolean ascending = reverse != 1;
-            setListViewFocus(playlistsDAO.getPlaylistSongsIdx(2, songId, songLocator.getLastSortBS(), ascending));
+            setListViewFocus(playlistsDAO.getPlaylistSongsIdx(libraryController.getCurrentPlaylistId(), songId, songLocator.getLastSortBS(), ascending));
         }
     }
 
@@ -250,7 +250,7 @@ public class PlaybackService {
             SongLocator songLocator = SongLocator.getCurrent();
             int reverse = songLocator.getLastReverseBS();
             boolean ascending = reverse != 1;
-            setListViewFocus(playlistsDAO.getPlaylistSongsIdx(2, songId, songLocator.getLastSortBS(), ascending));
+            setListViewFocus(playlistsDAO.getPlaylistSongsIdx(libraryController.getCurrentPlaylistId(), songId, songLocator.getLastSortBS(), ascending));
         }
     }
 

@@ -217,6 +217,12 @@ public class LibraryController {
                                     boolean ascending = reverse != 1;
                                     List<Integer> playlistSongs = trackDAO.getAllIdsSorted(currentPlaylistId, sort, ascending);
                                     playbackService.setPlaylist(playlistSongs, false);
+                                    UserPref.shuffle = 0;
+                                    UserPref.repeat = 0;
+                                    toggleSort(false);
+                                    NowPlayingController npc = NowPlayingController.getInstance();
+                                    npc.updateRepeatButtonStyle();
+                                    npc.updateShuffleButtonStyle();
                                 } catch (SQLException ex) {
                                     throw new RuntimeException(ex);
                                 }
@@ -316,13 +322,12 @@ public class LibraryController {
             Platform.runLater(() -> {
                 try {
                     songListView.getItems().setAll(sortedIds);
-                    if(currentPlaylistId == UserPref.playlistId) {
+                    if (currentPlaylistId == UserPref.playlistId) {
                         playbackService.setPlaylist(sortedIds, false);
                         int idx = PlaybackService.getPlaylist().indexOf(finalSongId);
                         playbackService.setCurrentIndex(idx);
                         UserPref.playlistNo = idx;
-                    }
-                    else
+                    } else
                         System.out.println("Playlist not in focus");
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
