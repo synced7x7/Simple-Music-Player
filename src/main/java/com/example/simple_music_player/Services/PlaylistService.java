@@ -23,14 +23,8 @@ import java.util.List;
 public class PlaylistService {
     private final PlaylistsDAO playlistsDAO = new PlaylistsDAO(DatabaseManager.getConnection());
 
-    @Getter
-    private int currentPlaylistId;
-
-    @Getter
-    private static PlaylistService instance;
 
     public void openPlaylistSelectionWindow(int songId) {
-        instance = this;
         Stage stage = new Stage();
         stage.setTitle("Add to Playlist");
         if(songId == -1){
@@ -125,7 +119,6 @@ public class PlaylistService {
                         LibraryController libraryController = LibraryController.getInstance();
                         if (libraryController != null) {
                             libraryController.loadPlaylistView(playlist.getId(), playlist.getName());
-                            currentPlaylistId = playlist.getId();
                             Stage currentStage = (Stage) name.getScene().getWindow();
                             currentStage.close();
                         }

@@ -200,11 +200,6 @@ public class LibraryController {
 
                     card.setOnMouseClicked(e -> {
                         if (e.getButton() == MouseButton.PRIMARY) {
-
-                            if(isPlaylistChanged) {
-                                PlaylistService playlistService = PlaylistService.getInstance();
-                                UserPref.playlistId = playlistService.getCurrentPlaylistId();
-                            }
                             LibraryController.restartFromStart = false;
                             int index = PlaybackService.playlist.indexOf(id);
                             if (index != -1) {
@@ -331,6 +326,7 @@ public class LibraryController {
         UserPref.isRundown = userPrefDAO.getIsRundown();
         UserPref.volume = userPrefDAO.getVolume();
         UserPref.playlistId = userPrefDAO.getPlaylistId();
+
         //
         int idx = userPrefDAO.getPlaylistNo();
         String status = userPrefDAO.getUserStatus();
@@ -516,8 +512,10 @@ public class LibraryController {
     }
 
     public void loadPlaylistView(int playlistId, String playlistName) {
+        restartFromStart = true;
         isPlaylistChanged = true;
-        /*CompletableFuture.runAsync(() -> {
+        UserPref.playlistId = playlistId;
+        CompletableFuture.runAsync(() -> {
             try {
                 List<Integer> playlistSongs = playlistsDAO.getSongsFromPlaylist(playlistId);
                 System.out.println("Playlist Songs -> " + playlistSongs);
@@ -527,16 +525,15 @@ public class LibraryController {
                     countSongs(playlistSongs.size());
                     songCountLabel.setText(playlistName + " - " + playlistSongs.size() + " songs");
 
-
                     try {
                         playbackService.setPlaylist(playlistSongs, false);
                     } catch (SQLException e) {
-                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
                 });
             } catch (SQLException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
-        });*/
+        });
     }
 }
