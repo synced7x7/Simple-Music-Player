@@ -278,11 +278,7 @@ public class LibraryController {
 
     // --- Sorting ---
     private void sortLibrary(String criteria) {
-        if (!criteria.equals("Reverse") && prevCriteria.equals(criteria)) {
-            System.out.println("prevCriteria equals Present criteria");
-            return;
-        }
-        System.out.println("Criteria: " + criteria);
+        System.out.println("sortLibrary() --> criteria: " + criteria);
 
         restartFromStart = true;
         new Thread(() -> {
@@ -293,25 +289,25 @@ public class LibraryController {
                 UserPref.reverse = (UserPref.reverse == 0) ? 1 : 0;
                 sortedIds = new ArrayList<>(PlaybackService.getPlaylist());
                 songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
-                System.out.println("Song id before sorting: " + songId + "|| Index: " + playbackService.getCurrentIndex() + "|| Reverse: " + UserPref.reverse);
                 Collections.reverse(sortedIds);
+                try {
+                    playlistsDAO.setPlaylistRev(UserPref.playlistId, UserPref.reverse);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             } else {
                 UserPref.sortingPref = criteria;
                 //
                 songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
-                // System.out.println("Song id before sorting: " + songId + "|| Index: " + playbackService.getCurrentIndex());
                 if (UserPref.reverse == 1) ascending = false;
                 sortedIds = trackDAO.getAllIdsSorted(UserPref.playlistId, criteria, ascending);
+                try {
+                    playlistsDAO.setPlaylistSort(UserPref.playlistId, criteria);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
-            if (!criteria.equals("Reverse"))
-                prevCriteria = criteria;
-
-            try {
-                playlistsDAO.replaceSongsInPlaylist(UserPref.playlistId, sortedIds);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
 
 
             int finalSongId = songId; //safeguard mechanism of java so that multiple threads doesn't update the same variable
@@ -327,7 +323,6 @@ public class LibraryController {
                 int idx = PlaybackService.getPlaylist().indexOf(finalSongId);
                 playbackService.setCurrentIndex(idx);
                 UserPref.playlistNo = idx;
-                System.out.println("Song id after sorting: " + finalSongId + "|| Index: " + idx);
             });
         }).start();
     }
@@ -335,16 +330,19 @@ public class LibraryController {
     // --- Initial load ---
     private void loadInitialDirectoryFromDatabase() throws SQLException {
         //User Pref Setter
-        String sortingPref = userPrefDAO.getSortingPref();
+        int playlistId = userPrefDAO.getPlaylistId();
+        UserPref.playlistId = userPrefDAO.getPlaylistId();
+        currentPlaylistId = playlistId;
+
+        String sortingPref = playlistsDAO.getSortingPref(playlistId);
         UserPref.sortingPref = sortingPref;
-        int reverse = userPrefDAO.getReverse();
+        int reverse = playlistsDAO.getReverse(playlistId);
         UserPref.reverse = reverse;
         UserPref.repeat = userPrefDAO.getRepeat();
         UserPref.shuffle = userPrefDAO.getShuffle();
         UserPref.isRundown = userPrefDAO.getIsRundown();
         UserPref.volume = userPrefDAO.getVolume();
-        UserPref.playlistId = userPrefDAO.getPlaylistId();
-        currentPlaylistId = UserPref.playlistId;
+        System.out.println("Playlist Id: " + playlistId +  " Sorting Pref: " + sortingPref + " Rev: " + reverse);
         //
         int idx = userPrefDAO.getPlaylistNo();
         String status = userPrefDAO.getUserStatus();
@@ -352,6 +350,8 @@ public class LibraryController {
         List<Integer> idsToLoad;
         List<Integer> shuffleIdsToLoad = List.of();
         //
+
+
 
 
         if (reverse == 1) ascending = false;

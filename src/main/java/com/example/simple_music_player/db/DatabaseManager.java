@@ -63,20 +63,21 @@ public class DatabaseManager {
                         playlistNo INTEGER,
                         timestamp BIGINT,
                         status VARCHAR,
-                        sortingPref VARCHAR,
-                        reverse INTEGER,
                         repeat INTEGER,
                         shuffle INTEGER,
                         isRundown INTEGER,
                         volume DOUBLE,
-                        playlistId INTEGER
+                        playlistId INTEGER,
+                        FOREIGN KEY (playlistId) REFERENCES playlists(id) ON DELETE CASCADE
                     );
                 """;
 
         String createPlaylistsTable = """
                     CREATE TABLE IF NOT EXISTS playlists (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        name VARCHAR NOT NULL
+                        name VARCHAR NOT NULL,
+                        sort VARCHAR,
+                        rev INTEGER
                     );
                 """;
 

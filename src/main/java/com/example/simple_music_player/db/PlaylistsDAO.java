@@ -50,9 +50,9 @@ public class PlaylistsDAO {
         String placeholders = String.join(", ", Collections.nCopies(songIds.size(), "?"));
 
         String deleteSql = """
-        DELETE FROM playlist_songs
-        WHERE playlist_id = ?
-        AND song_id IN (""" + placeholders + ")";
+                                   DELETE FROM playlist_songs
+                                   WHERE playlist_id = ?
+                                   AND song_id IN (""" + placeholders + ")";
 
         try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
             ps.setInt(1, playlistId);
@@ -62,7 +62,6 @@ public class PlaylistsDAO {
             ps.executeUpdate();
         }
     }
-
 
 
     public List<Integer> getSongsFromPlaylist(int playlistId) throws SQLException {
@@ -84,12 +83,12 @@ public class PlaylistsDAO {
 
     public boolean isSongInPlaylist(int playlistId, int songId) throws SQLException {
         String sql = """
-        SELECT EXISTS(
-            SELECT 1 FROM playlist_songs
-            WHERE playlist_id = ?
-            AND song_id = ?
-        )
-    """;
+                    SELECT EXISTS(
+                        SELECT 1 FROM playlist_songs
+                        WHERE playlist_id = ?
+                        AND song_id = ?
+                    )
+                """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, playlistId);
@@ -116,7 +115,7 @@ public class PlaylistsDAO {
 
     public void createNormalPlaylist() throws SQLException {
         String createPlaylist = """
-                INSERT OR IGNORE INTO playlists (id, name) VALUES (2, 'All Songs')
+                INSERT OR IGNORE INTO playlists (id, name, sort, rev) VALUES (2, 'All Songs', 'Title', 0)
                 """;
         try (PreparedStatement ps = conn.prepareStatement(createPlaylist)) {
             ps.executeUpdate();
@@ -125,7 +124,7 @@ public class PlaylistsDAO {
 
     public void createFavPlaylist() throws SQLException {
         String createPlaylist = """
-                INSERT OR IGNORE INTO playlists (id, name) VALUES (3, 'Favourite')
+                INSERT OR IGNORE INTO playlists (id, name, sort, rev) VALUES (3, 'Favourite', 'Title', 0)
                 """;
         try (PreparedStatement ps = conn.prepareStatement(createPlaylist)) {
             ps.executeUpdate();
@@ -156,14 +155,14 @@ public class PlaylistsDAO {
 
     public int getPlaylistSongsIdx(int playlistId, int songId) throws SQLException {
         String sql = """
-        SELECT row_number FROM (
-            SELECT song_id,
-                   ROW_NUMBER() OVER (ORDER BY id) AS row_number
-            FROM playlist_songs
-            WHERE playlist_id = ?
-        )
-        WHERE song_id = ?
-        """;
+                SELECT row_number FROM (
+                    SELECT song_id,
+                           ROW_NUMBER() OVER (ORDER BY id) AS row_number
+                    FROM playlist_songs
+                    WHERE playlist_id = ?
+                )
+                WHERE song_id = ?
+                """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, playlistId);
@@ -190,7 +189,7 @@ public class PlaylistsDAO {
         }
 
         // Insert with the calculated ID
-        String createPlaylist = "INSERT INTO playlists (id, name) VALUES (?, ?)";
+        String createPlaylist = "INSERT INTO playlists (id, name, sort, rev) VALUES (?, ?, 'Title', 0)";
 
         try (PreparedStatement ps = conn.prepareStatement(createPlaylist)) {
             ps.setInt(1, nextId);
@@ -227,10 +226,70 @@ public class PlaylistsDAO {
                 DELETE FROM playlists WHERE id = ?
                 """;
         deleteAllSongsFromPlaylist(playlistId);
-        try(PreparedStatement ps = conn.prepareStatement(del)) {
+        try (PreparedStatement ps = conn.prepareStatement(del)) {
             ps.setInt(1, playlistId);
             ps.executeUpdate();
         }
+    }
+
+    public void setPlaylistSort(int playlistId, String sort) throws SQLException {
+        String sql = """
+        UPDATE playlists
+        SET sort = ?
+        WHERE id = ?
+    """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, sort);
+            ps.setInt(2, playlistId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void setPlaylistRev(int playlistId, int rev) throws SQLException {
+        String sql = """
+        UPDATE playlists
+        SET rev = ?
+        WHERE id = ?
+    """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, rev);
+            ps.setInt(2, playlistId);
+            ps.executeUpdate();
+        }
+    }
+    
+    public String getSortingPref(int playlistId) throws SQLException {
+        String sql = """
+        SELECT sort FROM playlists WHERE id = ?;
+    """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, playlistId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("sort");
+                }
+            }
+        }
+        return "";
+    }
+
+    public int getReverse(int playlistId) throws SQLException {
+        String sql = """
+        SELECT rev FROM playlists WHERE id = ?;
+    """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, playlistId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("rev");
+                }
+            }
+        }
+        return 0;
     }
 
 

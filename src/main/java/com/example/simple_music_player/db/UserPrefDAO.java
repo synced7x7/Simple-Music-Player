@@ -16,34 +16,44 @@ public class UserPrefDAO {
 
     public void setUserPref() throws SQLException {
         String sql = """
-                    INSERT OR REPLACE INTO user_pref (id, playlistNo, timestamp, status, sortingPref, reverse, repeat, shuffle, isRundown, volume, playlistId)
-                    VALUES (1, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?)
-                """;
+        INSERT OR REPLACE INTO user_pref 
+        (id, playlistNo, timestamp, status, repeat, shuffle, isRundown, volume, playlistId)
+        VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)
+    """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            // 1 -> playlistNo
             ps.setInt(1, UserPref.playlistNo);
+
+            // 2 -> timestamp
             ps.setLong(2, UserPref.timestamp);
 
-            if ((getUserStatus() == null || getUserStatus().isEmpty() ) && (UserPref.status == null || UserPref.status.isEmpty())) UserPref.status = "Play";
-            if (UserPref.status != null) ps.setString(3, UserPref.status);
-            else ps.setString(3, getUserStatus());
+            // 3 -> status
+            if ((getUserStatus() == null || getUserStatus().isEmpty())
+                && (UserPref.status == null || UserPref.status.isEmpty())) {
+                UserPref.status = "Play";
+            }
+            ps.setString(3, UserPref.status != null ? UserPref.status : getUserStatus());
 
-            if ((getSortingPref() == null || getSortingPref().isEmpty()) && (UserPref.sortingPref == null || UserPref.sortingPref.isEmpty())) UserPref.sortingPref = "Title"; //1st time
-            if (UserPref.sortingPref !=null) ps.setString(4, UserPref.sortingPref);
-            else ps.setString(4, getSortingPref());
+            // 4 -> repeat
+            ps.setInt(4, UserPref.repeat);
 
-            if(UserPref.repeat != 0) ps.setInt(4, UserPref.repeat);
+            // 5 -> shuffle
+            ps.setInt(5, UserPref.shuffle);
 
-            ps.setInt(5, UserPref.reverse);
-            ps.setInt(6, UserPref.repeat);
-            ps.setInt(7, UserPref.shuffle);
-            ps.setInt(8, UserPref.isRundown);
-            ps.setDouble(9, UserPref.volume);
-            ps.setInt(10, UserPref.playlistId);
+            // 6 -> isRundown
+            ps.setInt(6, UserPref.isRundown);
+
+            // 7 -> volume
+            ps.setDouble(7, UserPref.volume);
+
+            // 8 -> playlistId
+            ps.setInt(8, UserPref.playlistId);
 
             ps.executeUpdate();
         }
     }
+
 
     public String getUserStatus() throws SQLException {
         String sql = """
@@ -80,32 +90,6 @@ public class UserPrefDAO {
         ResultSet rs = ps.executeQuery()) {
             if(rs.next()) {
                 return rs.getInt("playlistNo");
-            }
-        }
-        return 0;
-    }
-
-    public String getSortingPref() throws SQLException {
-        String sql = """
-                    SELECT sortingPref FROM user_pref
-        """;
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            if(rs.next()) {
-                return rs.getString("sortingPref");
-            }
-        }
-        return "";
-    }
-
-    public int getReverse() throws SQLException {
-        String sql = """
-                    SELECT reverse FROM user_pref
-        """;
-        try (PreparedStatement ps = conn.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery()) {
-            if(rs.next()) {
-                return rs.getInt("reverse");
             }
         }
         return 0;
