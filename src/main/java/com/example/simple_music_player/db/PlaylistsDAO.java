@@ -106,7 +106,7 @@ public class PlaylistsDAO {
 
     public void createShuffledPlaylist() throws SQLException {
         String createPlaylist = """
-                        INSERT OR IGNORE INTO playlists (id, name) VALUES (1, 'Shuffled Playlist')
+                         INSERT OR IGNORE INTO playlists (id, name, sort, rev) VALUES (2, 'Shuffled Playlist', 'Title', 0)
                 """;
         try (PreparedStatement ps = conn.prepareStatement(createPlaylist)) {
             ps.executeUpdate();
@@ -176,6 +176,45 @@ public class PlaylistsDAO {
         return -1;
     }
 
+    public int getPlaylistSongsIdx(int playlistId, int songId, String criteria, boolean ascending) throws SQLException {
+        if (criteria.equals("Date Added"))
+            ascending = !ascending;
+
+        String order = ascending ? "ASC" : "DESC";
+
+        String orderByColumn = switch (criteria) {
+            case "Title" -> "s.title";
+            case "Artist" -> "s.artist";
+            case "Album" -> "s.album";
+            case "Length" -> "CAST(s.length AS INTEGER)";
+            case "Date Added" -> "s.date_added";
+            default -> "s.title"; // fallback
+        };
+
+        String sql = """
+            SELECT row_number FROM (
+                SELECT s.id AS song_id,
+                       ROW_NUMBER() OVER (ORDER BY %s %s) AS row_number
+                FROM playlist_songs ps
+                JOIN songs s ON ps.song_id = s.id
+                WHERE ps.playlist_id = ?
+            )
+            WHERE song_id = ?
+        """.formatted(orderByColumn, order);
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, playlistId);
+            ps.setInt(2, songId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("row_number") - 1;  // zero-based index
+                }
+            }
+        }
+
+        return -1;  // not found
+    }
+
     public void createPlaylist(String name) throws SQLException {
         String getMaxId = "SELECT MAX(id) FROM playlists";
         int nextId = 4;
@@ -240,9 +279,19 @@ public class PlaylistsDAO {
     """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            // Update the targeted playlist
             ps.setString(1, sort);
             ps.setInt(2, playlistId);
             ps.executeUpdate();
+        }
+
+        // Also update playlist ID 1 to keep sort in sync
+        if (playlistId != 1) {
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, sort);
+                ps.setInt(2, 1);
+                ps.executeUpdate();
+            }
         }
     }
 
@@ -254,12 +303,23 @@ public class PlaylistsDAO {
     """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            // Update the targeted playlist
             ps.setInt(1, rev);
             ps.setInt(2, playlistId);
             ps.executeUpdate();
         }
+
+        // Also update playlist ID 1 to keep rev in sync
+        if (playlistId != 1) {
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, rev);
+                ps.setInt(2, 1);
+                ps.executeUpdate();
+            }
+        }
     }
-    
+
+
     public String getSortingPref(int playlistId) throws SQLException {
         String sql = """
         SELECT sort FROM playlists WHERE id = ?;

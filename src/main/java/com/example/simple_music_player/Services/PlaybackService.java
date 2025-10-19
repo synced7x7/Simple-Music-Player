@@ -140,7 +140,12 @@ public class PlaybackService {
         });
 
         if (UserPref.shuffle == 0) setListViewFocus(idx);
-        else setListViewFocus(playlistsDAO.getPlaylistSongsIdx(2, songId));
+        else {
+            SongLocator songLocator = SongLocator.getCurrent();
+            int reverse = songLocator.getLastReverseBS();
+            boolean ascending = reverse != 1;
+            setListViewFocus(playlistsDAO.getPlaylistSongsIdx(2, songId, songLocator.getLastSortBS(), ascending));
+        }
     }
 
     private void setListViewFocus(int idx) {
@@ -241,7 +246,12 @@ public class PlaybackService {
         });
 
         if (UserPref.shuffle == 0) setListViewFocus(index);
-        else setListViewFocus(playlistsDAO.getPlaylistSongsIdx(2, songId));
+        else {
+            SongLocator songLocator = SongLocator.getCurrent();
+            int reverse = songLocator.getLastReverseBS();
+            boolean ascending = reverse != 1;
+            setListViewFocus(playlistsDAO.getPlaylistSongsIdx(2, songId, songLocator.getLastSortBS(), ascending));
+        }
     }
 
     public void setVolume(double volume) {
