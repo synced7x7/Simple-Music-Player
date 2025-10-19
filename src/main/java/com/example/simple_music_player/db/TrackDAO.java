@@ -186,29 +186,40 @@ public class TrackDAO {
 
 
 
-    public List<Integer> searchTrackIds (int playlistId, String query, String sortBy, boolean ascending) {
+    public List<Integer> searchTrackIds(int playlistId, String query, String sortBy, boolean ascending) {
         List<Integer> ids = new ArrayList<>();
-        if (query == null || query.isEmpty()) return getAllIdsSorted(playlistId, sortBy, ascending);
+        if (query == null || query.isEmpty()) {
+            return getAllIdsSorted(playlistId, sortBy, ascending);
+        }
+
+        String order = ascending ? "ASC" : "DESC";
 
         String sql = """
-        SELECT id FROM songs
-        WHERE LOWER(title) LIKE ? OR LOWER(artist) LIKE ? OR LOWER(album) LIKE ?
+        SELECT s.id
+        FROM songs s
+        INNER JOIN playlist_songs ps ON s.id = ps.song_id
+        WHERE ps.playlist_id = ?
+          AND (LOWER(s.title) LIKE ? OR LOWER(s.artist) LIKE ? OR LOWER(s.album) LIKE ?)
         ORDER BY %s %s
-    """.formatted(sortBy, ascending ? "ASC" : "DESC");
+    """.formatted(sortBy, order);
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             String likeQuery = "%" + query.toLowerCase() + "%";
-            ps.setString(1, likeQuery);
+            ps.setInt(1, playlistId);
             ps.setString(2, likeQuery);
             ps.setString(3, likeQuery);
+            ps.setString(4, likeQuery);
 
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                ids.add(rs.getInt("id"));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ids.add(rs.getInt("id"));
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return ids;
     }
+
 }
