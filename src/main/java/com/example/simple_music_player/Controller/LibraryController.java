@@ -12,11 +12,13 @@ import com.example.simple_music_player.db.TrackDAO;
 import com.example.simple_music_player.db.UserPrefDAO;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import lombok.Getter;
 
@@ -35,7 +37,8 @@ public class LibraryController {
     private TextField searchField;
     @FXML
     private ComboBox<String> sortComboBox;
-
+    @FXML
+    private ImageView backgroundImage;
     @FXML
     private Button reverseButton;
     @FXML
@@ -120,11 +123,8 @@ public class LibraryController {
             private final ImageView cover = new ImageView();
             private final Label nameLabel = new Label();
             private final Button favButton = new Button();
-
             {
                 card.setPrefSize(CARD_WIDTH, CARD_HEIGHT);
-                card.setStyle("-fx-border-color: gray; -fx-background-color: #f0f0f0;");
-
                 cover.setFitWidth(CARD_WIDTH);
                 cover.setFitHeight(CARD_WIDTH);
                 cover.setPreserveRatio(true);
@@ -188,6 +188,7 @@ public class LibraryController {
 
                     // --- Queue Menu ---
                     MenuItem addToQueue = new MenuItem("Add to Queue");
+
                     MenuItem removeFromQueue = new MenuItem("Remove from Queue");
                     Menu queueMenu = new Menu("Queue");
                     queueMenu.getItems().addAll(addToQueue, removeFromQueue);
@@ -277,6 +278,16 @@ public class LibraryController {
 
                     setGraphic(card);
                 }
+            }
+        });
+
+
+
+        playbackService.currentTrackProperty().addListener((obs, oldT, newT) -> {
+            if (newT.getCover() != null) {
+                backgroundImage.setImage(newT.getCover());
+            } else {
+                backgroundImage.setImage(null);
             }
         });
 

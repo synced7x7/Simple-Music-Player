@@ -21,6 +21,7 @@ import javafx.stage.Stage;
 import lombok.Getter;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
@@ -58,6 +59,8 @@ public class NowPlayingController {
     private Button shuffleButton;
     @FXML
     private Slider volumeSlider;
+    @FXML
+    private ImageView backAlbumCover;
 
 
     public static VisualizerService visualizerController;
@@ -95,7 +98,7 @@ public class NowPlayingController {
 
         playbackService.currentTrackProperty().addListener((obs, oldT, newT) -> {
             if (newT != null && visualizerController != null) {
-                visualizerController.loadWaveform(new java.io.File(newT.getPath()));
+                visualizerController.loadWaveform(new File(newT.getPath()));
             }
         });
 
@@ -138,10 +141,21 @@ public class NowPlayingController {
             //Sample Rate
             sampleRateLabel.setText(newT.getSampleRate());
             //Cover
+            double coverAR = newT.getCoverWidth() / newT.getCoverHeight();
+            double screenAR = 0.608;
+            if (coverAR < screenAR) {
+                backAlbumCover.setFitHeight(-1);
+                backAlbumCover.setFitWidth(450);
+            } else {
+                backAlbumCover.setFitHeight(750);
+                backAlbumCover.setFitWidth(-1);
+            }
             if (newT.getCover() != null) {
                 albumCover.setImage(newT.getCover());
+                backAlbumCover.setImage(newT.getCover());
             } else {
                 albumCover.setImage(null);
+                backAlbumCover.setImage(null);
             }
         });
     }
@@ -283,6 +297,5 @@ public class NowPlayingController {
             repeatButton.setStyle("");
         }
     }
-
 
 }

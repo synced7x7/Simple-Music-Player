@@ -22,6 +22,7 @@ import lombok.Setter;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 public class PlaybackService {
@@ -203,7 +204,21 @@ public class PlaybackService {
     public void play(int index) throws SQLException {
         NowPlayingController.visualizerController.cleanup();
         if (index < 0 || index >= playlist.size()) return;
-        //
+
+        //Queue manager
+        QueueService queueService = AppContext.getQueueService();
+        LinkedList <Integer> queueList = queueService.getQueueList();
+        if (!queueList.isEmpty()) {
+            int nextId = queueList.pollFirst();
+            int indexInPlaylist = playlist.indexOf(nextId);
+            if (indexInPlaylist != -1) {
+                currentIndex = indexInPlaylist;
+            }
+            play(currentIndex);
+            return;
+        }
+
+
         UserPref.playlistNo = index;
         //
         currentIndex = index;
