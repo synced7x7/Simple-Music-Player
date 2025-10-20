@@ -223,6 +223,9 @@ public class LibraryController {
                             if (isPlaylistChanged) {
                                 isPlaylistChanged = false;
                                 try {
+                                    //shifted to new playlist
+                                    QueueService queueService = AppContext.getQueueService();
+                                    queueService.clearQueue();
                                     currentPlaylistId = UserPref.playlistId;
                                     int reverse = playlistsDAO.getReverse(currentPlaylistId);
                                     String sort = playlistsDAO.getSortingPref(currentPlaylistId);
@@ -454,6 +457,10 @@ public class LibraryController {
     private void loadSongsFromDirectory(File dir) throws SQLException {
         if (dir == null || !dir.exists() || !dir.isDirectory()) return;
         toggleSort(false);
+        //
+        QueueService queueService = AppContext.getQueueService();
+        queueService.clearQueue();
+        //
         //Clear shuffled playlist
         clearSearchField();
         playlistsDAO.deleteAllSongsFromPlaylist(1);

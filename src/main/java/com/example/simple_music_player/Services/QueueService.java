@@ -9,10 +9,8 @@ public class QueueService {
     private final LinkedList<Integer> queueList = new LinkedList<>();
 
     public void addToQueue(int songId) {
-        if (!queueList.contains(songId)) {
             queueList.addLast(songId);
             System.out.println("Added to queue: " + songId);
-        }
     }
 
     public void removeFromQueue(int songId) {
