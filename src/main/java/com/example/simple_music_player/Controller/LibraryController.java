@@ -286,7 +286,7 @@ public class LibraryController {
     // --- Sorting ---
     private void sortLibrary(String criteria) {
         System.out.println("sortLibrary() --> criteria: " + criteria);
-
+        clearSearchField();
         restartFromStart = true;
         new Thread(() -> {
             int songId;
@@ -294,11 +294,19 @@ public class LibraryController {
 
             if (criteria.equals("Reverse")) {
                 try {
-                    sortedIds = new ArrayList<>(PlaybackService.getPlaylist());
                     songId = PlaybackService.getPlaylist().get(playbackService.getCurrentIndex());
-                    Collections.reverse(sortedIds);
+
                     int reverse = playlistsDAO.getReverse(UserPref.playlistId);
                     reverse = reverse == 0 ? 1 : 0;
+                    boolean asc = reverse != 1;
+
+                    String currentSort = playlistsDAO.getSortingPref(UserPref.playlistId);
+                    if (currentSort == null || currentSort.isEmpty()) {
+                        currentSort = "Title";
+                    }
+
+                    sortedIds = trackDAO.getAllIdsSorted(UserPref.playlistId, currentSort, asc);
+
                     playlistsDAO.setPlaylistRev(UserPref.playlistId, reverse);
                     playlistsDAO.setPlaylistRev(1, reverse);
                 } catch (SQLException e) {
@@ -390,18 +398,18 @@ public class LibraryController {
 
         Platform.runLater(() -> {
             if (UserPref.shuffle == 0) {
-                countSongs(finalIdsToLoad.size());
-                songListView.getItems().setAll(finalIdsToLoad);
                 try {
+                    countSongs(finalIdsToLoad.size(), playlistId);
+                    songListView.getItems().setAll(finalIdsToLoad);
                     playbackService.setPlaylist(finalIdsToLoad, idx, status, ts);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
                 playbackService.initialTimePropertyBinding();
             } else {
-                countSongs(idsToLoad.size());
-                songListView.getItems().setAll(idsToLoad);
                 try {
+                    countSongs(idsToLoad.size(), playlistId);
+                    songListView.getItems().setAll(idsToLoad);
                     playbackService.setPlaylist(finalShuffleIdsToLoad, idx, status, ts);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -425,6 +433,7 @@ public class LibraryController {
         if (dir == null || !dir.exists() || !dir.isDirectory()) return;
         toggleSort(false);
         //Clear shuffled playlist
+        clearSearchField();
         playlistsDAO.deleteAllSongsFromPlaylist(1);
         playlistsDAO.deleteAllSongsFromPlaylist(2);
         playlistsDAO.createShuffledPlaylist();
@@ -467,8 +476,8 @@ public class LibraryController {
             }
 
             Platform.runLater(() -> {
-                countSongs(allIds.size());
                 try {
+                    countSongs(allIds.size(), 2);
                     playbackService.setPlaylist(allIds, dirChanged);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -487,8 +496,8 @@ public class LibraryController {
         });
     }
 
-    private void countSongs(int count) {
-        songCountLabel.setText(count + " songs");
+    private void countSongs(int count, int playlistId) throws SQLException {
+        songCountLabel.setText(playlistsDAO.getPlaylistName(playlistId) + " - " + count + " songs");
     }
 
     // --- Search ---
@@ -525,8 +534,10 @@ public class LibraryController {
 
     @FXML
     private void openPlaylistManager() {
+        clearSearchField();
         PlaylistService playlistService = new PlaylistService();
-        playlistService.openPlaylistSelectionWindow(-1);
+        playlistService.openPlaylistSelectionWindow(-1); // -1 refers to opening playlistManager from library not from
+        //right-clicking song card
     }
 
     public void loadPlaylistView(int playlistId, String playlistName) throws SQLException {
@@ -534,19 +545,17 @@ public class LibraryController {
         UserPref.playlistId = playlistId;
         boolean ascending = getReverseStatusOfPlaylist(playlistId);
         String sort = getSortStatusOfPlaylist(playlistId);
-        /*UserPref.shuffle = 1;
-        NowPlayingController npc = NowPlayingController.getInstance();
-        if (npc != null) {
-            npc.toggleShuffle();
-        }*/
         CompletableFuture.runAsync(() -> {
             List<Integer> playlistSongs = trackDAO.getAllIdsSorted(playlistId, sort, ascending);
             System.out.println("Playlist Songs -> " + playlistSongs);
 
             Platform.runLater(() -> {
                 songListView.getItems().setAll(playlistSongs);
-                countSongs(playlistSongs.size());
-                songCountLabel.setText(playlistName + " - " + playlistSongs.size() + " songs");
+                try {
+                    countSongs(playlistSongs.size(), playlistId);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             });
         });
     }
@@ -558,6 +567,10 @@ public class LibraryController {
 
     public String getSortStatusOfPlaylist(int playlistId) throws SQLException {
         return playlistsDAO.getSortingPref(playlistId);
+    }
+
+    private void clearSearchField() {
+        searchField.clear();
     }
 
 

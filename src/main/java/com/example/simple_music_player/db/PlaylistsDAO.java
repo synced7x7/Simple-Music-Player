@@ -106,7 +106,7 @@ public class PlaylistsDAO {
 
     public void createShuffledPlaylist() throws SQLException {
         String createPlaylist = """
-                         INSERT OR IGNORE INTO playlists (id, name, sort, rev) VALUES (2, 'Shuffled Playlist', 'Title', 0)
+                         INSERT OR IGNORE INTO playlists (id, name, sort, rev) VALUES (1, 'Shuffled Playlist', 'Title', 0)
                 """;
         try (PreparedStatement ps = conn.prepareStatement(createPlaylist)) {
             ps.executeUpdate();
@@ -327,6 +327,21 @@ public class PlaylistsDAO {
             }
         }
         return 0;
+    }
+
+    public String getPlaylistName(int playlistId) throws SQLException {
+        String sql = """
+                SELECT name FROM playlists WHERE id = ?
+                """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, playlistId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("name");
+            }
+        }
+        return "";
     }
 
 

@@ -26,6 +26,7 @@ public class PlaylistService {
 
     public void openPlaylistSelectionWindow(int songId) {
         Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
         stage.setTitle("Add to Playlist");
         if(songId == -1){
             stage.setTitle("Playlist Manager");

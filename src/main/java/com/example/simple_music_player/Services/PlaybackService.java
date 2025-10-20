@@ -73,7 +73,6 @@ public class PlaybackService {
     }
 
 
-
     public void setPlaylist(List<Integer> ids, boolean autoPlay) throws SQLException {
         playlist = ids;
         if (playlist.isEmpty()) {
@@ -151,11 +150,9 @@ public class PlaybackService {
     private void setListViewFocus(int idx) {
         if (libraryController != null) {
             Platform.runLater(() -> {
-                if(!LibraryController.isPlaylistChanged) {
-                    libraryController.getSongListView()
-                            .getSelectionModel().select(idx);
-                    libraryController.getSongListView()
-                            .scrollTo(idx);
+                if (libraryController.getCurrentPlaylistId() == UserPref.playlistId) {
+                    libraryController.getSongListView().getSelectionModel().select(idx);
+                    libraryController.getSongListView().scrollTo(idx);
                 }
             });
         }
@@ -177,9 +174,7 @@ public class PlaybackService {
                 progress.set(prog);
 
                 // update waveform progress
-                if (currentTrack.get() != null &&
-                    NowPlayingController.visualizerController != null &&
-                    !VisualizerService.progressBarDraggingCap) {
+                if (currentTrack.get() != null && NowPlayingController.visualizerController != null && !VisualizerService.progressBarDraggingCap) {
                     NowPlayingController.visualizerController.updateProgress(prog);
                 }
 
@@ -297,8 +292,7 @@ public class PlaybackService {
         if (checkRestartFromStart()) {
             currentIndex = 0;
             nextIndex = 0;
-        } else
-            nextIndex = (currentIndex + 1) % playlist.size();
+        } else nextIndex = (currentIndex + 1) % playlist.size();
         play(nextIndex);
     }
 
