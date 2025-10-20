@@ -3,8 +3,10 @@ package com.example.simple_music_player.Controller;
 import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
+import com.example.simple_music_player.Services.AppContext;
 import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Services.PlaylistService;
+import com.example.simple_music_player.Services.QueueService;
 import com.example.simple_music_player.Utility.SongIdAndIndexUtility;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.PlaylistsDAO;
@@ -188,8 +190,17 @@ public class LibraryController {
 
                     // --- Queue Menu ---
                     MenuItem addToQueue = new MenuItem("Add to Queue");
-
+                    addToQueue.setOnAction(e -> {
+                       QueueService queueService = AppContext.getQueueService();
+                       queueService.addToQueue(id);
+                       System.out.println("QueueList: " + queueService.getQueueList());
+                    });
                     MenuItem removeFromQueue = new MenuItem("Remove from Queue");
+                    removeFromQueue.setOnAction(e -> {
+                        QueueService queueService = AppContext.getQueueService();
+                        queueService.removeFromQueue(id);
+                        System.out.println("QueueList: " + queueService.getQueueList());
+                    });
                     Menu queueMenu = new Menu("Queue");
                     queueMenu.getItems().addAll(addToQueue, removeFromQueue);
 

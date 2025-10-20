@@ -204,21 +204,7 @@ public class PlaybackService {
     public void play(int index) throws SQLException {
         NowPlayingController.visualizerController.cleanup();
         if (index < 0 || index >= playlist.size()) return;
-
-        //Queue manager
-        QueueService queueService = AppContext.getQueueService();
-        LinkedList <Integer> queueList = queueService.getQueueList();
-        if (!queueList.isEmpty()) {
-            int nextId = queueList.pollFirst();
-            int indexInPlaylist = playlist.indexOf(nextId);
-            if (indexInPlaylist != -1) {
-                currentIndex = indexInPlaylist;
-            }
-            play(currentIndex);
-            return;
-        }
-
-
+        
         UserPref.playlistNo = index;
         //
         currentIndex = index;
@@ -262,6 +248,22 @@ public class PlaybackService {
             boolean ascending = reverse != 1;
             setListViewFocus(playlistsDAO.getPlaylistSongsIdx(libraryController.getCurrentPlaylistId(), songId, songLocator.getLastSortBS(), ascending));
         }
+    }
+
+    public void playNextInQueue() throws SQLException {
+        QueueService queueService = AppContext.getQueueService();
+        LinkedList<Integer> queueList = queueService.getQueueList();
+
+        if (queueList.isEmpty()) return; // Nothing to play
+
+        int nextId = queueList.pollFirst(); // Remove the song from queue
+        int indexInPlaylist = playlist.indexOf(nextId);
+        if (indexInPlaylist != -1) {
+            currentIndex = indexInPlaylist;
+            play(currentIndex); // Use your normal play() here
+        }
+
+        System.out.println("QueueList after playing: " + queueList);
     }
 
     public void setVolume(double volume) {
