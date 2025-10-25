@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.image.Image?>
@@ -9,6 +10,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.text.TextFlow?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="450.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.NowPlayingController">
     <StackPane prefHeight="750.0" prefWidth="456.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
@@ -28,6 +30,11 @@
             </effect>
         </ImageView>
     </StackPane>
+    <ScrollPane fx:id="lyricsScrollPane" hbarPolicy="NEVER" layoutX="52.0" layoutY="53.0" prefHeight="406.0" prefWidth="343.0">
+        <content>
+            <TextFlow fx:id="lyricsFlow" />
+        </content>
+    </ScrollPane>
     <Label alignment="CENTER" layoutX="-1.0" layoutY="7.0" prefHeight="40.0" prefWidth="450.0" text="SIMPLE MUSIC PLAYER">
         <font>
             <Font name="System Bold" size="21.0" />
@@ -45,12 +52,12 @@
     <Label fx:id="sampleRateLabel" alignment="CENTER" layoutX="189.0" layoutY="575.0" prefHeight="26.0" prefWidth="72.0" text="Samplerate" />
     <AnchorPane fx:id="visualizerHolder" layoutX="43.0" layoutY="605.0" prefHeight="62.0" prefWidth="362.0" />
     <Button fx:id="infoButton" layoutX="33.0" layoutY="14.0" mnemonicParsing="false" onAction="#infoButtonHandler" text="𝒊" />
-    <Button fx:id="shuffleButton" layoutX="26.0" layoutY="535.0" mnemonicParsing="false" onAction="#toggleShuffle" text="🔀" />
-    <Button fx:id="repeatButton" layoutX="26.0" layoutY="499.0" mnemonicParsing="false" onAction="#toggleRepeat" text="🔁" />
+    <Button fx:id="shuffleButton" layoutX="29.0" layoutY="541.0" mnemonicParsing="false" onAction="#toggleShuffle" text="🔀" />
+    <Button fx:id="repeatButton" layoutX="29.0" layoutY="505.0" mnemonicParsing="false" onAction="#toggleRepeat" text="🔁" />
 
 
     <!-- Volume Control -->
     <Label layoutX="418.0" layoutY="566.0" text="🔊" />
     <Slider fx:id="volumeSlider" blockIncrement="0.01" layoutX="371.0" layoutY="505.0" max="1" min="0" prefHeight="14.0" prefWidth="106.0" rotate="-90.0" value="0.5" />
-   <Button fx:id="lyricsButton" layoutX="25.0" layoutY="460.0" mnemonicParsing="false" onAction="#toggleLyrics" text="၊၊||၊" />
+    <Button fx:id="lyricsButton" layoutX="28.0" layoutY="466.0" mnemonicParsing="false" onAction="#toggleLyrics" text="၊၊||၊" />
 </AnchorPane>

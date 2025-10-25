@@ -13,10 +13,13 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Getter;
@@ -68,6 +71,10 @@ public class NowPlayingController {
     private ImageView backAlbumCover;
     @FXML
     private Button lyricsButton;
+    @FXML
+    private ScrollPane lyricsScrollPane;
+    @FXML
+    private TextFlow lyricsFlow;
 
 
     public static VisualizerService visualizerController;
@@ -86,6 +93,8 @@ public class NowPlayingController {
     @FXML
     public void initialize() throws IOException {
         playbackService.setNowPlayingController(this);
+        lyricsScrollPane.setVisible(false);
+        lyricsScrollPane.setManaged(false);
 
         // Bind slider to PlaybackService
         volumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
@@ -167,12 +176,15 @@ public class NowPlayingController {
                 backAlbumCover.setImage(null);
             }
 
-            /*try {
-                System.out.println("Lyrics: " + newT.getLyrics());
-            } catch (CannotReadException | TagException | InvalidAudioFrameException | ReadOnlyFileException |
-                     IOException e) {
-                throw new RuntimeException(e);
-            }*/
+            if (isLyricsActive) {
+                try {
+                    displayLyrics(newT.getLyrics());
+                } catch (CannotReadException | TagException | InvalidAudioFrameException | ReadOnlyFileException |
+                         IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
         });
     }
 
@@ -313,9 +325,35 @@ public class NowPlayingController {
     }
 
     @FXML
-    private void toggleLyrics() {
+    private void toggleLyrics() throws CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException, IOException {
         isLyricsActive = !isLyricsActive;
         albumCover.setVisible(!isLyricsActive);
+        albumCover.setManaged(!isLyricsActive);
+        lyricsScrollPane.setVisible(isLyricsActive);
+        lyricsScrollPane.setManaged(isLyricsActive);
+
+        if (isLyricsActive && playbackService.currentTrackProperty().get() != null) {
+            displayLyrics(playbackService.getCurrentTrack().getLyrics());
+        }
+    }
+
+    private void displayLyrics(String lyrics) {
+        lyricsFlow.getChildren().clear();
+
+        if (lyrics == null || lyrics.isEmpty()) {
+            lyricsFlow.getChildren().add(new Text("No lyrics available"));
+            return;
+        }
+
+        String[] lines = lyrics.split("\n");
+        for (String line : lines) {
+            Text text = new Text(line + "\n");
+            //text.getStyleClass().add("lyrics-line");
+            lyricsFlow.getChildren().add(text);
+        }
+
+        // Scroll to top
+        lyricsScrollPane.setVvalue(0);
     }
 
 }

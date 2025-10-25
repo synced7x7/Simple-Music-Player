@@ -50,6 +50,10 @@ public class PlaybackService {
         return currentTrack;
     }
 
+    public Track getCurrentTrack() {
+        return currentTrack.get();
+    }
+
     public ReadOnlyDoubleProperty progressProperty() {
         return progress;
     }
