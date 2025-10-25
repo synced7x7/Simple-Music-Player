@@ -1,5 +1,6 @@
 package com.example.simple_music_player.Controller;
 
+import com.example.simple_music_player.Model.LyricLine;
 import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
@@ -22,13 +23,16 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import lombok.Getter;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.TagException;
 
-import java.awt.*;
+import java.awt.Desktop;
+import java.util.ArrayList;
+import java.util.List;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -74,9 +78,9 @@ public class NowPlayingController {
     @FXML
     private ScrollPane lyricsScrollPane;
     @FXML
-    private TextFlow lyricsFlow;
+    private VBox lyricsFlow;
 
-
+    private List<LyricLine> currentLyricLines = new ArrayList<>();
     public static VisualizerService visualizerController;
     @Getter
     private static final PlaybackService playbackService = new PlaybackService(); //one instance to be shared among all
@@ -333,27 +337,150 @@ public class NowPlayingController {
         lyricsScrollPane.setManaged(isLyricsActive);
 
         if (isLyricsActive && playbackService.getCurrentTrack() != null) {
-            displayLyrics(playbackService.getCurrentTrack().getLyrics());
+            Track currentTrack = playbackService.getCurrentTrack();
+            displayLyrics(currentTrack.getLyrics());
+        } else {
+            currentLyricLines.clear();
+            lastHighlightedIndex = -1;
         }
     }
 
-    private void displayLyrics(String lyrics) {
+    private void displayLyrics(String lyrics) throws CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException, IOException {
         lyricsFlow.getChildren().clear();
+        currentLyricLines.clear();
 
         if (lyrics == null || lyrics.isEmpty()) {
-            lyricsFlow.getChildren().add(new Text("No lyrics available"));
+            Text noLyrics = new Text("No lyrics available");
+            noLyrics.setStyle("-fx-fill: red; -fx-font-size: 14px;");
+            lyricsFlow.getChildren().add(noLyrics);
             return;
         }
 
-        String[] lines = lyrics.split("\n");
-        for (String line : lines) {
-            Text text = new Text(line + "\n");
-            //text.getStyleClass().add("lyrics-line");
-            lyricsFlow.getChildren().add(text);
+        List<LyricLine> lyricLines = parseLyrics(lyrics);
+        currentLyricLines = lyricLines;
+
+        if (lyricLines.isEmpty()) {
+            // Plain text lyrics (no timestamps)
+            String[] lines = lyrics.split("\n");
+            for (String line : lines) {
+                Text text = new Text(line + "\n");
+                text.setStyle("-fx-fill: white; -fx-font-size: 14px;");
+                lyricsFlow.getChildren().add(text);
+            }
+        } else {
+            // Synced lyrics with timestamps
+            for (LyricLine lyricLine : lyricLines) {
+                Text text = new Text(lyricLine.getText() + "\n");
+                text.setStyle("-fx-fill: white; -fx-font-size: 14px; -fx-cursor: hand;");
+
+                // Make clickable
+                text.setOnMouseClicked(e -> {
+                    playbackService.seek(lyricLine.getTimestamp());
+                });
+
+                // Hover effect
+                text.setOnMouseEntered(e -> {
+                    text.setStyle("-fx-fill: #4CAF50; -fx-font-size: 14px; -fx-cursor: hand; -fx-underline: true;");
+                });
+
+                text.setOnMouseExited(e -> {
+                    text.setStyle("-fx-fill: white; -fx-font-size: 14px; -fx-cursor: hand;");
+                });
+
+                lyricsFlow.getChildren().add(text);
+            }
         }
 
-        // Scroll to top
         lyricsScrollPane.setVvalue(0);
     }
+
+    public List<LyricLine> parseLyrics(String lrc) {
+        List<LyricLine> result = new ArrayList<>();
+        String[] lines = lrc.split("\n");
+
+        for (String line : lines) {
+            line = line.trim(); //Removes leading and trailing whitespace from the line.
+            if (line.isEmpty()) continue;
+
+            if (!line.startsWith("[") || !line.contains("]")) continue;
+
+            int closeBracket = line.indexOf("]");
+            String timePart = line.substring(1, closeBracket);
+            String text = line.substring(closeBracket + 1).trim();
+
+            if (text.isEmpty()) continue; // Skip empty lines
+
+            if (line.matches("\\[(length|re|ve|ar|ti|al|by):.*\\]")) {
+                continue;
+            }
+
+            String[] minSec = timePart.split(":");
+            if (minSec.length != 2) continue;
+
+            try {
+                int minutes = Integer.parseInt(minSec[0]);
+                double seconds = Double.parseDouble(minSec[1]);
+                Duration timestamp = Duration.minutes(minutes).add(Duration.seconds(seconds));
+                result.add(new LyricLine(timestamp, text));
+            } catch (NumberFormatException e) {
+                // ignore invalid lines
+            }
+        }
+        return result;
+    }
+
+    private int lastHighlightedIndex = -1;
+
+    public void highlightCurrentLyric(Duration currentTime) {
+        if (!isLyricsActive || currentLyricLines.isEmpty()) {
+            return;
+        }
+
+        int currentIndex = -1;
+        for (int i = 0; i < currentLyricLines.size(); i++) {
+            Duration lineTime = currentLyricLines.get(i).getTimestamp();
+
+            if (currentTime.greaterThanOrEqualTo(lineTime)) {
+                if (i < currentLyricLines.size() - 1) {
+                    Duration nextLineTime = currentLyricLines.get(i + 1).getTimestamp();
+                    if (currentTime.lessThan(nextLineTime)) {
+                        currentIndex = i;
+                        break;
+                    }
+                } else {
+                    currentIndex = i;
+                }
+            }
+        }
+
+        if (currentIndex != lastHighlightedIndex && currentIndex >= 0) {
+
+            // Reset previous highlight
+            if (lastHighlightedIndex >= 0 && lastHighlightedIndex < lyricsFlow.getChildren().size()) {
+                Text prevText = (Text) lyricsFlow.getChildren().get(lastHighlightedIndex);
+                prevText.setStyle("-fx-fill: white; -fx-font-size: 14px; -fx-cursor: hand;");
+            }
+
+            // Highlight current
+            if (currentIndex < lyricsFlow.getChildren().size()) {
+                Text currentText = (Text) lyricsFlow.getChildren().get(currentIndex);
+                currentText.setStyle("-fx-fill: #4CAF50; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand;");
+
+                // Scroll ScrollPane to make current lyric visible
+                double contentHeight = lyricsFlow.getHeight();
+                double viewportHeight = lyricsScrollPane.getViewportBounds().getHeight();
+                double y = currentText.getBoundsInParent().getMinY();
+
+                double vValue = (y + currentText.getBoundsInParent().getHeight() / 2 - viewportHeight / 2) / (contentHeight - viewportHeight);
+                vValue = Math.max(0, Math.min(vValue, 1)); // Clamp between 0 and 1
+
+                lyricsScrollPane.setVvalue(vValue);
+            }
+
+            lastHighlightedIndex = currentIndex;
+        }
+    }
+
+
 
 }

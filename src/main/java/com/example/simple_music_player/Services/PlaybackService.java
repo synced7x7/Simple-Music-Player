@@ -184,6 +184,11 @@ public class PlaybackService {
                     NowPlayingController.visualizerController.updateProgress(prog);
                 }
 
+                // Highlight current lyric - WRAP IN Platform.runLater
+                if (currentTrack.get() != null && nowPlayingController != null) {
+                    Platform.runLater(() -> nowPlayingController.highlightCurrentLyric(newT));
+                }
+
                 int currentSec = (int) newT.toSeconds();
                 int totalSec = (int) total.toSeconds();
 
@@ -387,5 +392,10 @@ public class PlaybackService {
         playlistsDAO.deleteAllSongsFromPlaylist(1);
     }
 
+    public void seek(Duration timestamp) {
+        if (mediaPlayer != null && mediaPlayer.getTotalDuration() != null) {
+            mediaPlayer.seek(timestamp);
+        }
+    }
 
 }
