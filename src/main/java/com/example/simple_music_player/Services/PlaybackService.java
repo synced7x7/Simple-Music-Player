@@ -105,6 +105,7 @@ public class PlaybackService {
         UserPref.playlistNo = currentIndex;
         int songId = playlist.get(idx);
         Track t = trackDao.getTrackById(songId);
+        currentTrack.set(null);
         currentTrack.set(t);
 
         if (mediaPlayer != null) {

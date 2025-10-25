@@ -1,6 +1,8 @@
 package com.example.simple_music_player.Model;
 
 import com.example.simple_music_player.Utility.CompressionUtility;
+import com.mpatric.mp3agic.ID3v2;
+import com.mpatric.mp3agic.Mp3File;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -12,12 +14,20 @@ import lombok.Setter;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.TagException;
+import org.jaudiotagger.tag.TagField;
+import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
+import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
+import org.jaudiotagger.tag.id3.ID3v24Tag;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyUSLT;
 import org.jaudiotagger.tag.images.Artwork;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
+import java.util.List;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -40,14 +50,14 @@ public class Track {
     // Metadata fields
     private String title;
     private String artist;
-    private  String album;
-    private  String genre;
-    private  String year;
-    private  String format;
-    private  String bitrate;
-    private  String sampleRate;
-    private  String channels;
-    private  String length;
+    private String album;
+    private String genre;
+    private String year;
+    private String format;
+    private String bitrate;
+    private String sampleRate;
+    private String channels;
+    private String length;
 
     // Album art
     private Image cover;
@@ -56,7 +66,7 @@ public class Track {
     private byte[] artworkData;
     private byte[] compressedArtworkData;
     private String dateAdded;
-
+    private String lyrics;
 
     public Track(String filePath) {
         this.path = filePath;
@@ -79,11 +89,11 @@ public class Track {
             // --- TAG INFO ---
             Tag tag = audioFile.getTag();
             if (tag != null) {
-                t  = tag.getFirst(FieldKey.TITLE);
-                a  = tag.getFirst(FieldKey.ARTIST);
+                t = tag.getFirst(FieldKey.TITLE);
+                a = tag.getFirst(FieldKey.ARTIST);
                 al = tag.getFirst(FieldKey.ALBUM);
-                g  = tag.getFirst(FieldKey.GENRE);
-                y  = tag.getFirst(FieldKey.YEAR);
+                g = tag.getFirst(FieldKey.GENRE);
+                y = tag.getFirst(FieldKey.YEAR);
 
                 Artwork art = tag.getFirstArtwork();
                 if (art != null) {
@@ -99,9 +109,9 @@ public class Track {
             AudioHeader header = audioFile.getAudioHeader();
             if (header != null) {
                 fmt = header.getFormat();
-                br  = header.getBitRate() + "kbps";
-                sr  = Integer.parseInt(Integer.toString(Integer.parseInt(header.getSampleRate())/1000)) + "KHz";
-                ch  = header.getChannels();
+                br = header.getBitRate() + "kbps";
+                sr = Integer.parseInt(Integer.toString(Integer.parseInt(header.getSampleRate()) / 1000)) + "KHz";
+                ch = header.getChannels();
                 len = header.getTrackLength();   //seconds
             }
             this.dateAdded = String.valueOf(LocalDateTime.ofInstant(
@@ -171,6 +181,56 @@ public class Track {
         }
     }
 
+    public String getLyrics() throws CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException, IOException {
+        if (lyrics == null || lyrics.isEmpty()) {
+            AudioFile audioFile = AudioFileIO.read(new File(path));
+            Tag tag = audioFile.getTag();
+            if (tag != null) {
+                //Jaudiotagger default lyrics extraction
+                lyrics = tag.getFirst(FieldKey.LYRICS);
+                if(lyrics == null){
+                    System.out.println("Failed to extract lyrics using default JaudioTagger");
+                }
 
+                // --- USLT (lyrics) extraction for Jaudiotagger 3.0.1 ---
+                if ((lyrics == null || lyrics.isEmpty()) && tag instanceof AbstractID3v2Tag id3Tag) {
+                    List<TagField> usltFields = id3Tag.getFields("USLT");
+                    for (TagField field : usltFields) {
+                        if (field instanceof AbstractID3v2Frame frame &&
+                            frame.getBody() instanceof FrameBodyUSLT usltBody) {
+                            String text = usltBody.getLyric();
+                            if (text != null && !text.isEmpty()) {
+                                lyrics = text;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if(lyrics == null){
+                    System.out.println("Failed to extract lyrics using default USLT lyrics extraction");
+                }
+
+                //External library fallback (mp3agic)
+                if (lyrics == null || lyrics.isEmpty()) {
+                    try {
+                        Mp3File mp3file = new Mp3File(path);
+                        if (mp3file.hasId3v2Tag()) {
+                            ID3v2 id3v2Tag = mp3file.getId3v2Tag();
+                            String lyrics2 = id3v2Tag.getLyrics();
+                            if (lyrics2 != null && !lyrics2.isEmpty()) lyrics = lyrics2;
+                        }
+                    } catch (Exception e) {
+                        System.out.println("mp3agic could not find lyrics");
+                    }
+                }
+
+                if(lyrics == null){
+                    System.out.println("Failed to extract lyrics using mp3agic extraction");
+                }
+            }
+        }
+        return lyrics;
+    }
 
 }

@@ -13,11 +13,7 @@
 
 <AnchorPane prefHeight="750" prefWidth="450" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.LibraryController">
     <children>
-          <ImageView fx:id="backgroundImage" cache="true" fitHeight="750.0" fitWidth="456.0">
-         <image>
-            <Image url="@../../../../../../../../../Downloads/Sophia%20Monad%20Lies%20Of%20P.jpeg" />
-         </image>
-      </ImageView>
+          <ImageView fx:id="backgroundImage" cache="true" fitHeight="750.0" fitWidth="456.0" />
         <ImageView fitHeight="750.0" fitWidth="456.0" layoutY="-1.0" opacity="0.96" pickOnBounds="true">
          <image>
             <Image url="@../../../Images/ShadedImage.jpg" />

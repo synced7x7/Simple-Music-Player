@@ -9,6 +9,7 @@ module com.example.simple_music_player {
     requires jlayer;
     requires java.sql;
     requires javafx.swing;
+    requires mp3agic;
 
 
     opens com.example.simple_music_player to javafx.fxml;

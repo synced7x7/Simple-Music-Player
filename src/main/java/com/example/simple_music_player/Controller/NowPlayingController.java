@@ -1,6 +1,7 @@
 package com.example.simple_music_player.Controller;
 
 import com.example.simple_music_player.Model.SongLocator;
+import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Services.VisualizerService;
@@ -19,6 +20,10 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Getter;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.tag.TagException;
 
 import java.awt.*;
 import java.io.File;
@@ -61,6 +66,8 @@ public class NowPlayingController {
     private Slider volumeSlider;
     @FXML
     private ImageView backAlbumCover;
+    @FXML
+    private Button lyricsButton;
 
 
     public static VisualizerService visualizerController;
@@ -73,6 +80,8 @@ public class NowPlayingController {
     public NowPlayingController() {
         instance = this;   // set when FXML is loaded
     }
+
+    private boolean isLyricsActive = false;
 
     @FXML
     public void initialize() throws IOException {
@@ -157,6 +166,13 @@ public class NowPlayingController {
                 albumCover.setImage(null);
                 backAlbumCover.setImage(null);
             }
+
+            /*try {
+                System.out.println("Lyrics: " + newT.getLyrics());
+            } catch (CannotReadException | TagException | InvalidAudioFrameException | ReadOnlyFileException |
+                     IOException e) {
+                throw new RuntimeException(e);
+            }*/
         });
     }
 
@@ -248,8 +264,7 @@ public class NowPlayingController {
                 }
                 SongLocator.delete();
             }).start();
-        }
-        else {
+        } else {
             UserPref.shuffle = 1;
             new Thread(() -> {
                 try {
@@ -268,8 +283,7 @@ public class NowPlayingController {
     private void toggleRepeat() {
         if (UserPref.repeat == 1) { //turn OFF
             UserPref.repeat = 0;
-        }
-        else {
+        } else {
             UserPref.repeat = 1;
         }
         updateRepeatButtonStyle();
@@ -296,6 +310,12 @@ public class NowPlayingController {
         } else {
             repeatButton.setStyle("");
         }
+    }
+
+    @FXML
+    private void toggleLyrics() {
+        isLyricsActive = !isLyricsActive;
+        albumCover.setVisible(!isLyricsActive);
     }
 
 }
