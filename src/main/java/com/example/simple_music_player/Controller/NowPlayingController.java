@@ -332,7 +332,7 @@ public class NowPlayingController {
         lyricsScrollPane.setVisible(isLyricsActive);
         lyricsScrollPane.setManaged(isLyricsActive);
 
-        if (isLyricsActive && playbackService.currentTrackProperty().get() != null) {
+        if (isLyricsActive && playbackService.getCurrentTrack() != null) {
             displayLyrics(playbackService.getCurrentTrack().getLyrics());
         }
     }
