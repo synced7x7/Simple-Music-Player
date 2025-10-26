@@ -20,7 +20,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -29,7 +28,6 @@ import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.TagException;
-
 import java.awt.Desktop;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,7 +82,6 @@ public class NowPlayingController {
     public static VisualizerService visualizerController;
     @Getter
     private static final PlaybackService playbackService = new PlaybackService(); //one instance to be shared among all
-
     @Getter
     private static NowPlayingController instance;  // static reference
 
@@ -188,7 +185,6 @@ public class NowPlayingController {
                     throw new RuntimeException(e);
                 }
             }
-
         });
     }
 
@@ -455,7 +451,6 @@ public class NowPlayingController {
 
         if (currentIndex != lastHighlightedIndex && currentIndex >= 0) {
 
-            // Reset previous highlight
             if (lastHighlightedIndex >= 0 && lastHighlightedIndex < lyricsFlow.getChildren().size()) {
                 Text prevText = (Text) lyricsFlow.getChildren().get(lastHighlightedIndex);
                 prevText.setStyle("-fx-fill: white; -fx-font-size: 14px; -fx-cursor: hand;");
@@ -472,7 +467,7 @@ public class NowPlayingController {
                 double y = currentText.getBoundsInParent().getMinY();
 
                 double vValue = (y + currentText.getBoundsInParent().getHeight() / 2 - viewportHeight / 2) / (contentHeight - viewportHeight);
-                vValue = Math.max(0, Math.min(vValue, 1)); // Clamp between 0 and 1
+                vValue = Math.max(0, Math.min(vValue, 1));
 
                 lyricsScrollPane.setVvalue(vValue);
             }
@@ -480,7 +475,6 @@ public class NowPlayingController {
             lastHighlightedIndex = currentIndex;
         }
     }
-
 
 
 }
