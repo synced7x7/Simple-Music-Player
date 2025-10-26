@@ -545,7 +545,7 @@ public class LibraryController {
         int dotIndex = name.lastIndexOf('.');
         if (dotIndex == -1) return false;
         String ext = name.substring(dotIndex + 1).toLowerCase();
-        return ext.equals("mp3") || ext.equals("wav");
+        return ext.equals("mp3") || ext.equals("wav") || ext.equals("aac") || ext.equals("m4a") || ext.equals("flac");
     }
 
 

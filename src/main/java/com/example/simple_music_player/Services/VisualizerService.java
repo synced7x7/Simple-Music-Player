@@ -85,12 +85,11 @@ public class VisualizerService {
                 waveform = null;
                 System.gc(); // Suggest garbage collection
 
-                if (ext.equals("mp3")) {
-                    loadMP3Waveform(audioFile);
-                } else if (ext.equals("wav")) {
-                    loadWAVWaveform(audioFile);
-                } else {
-                    System.out.println("Unsupported audio format: " + ext);
+                switch (ext) {
+                    case "mp3" -> loadMP3Waveform(audioFile);
+                    case "wav" -> loadWAVWaveform(audioFile);
+                    case "aac", "m4a" -> loadm4aWaveform(audioFile);
+                    default -> System.out.println("Unsupported audio format: " + ext);
                 }
 
                 Platform.runLater(this::drawWaveform);
@@ -100,6 +99,81 @@ public class VisualizerService {
             }
         }).start();
     }
+
+    private void loadM4AWaveform(File m4aFile) {
+        try (InputStream fis = new FileInputStream(m4aFile)) {
+            Bitstream bitstream = new Bitstream(fis);
+            Decoder decoder = new Decoder();
+
+            int targetSize = 300;
+            List<Float> allMaxValues = new ArrayList<>();
+
+            org.jaad.aac.decoder.Header frameHeader;
+            int frameCount = 0;
+            int frameSkip = 2; // Process every 2nd frame only
+
+            // Collect max values from frames
+            while ((frameHeader = bitstream.readFrame()) != null) {
+                frameCount++;
+
+                // Skip frames for speed
+                if (frameCount % frameSkip != 0) {
+                    bitstream.closeFrame();
+                    continue;
+                }
+
+                SampleBuffer output = (SampleBuffer) decoder.decodeFrame(frameHeader, bitstream);
+                short[] buffer = output.getBuffer();
+
+                // Find max in this frame
+                float maxInFrame = 0;
+                for (short s : buffer) {
+                    float normalized = Math.abs(s) / 32768.0f;
+                    maxInFrame = Math.max(maxInFrame, normalized);
+                }
+
+                allMaxValues.add(maxInFrame);
+                bitstream.closeFrame();
+            }
+
+            // Now downsample the collected values to targetSize
+            waveform = new float[targetSize];
+            int collectedSize = allMaxValues.size();
+
+            if (collectedSize == 0) {
+                // No data collected
+                Arrays.fill(waveform, 0);
+            } else if (collectedSize <= targetSize) {
+                // We have less data than target, stretch it
+                for (int i = 0; i < targetSize; i++) {
+                    int srcIndex = (int) ((double) i / targetSize * collectedSize);
+                    srcIndex = Math.min(srcIndex, collectedSize - 1);
+                    waveform[i] = allMaxValues.get(srcIndex);
+                }
+            } else {
+                // We have more data, downsample by taking max of groups
+                float step = (float) collectedSize / targetSize;
+                for (int i = 0; i < targetSize; i++) {
+                    int startIdx = (int) (i * step);
+                    int endIdx = (int) ((i + 1) * step);
+                    endIdx = Math.min(endIdx, collectedSize);
+
+                    // Take max of this range
+                    float maxInRange = 0;
+                    for (int j = startIdx; j < endIdx; j++) {
+                        maxInRange = Math.max(maxInRange, allMaxValues.get(j));
+                    }
+                    waveform[i] = maxInRange;
+                }
+            }
+
+            bitstream.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private void loadMP3Waveform(File mp3File) {
         try (InputStream fis = new FileInputStream(mp3File)) {
@@ -259,6 +333,7 @@ public class VisualizerService {
             e.printStackTrace();
         }
     }
+
 
     private void drawWaveform() {
         if (waveform == null || waveform.length == 0) return;
