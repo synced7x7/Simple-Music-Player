@@ -10,6 +10,7 @@ module com.example.simple_music_player {
     requires java.sql;
     requires javafx.swing;
     requires mp3agic;
+    requires jave.core;
 
 
     opens com.example.simple_music_player to javafx.fxml;

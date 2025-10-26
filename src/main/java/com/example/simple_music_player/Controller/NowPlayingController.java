@@ -84,6 +84,7 @@ public class NowPlayingController {
     private static final PlaybackService playbackService = new PlaybackService(); //one instance to be shared among all
     @Getter
     private static NowPlayingController instance;  // static reference
+    private int lastHighlightedIndex = -1;
 
     public NowPlayingController() {
         instance = this;   // set when FXML is loaded
@@ -335,6 +336,7 @@ public class NowPlayingController {
         if (isLyricsActive && playbackService.getCurrentTrack() != null) {
             Track currentTrack = playbackService.getCurrentTrack();
             displayLyrics(currentTrack.getLyrics());
+           // System.out.println("Lyrics: " + currentTrack.getLyrics());
         } else {
             currentLyricLines.clear();
             lastHighlightedIndex = -1;
@@ -425,7 +427,6 @@ public class NowPlayingController {
         return result;
     }
 
-    private int lastHighlightedIndex = -1;
 
     public void highlightCurrentLyric(Duration currentTime) {
         if (!isLyricsActive || currentLyricLines.isEmpty()) {

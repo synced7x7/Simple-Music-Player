@@ -602,7 +602,4 @@ public class LibraryController {
         searchField.clear();
     }
 
-
-
-
 }

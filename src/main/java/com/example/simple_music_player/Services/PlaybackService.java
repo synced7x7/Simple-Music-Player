@@ -18,6 +18,10 @@ import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
 import lombok.Getter;
 import lombok.Setter;
+import ws.schild.jave.Encoder;
+import ws.schild.jave.MultimediaObject;
+import ws.schild.jave.encode.AudioAttributes;
+import ws.schild.jave.encode.EncodingAttributes;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -117,7 +121,15 @@ public class PlaybackService {
             mediaPlayer.dispose();
         }
         System.out.println("Currently Playing:-> Song Id:: " + songId + " , Index:: " + idx);
-        Media media = new Media(new File(t.getPath()).toURI().toString());
+        //Check if it is flac
+        File audioFile = new File(t.getPath());
+        String ext = getFileExtension(audioFile);
+
+        if (ext.equals("flac")) {
+            audioFile = convertFlacToTempWav(audioFile);
+        }
+
+        Media media = new Media(audioFile.toURI().toString());
         mediaPlayer = new MediaPlayer(media);
         setupDurationListener(mediaPlayer);
         if (status == null) status = "Play";
@@ -227,7 +239,15 @@ public class PlaybackService {
             mediaPlayer.dispose();
         }
 
-        Media media = new Media(new File(t.getPath()).toURI().toString());
+        //Check if it is flac
+        File audioFile = new File(t.getPath());
+        String ext = getFileExtension(audioFile);
+
+        if (ext.equals("flac")) {
+            audioFile = convertFlacToTempWav(audioFile);
+        }
+
+        Media media = new Media(audioFile.toURI().toString());
         mediaPlayer = new MediaPlayer(media);
 
         mediaPlayer.setOnReady(() -> {
@@ -352,6 +372,11 @@ public class PlaybackService {
             currentTime = mediaPlayer.getCurrentTime();
             UserPref.timestamp = (long) currentTime.toMillis();
         }
+        // Clean up temporary WAV file
+        if (tempWavFile != null && tempWavFile.exists()) {
+            tempWavFile.delete();
+            tempWavFile = null;
+        }
         userPrefDAO.setUserPref();
     }
 
@@ -395,6 +420,52 @@ public class PlaybackService {
     public void seek(Duration timestamp) {
         if (mediaPlayer != null && mediaPlayer.getTotalDuration() != null) {
             mediaPlayer.seek(timestamp);
+        }
+    }
+
+    private File tempWavFile = null; // Store temp file reference
+    private Encoder encoder;
+
+    private String getFileExtension(File file) {
+        String name = file.getName();
+        int lastDot = name.lastIndexOf('.');
+        if (lastDot == -1) return "";
+        return name.substring(lastDot + 1).toLowerCase();
+    }
+
+    private File convertFlacToTempWav(File flacFile) {
+        try {
+            // Clean up previous temp file
+            if (tempWavFile != null && tempWavFile.exists()) {
+                tempWavFile.delete();
+            }
+
+            // Create temporary WAV file
+            tempWavFile = File.createTempFile("flac_temp_", ".wav");
+            tempWavFile.deleteOnExit();
+
+            // Set Audio Attributes
+            AudioAttributes audio = new AudioAttributes();
+            audio.setCodec("pcm_s16le");
+            audio.setChannels(2);
+            audio.setSamplingRate(44100);
+
+            // Set encoding attributes
+            EncodingAttributes attributes = new EncodingAttributes();
+            attributes.setOutputFormat("wav");
+            attributes.setAudioAttributes(audio);
+
+            // Encode
+            encoder = encoder != null ? encoder : new Encoder();
+            encoder.encode(new MultimediaObject(flacFile), tempWavFile, attributes);
+
+            System.out.println("Converted FLAC to temporary WAV: " + tempWavFile.getAbsolutePath());
+            return tempWavFile;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Failed to convert FLAC to WAV, returning original file");
+            return flacFile; // Fallback to original (will fail but prevents crash)
         }
     }
 

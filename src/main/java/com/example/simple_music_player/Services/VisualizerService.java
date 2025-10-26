@@ -8,18 +8,25 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
-
 import javax.sound.sampled.*;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 import javazoom.jl.decoder.Bitstream;
 import javazoom.jl.decoder.Decoder;
 import javazoom.jl.decoder.SampleBuffer;
+import ws.schild.jave.Encoder;
+import ws.schild.jave.MultimediaObject;
+import ws.schild.jave.encode.AudioAttributes;
+import ws.schild.jave.encode.EncodingAttributes;
 
 public class VisualizerService {
 
@@ -88,7 +95,7 @@ public class VisualizerService {
                 switch (ext) {
                     case "mp3" -> loadMP3Waveform(audioFile);
                     case "wav" -> loadWAVWaveform(audioFile);
-                    case "aac", "m4a" -> loadm4aWaveform(audioFile);
+                    case "aac", "m4a", "flac" -> processFromNoWavFile(audioFile, ext);
                     default -> System.out.println("Unsupported audio format: " + ext);
                 }
 
@@ -100,77 +107,63 @@ public class VisualizerService {
         }).start();
     }
 
-    private void loadM4AWaveform(File m4aFile) {
-        try (InputStream fis = new FileInputStream(m4aFile)) {
-            Bitstream bitstream = new Bitstream(fis);
-            Decoder decoder = new Decoder();
+    private Random random = new Random();
 
-            int targetSize = 300;
-            List<Float> allMaxValues = new ArrayList<>();
+    private void processFromNoWavFile(File audioFile, String fileFormat) {
+        try {
+            int randomN = random.nextInt(99999);
 
-            org.jaad.aac.decoder.Header frameHeader;
-            int frameCount = 0;
-            int frameSkip = 2; // Process every 2nd frame only
+            // Create temporary files
+            File temporalDecodedFile = File.createTempFile("decoded_" + randomN, ".wav");
+            File temporalCopiedFile = File.createTempFile("original_" + randomN, "." + fileFormat);
 
-            // Collect max values from frames
-            while ((frameHeader = bitstream.readFrame()) != null) {
-                frameCount++;
+            // Delete temporary Files on exit
+            temporalDecodedFile.deleteOnExit();
+            temporalCopiedFile.deleteOnExit();
 
-                // Skip frames for speed
-                if (frameCount % frameSkip != 0) {
-                    bitstream.closeFrame();
-                    continue;
-                }
+            // Copy original file to temp location
+            Files.copy(audioFile.toPath(), temporalCopiedFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-                SampleBuffer output = (SampleBuffer) decoder.decodeFrame(frameHeader, bitstream);
-                short[] buffer = output.getBuffer();
+            // Transcode to .wav
+            transcodeToWav(temporalCopiedFile, temporalDecodedFile);
 
-                // Find max in this frame
-                float maxInFrame = 0;
-                for (short s : buffer) {
-                    float normalized = Math.abs(s) / 32768.0f;
-                    maxInFrame = Math.max(maxInFrame, normalized);
-                }
+            // Load waveform from temporary WAV file
+            loadWAVWaveform(temporalDecodedFile);
 
-                allMaxValues.add(maxInFrame);
-                bitstream.closeFrame();
-            }
-
-            // Now downsample the collected values to targetSize
-            waveform = new float[targetSize];
-            int collectedSize = allMaxValues.size();
-
-            if (collectedSize == 0) {
-                // No data collected
-                Arrays.fill(waveform, 0);
-            } else if (collectedSize <= targetSize) {
-                // We have less data than target, stretch it
-                for (int i = 0; i < targetSize; i++) {
-                    int srcIndex = (int) ((double) i / targetSize * collectedSize);
-                    srcIndex = Math.min(srcIndex, collectedSize - 1);
-                    waveform[i] = allMaxValues.get(srcIndex);
-                }
-            } else {
-                // We have more data, downsample by taking max of groups
-                float step = (float) collectedSize / targetSize;
-                for (int i = 0; i < targetSize; i++) {
-                    int startIdx = (int) (i * step);
-                    int endIdx = (int) ((i + 1) * step);
-                    endIdx = Math.min(endIdx, collectedSize);
-
-                    // Take max of this range
-                    float maxInRange = 0;
-                    for (int j = startIdx; j < endIdx; j++) {
-                        maxInRange = Math.max(maxInRange, allMaxValues.get(j));
-                    }
-                    waveform[i] = maxInRange;
-                }
-            }
-
-            bitstream.close();
+            // Delete temporary files
+            temporalDecodedFile.delete();
+            temporalCopiedFile.delete();
 
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("Error processing " + fileFormat + " file: " + audioFile.getName());
+            // Create fallback empty waveform
+            waveform = new float[300];
+            Arrays.fill(waveform, 0.3f);
+        }
+    }
+
+    private Encoder encoder;
+
+    private void transcodeToWav(File sourceFile, File destinationFile) {
+        try {
+            // Set Audio Attributes
+            AudioAttributes audio = new AudioAttributes();
+            audio.setCodec("pcm_s16le");
+            audio.setChannels(2);
+            audio.setSamplingRate(44100);
+
+            // Set encoding attributes
+            EncodingAttributes attributes = new EncodingAttributes();
+            attributes.setOutputFormat("wav");
+            attributes.setAudioAttributes(audio);
+
+            // Encode
+            encoder = encoder != null ? encoder : new Encoder();
+            encoder.encode(new MultimediaObject(sourceFile), destinationFile, attributes);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 

@@ -21,6 +21,7 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.TagField;
+import org.jaudiotagger.tag.flac.FlacTag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
 import org.jaudiotagger.tag.id3.ID3v24Tag;
@@ -39,6 +40,7 @@ import java.time.ZoneId;
 import java.util.Date;
 
 import javafx.embed.swing.SwingFXUtils;
+import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 
 @Getter
 @Setter
@@ -188,12 +190,12 @@ public class Track {
             if (tag != null) {
                 //Jaudiotagger default lyrics extraction
                 lyrics = tag.getFirst(FieldKey.LYRICS);
-                if(lyrics == null){
+                if(lyrics == null || lyrics.isEmpty()){
                     System.out.println("Failed to extract lyrics using default JaudioTagger");
-                }
+                } else return lyrics;
 
                 // --- USLT (lyrics) extraction for Jaudiotagger 3.0.1 ---
-                if ((lyrics == null || lyrics.isEmpty()) && tag instanceof AbstractID3v2Tag id3Tag) {
+                if (tag instanceof AbstractID3v2Tag id3Tag) {
                     List<TagField> usltFields = id3Tag.getFields("USLT");
                     for (TagField field : usltFields) {
                         if (field instanceof AbstractID3v2Frame frame &&
@@ -207,8 +209,30 @@ public class Track {
                     }
                 }
 
-                if(lyrics == null){
+                if(lyrics == null || lyrics.isEmpty()){
                     System.out.println("Failed to extract lyrics using default USLT lyrics extraction");
+                } else return lyrics;
+
+                // Method 2: Try Vorbis Comment fields directly
+                if (tag instanceof FlacTag flacTag) {
+                    VorbisCommentTag vorbisTag = flacTag.getVorbisCommentTag();
+
+                    if (vorbisTag != null) {
+                        // Try common lyrics field names in FLAC
+                        String[] lyricFields = {"LYRICS", "UNSYNCEDLYRICS", "UNSYNCED LYRICS", "TEXT"};
+
+                        for (String fieldName : lyricFields) {
+                            try {
+                                String extractedLyrics = vorbisTag.getFirst(fieldName);
+                                if (extractedLyrics != null && !extractedLyrics.isEmpty()) {
+                                    System.out.println("Extracted FLAC lyrics from field: " + fieldName);
+                                    return extractedLyrics;
+                                }
+                            } catch (Exception e) {
+                                System.out.println("Could not extract lyrics using VorbisCommentTag: " + fieldName);
+                            }
+                        }
+                    }
                 }
 
                 //External library fallback (mp3agic)
@@ -225,9 +249,9 @@ public class Track {
                     }
                 }
 
-                if(lyrics == null){
+                if(lyrics == null || lyrics.isEmpty()){
                     System.out.println("Failed to extract lyrics using mp3agic extraction");
-                }
+                } else return lyrics;
             }
         }
         return lyrics;
