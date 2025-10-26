@@ -14,8 +14,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import lombok.Getter;
-
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
@@ -135,7 +133,7 @@ public class PlaylistService {
                         playlistsDAO.insertSongsInPlaylist(playlist.getId(), Collections.singletonList(songId));
                         System.out.println("Added song " + songId + " to playlist: " + playlist.getName());
                     } catch (SQLException ex) {
-                        ex.printStackTrace();
+                        throw new RuntimeException(ex);
                     }
                 });
 
@@ -155,7 +153,7 @@ public class PlaylistService {
                             playlist.setName(newName);
                             name.setText(newName);
                         } catch (SQLException ex) {
-                            ex.printStackTrace();
+                            throw new RuntimeException(ex);
                         }
                     }
                     editField.setVisible(false);
@@ -182,7 +180,7 @@ public class PlaylistService {
                             playlistContainer.getChildren().add(emptyLabel);
                         }
                     } catch (SQLException ex) {
-                        ex.printStackTrace();
+                        throw new RuntimeException();
                     }
                 });
 
@@ -190,7 +188,7 @@ public class PlaylistService {
                 playlistContainer.getChildren().add(row);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -224,7 +222,7 @@ public class PlaylistService {
                     loadPlaylists(playlistContainer, songId);
                     stage.close();
                 } catch (SQLException ex) {
-                    ex.printStackTrace();
+                    throw new RuntimeException(ex);
                 }
             }
         });

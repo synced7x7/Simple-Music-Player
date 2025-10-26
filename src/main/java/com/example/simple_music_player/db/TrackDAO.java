@@ -79,6 +79,21 @@ public class TrackDAO {
         return null;
     }
 
+    public String getFileLocationById(int id) throws SQLException {
+        String path = null;
+        String sql = "SELECT path FROM songs WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    path = rs.getString("path");
+                }
+            }
+        }
+        return path;
+    }
+
+
     private Track mapRowToTrack(ResultSet rs) throws SQLException {
         String path = rs.getString("path");
 

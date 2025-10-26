@@ -14,20 +14,25 @@ import com.example.simple_music_player.db.TrackDAO;
 import com.example.simple_music_player.db.UserPrefDAO;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import lombok.Getter;
 
+import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class LibraryController {
@@ -58,7 +63,7 @@ public class LibraryController {
     private final TrackDAO trackDAO = new TrackDAO(DatabaseManager.getConnection());
 
     private File selectedDir;
-    private final File defaultMusicDirOpener = new File("C:/Users/Asus/Music");
+    private final File defaultMusicDirOpener = new File("C:/Users/Asus");
     private File[] prevFiles = null;
     private boolean dirChanged = false;
 
@@ -125,6 +130,7 @@ public class LibraryController {
             private final ImageView cover = new ImageView();
             private final Label nameLabel = new Label();
             private final Button favButton = new Button();
+
             {
                 card.setPrefSize(CARD_WIDTH, CARD_HEIGHT);
                 cover.setFitWidth(CARD_WIDTH);
@@ -191,9 +197,9 @@ public class LibraryController {
                     // --- Queue Menu ---
                     MenuItem addToQueue = new MenuItem("Add to Queue");
                     addToQueue.setOnAction(e -> {
-                       QueueService queueService = AppContext.getQueueService();
-                       queueService.addToQueue(id);
-                       System.out.println("QueueList: " + queueService.getQueueList());
+                        QueueService queueService = AppContext.getQueueService();
+                        queueService.addToQueue(id);
+                        System.out.println("QueueList: " + queueService.getQueueList());
                     });
                     MenuItem removeFromQueue = new MenuItem("Remove from Queue");
                     removeFromQueue.setOnAction(e -> {
@@ -211,12 +217,34 @@ public class LibraryController {
                         playlistService.openPlaylistSelectionWindow(id);
                     });
 
+                    // -- Open File Location --
+                    MenuItem openFileLocation = new MenuItem("Open File Location");
+                    openFileLocation.setOnAction((event) -> {
+                        try {
+                            String path = trackDAO.getFileLocationById(id);
+                            if (path != null && !path.isEmpty()) {
+                                File file = new File(path);
+                                if (file.exists()) {
+                                    // --- Open Explorer with file selected ---
+                                    Runtime.getRuntime().exec("explorer /select,\"" + file.getAbsolutePath() + "\"");
+                                } else {
+                                    System.err.println("File does not exist: " + path);
+                                }
+                            } else {
+                                System.err.println("Path not found in database for ID: " + id);
+                            }
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+
+
                     // --- Other Options ---
                     MenuItem viewDetails = new MenuItem("View Details");
 
                     // --- Attach to ContextMenu ---
                     ContextMenu contextMenu = new ContextMenu();
-                    contextMenu.getItems().addAll(queueMenu, addToPlaylist, viewDetails);
+                    contextMenu.getItems().addAll(queueMenu, addToPlaylist, openFileLocation, viewDetails);
 
                     card.setOnMouseClicked(e -> {
                         if (e.getButton() == MouseButton.PRIMARY) {
@@ -294,7 +322,6 @@ public class LibraryController {
                 }
             }
         });
-
 
 
         playbackService.currentTrackProperty().addListener((obs, oldT, newT) -> {
