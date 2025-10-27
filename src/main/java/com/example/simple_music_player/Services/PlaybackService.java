@@ -224,7 +224,7 @@ public class PlaybackService {
         }
     }
 
-    private void setListViewFocus(int idx) {
+    public void setListViewFocus(int idx) {
         if (libraryController != null) {
             Platform.runLater(() -> {
                 if (libraryController.getCurrentPlaylistId() == UserPref.playlistId) {

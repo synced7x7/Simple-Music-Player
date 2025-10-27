@@ -131,7 +131,13 @@ public class LibraryController {
         });
 
         // Setup search
-        searchField.textProperty().addListener((obs, oldVal, newVal) -> filterTracks(newVal));
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            try {
+                filterTracks(newVal);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
         // Sort ComboBox
         sortComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && UserPref.shuffle == 0) sortLibrary(newVal);
@@ -604,7 +610,7 @@ public class LibraryController {
         if (dir == null || !dir.exists() || !dir.isDirectory()) return;
         System.out.println(dir.getAbsolutePath() + " " + dir.lastModified());
         System.out.println("Is file modified : " + miscDAO.isFileModified(dir.lastModified()));
-        if(!miscDAO.isFileModified(dir.lastModified())) {
+        if (!miscDAO.isFileModified(dir.lastModified())) {
             System.out.println("File not modified!");
             return;
         }
@@ -693,14 +699,36 @@ public class LibraryController {
     }
 
     // --- Search ---
-    private void filterTracks(String query) {
-        String sortBy = sortComboBox.getValue() != null ? sortComboBox.getValue() : "Title";
+    private void filterTracks(String query) throws SQLException {
+        String sortBy = getSortStatusOfPlaylist(UserPref.playlistId);
         if (sortBy.equals("Date Added")) sortBy = "date_added";
-
+        boolean rev = getReverseStatusOfPlaylist(UserPref.playlistId);
         String finalSortBy = sortBy;
+        boolean isEmptyQuery = (query == null || query.trim().isEmpty());
+
         CompletableFuture.runAsync(() -> {
-            List<Integer> filteredIds = trackDAO.searchTrackIds(UserPref.playlistId, query, finalSortBy, true);
-            Platform.runLater(() -> songListView.getItems().setAll(filteredIds));
+            List<Integer> filteredIds = trackDAO.searchTrackIds(UserPref.playlistId, query, finalSortBy, rev);
+
+            Platform.runLater(() -> {
+                songListView.getItems().setAll(filteredIds);
+
+                // After updating items, restore focus if search is cleared
+                if (isEmptyQuery && UserPref.playlistId == currentPlaylistId) {
+                    // Get current playing song ID
+                    int currentSongId = PlaybackService.playlist.get(playbackService.getCurrentIndex());
+
+                    // Find its position in the filtered list
+                    int indexInList = filteredIds.indexOf(currentSongId);
+
+                    if (indexInList != -1) {
+                        songListView.getSelectionModel().select(indexInList);
+                        songListView.scrollTo(indexInList);
+                        System.out.println("Focus restored to index: " + indexInList + " (Song ID: " + currentSongId + ")");
+                    } else {
+                        System.out.println("Current song not found in list");
+                    }
+                }
+            });
         });
     }
 
@@ -737,16 +765,39 @@ public class LibraryController {
         UserPref.playlistId = playlistId;
         boolean ascending = getReverseStatusOfPlaylist(playlistId);
         String sort = getSortStatusOfPlaylist(playlistId);
+        boolean shouldRestoreFocus = (playlistId == currentPlaylistId);
+
         CompletableFuture.runAsync(() -> {
             List<Integer> playlistSongs = trackDAO.getAllIdsSorted(playlistId, sort, ascending);
             System.out.println("Playlist Songs -> " + playlistSongs);
 
             Platform.runLater(() -> {
                 songListView.getItems().setAll(playlistSongs);
+
                 try {
                     countSongs(playlistSongs.size(), playlistId);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
+                }
+
+                // Restore focus AFTER items are loaded
+                if (shouldRestoreFocus && !PlaybackService.playlist.isEmpty()) {
+                    Platform.runLater(() -> {
+                        try {
+                            int currentSongId = PlaybackService.playlist.get(playbackService.getCurrentIndex());
+                            int indexInList = playlistSongs.indexOf(currentSongId);
+
+                            if (indexInList != -1) {
+                                songListView.getSelectionModel().select(indexInList);
+                                songListView.scrollTo(indexInList);
+                                System.out.println("Focus restored to currently playing song at index: " + indexInList);
+                            } else {
+                                System.out.println("Current song not in this playlist view");
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Could not restore focus: " + e.getMessage());
+                        }
+                    });
                 }
             });
         });
