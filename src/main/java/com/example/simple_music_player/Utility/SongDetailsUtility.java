@@ -15,8 +15,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Duration;
-
 import java.io.File;
 
 public class SongDetailsUtility {
@@ -47,6 +45,8 @@ public class SongDetailsUtility {
         Label artist = styledLabel("Artist: " + safe(t.getArtist()), false);
         Label album = styledLabel("Album: " + safe(t.getAlbum()), false);
         Label genre = styledLabel("Genre: " + safe(t.getGenre()), false);
+        genre.setWrapText(true);
+        genre.setMaxWidth(350);
         Label year = styledLabel("Year: " + safe(t.getYear()), false);
         Label format = styledLabel("Format: " + safe(t.getFormat()), false);
         Label bitrate = styledLabel("Bitrate: " + safe(t.getBitrate()), false);
