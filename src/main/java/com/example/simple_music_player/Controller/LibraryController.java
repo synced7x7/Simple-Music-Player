@@ -558,9 +558,7 @@ public class LibraryController {
         queueService.clearQueue();
         //
         //Clear shuffled playlist
-        clearSearchField();
-        playlistsDAO.deleteAllSongsFromPlaylist(1);
-        playlistsDAO.deleteAllSongsFromPlaylist(2);
+        playlistsDAO.clearAllPlaylists();
         playlistsDAO.createShuffledPlaylist();
         playlistsDAO.createNormalPlaylist();
         playlistsDAO.createFavPlaylist();
@@ -603,7 +601,7 @@ public class LibraryController {
             Platform.runLater(() -> {
                 try {
                     countSongs(allIds.size(), 2);
-                    playbackService.setPlaylist(allIds, dirChanged);
+                    playbackService.setPlaylist(allIds, 0, "Play", 0);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }

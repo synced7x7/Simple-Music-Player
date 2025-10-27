@@ -256,10 +256,7 @@ public class PlaybackService {
         });
 
         setVolume(UserPref.volume);
-        System.out.println("Volume: " + UserPref.volume);
-
         setupDurationListener(mediaPlayer);
-
 
         mediaPlayer.setOnEndOfMedia(() -> {
             if (UserPref.repeat == 1) {

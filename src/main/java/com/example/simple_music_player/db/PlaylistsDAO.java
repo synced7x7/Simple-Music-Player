@@ -2,10 +2,7 @@ package com.example.simple_music_player.db;
 
 import com.example.simple_music_player.Model.Playlist;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +13,19 @@ public class PlaylistsDAO {
     public PlaylistsDAO(Connection connection) {
         this.conn = connection;
     }
+
+    public void clearAllPlaylists() throws SQLException {
+        String deletePlaylistSongs = "DELETE FROM playlist_songs;";
+        String deletePlaylists = "DELETE FROM playlists;";
+
+        try (Statement stmt = conn.createStatement()) {
+            // First remove songs (to maintain foreign key integrity)
+            stmt.executeUpdate(deletePlaylistSongs);
+            stmt.executeUpdate(deletePlaylists);
+            System.out.println("All playlists and songs cleared successfully.");
+        }
+    }
+
 
     public void deleteAllSongsFromPlaylist(int playlistId) throws SQLException {
         String deletePlaylist = """
