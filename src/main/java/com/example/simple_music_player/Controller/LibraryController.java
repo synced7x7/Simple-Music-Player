@@ -132,7 +132,7 @@ public class LibraryController {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty ? "\uD83D\uDCDC" : item);
+                setText(empty ? "⚒" : item);
             }
         });
 

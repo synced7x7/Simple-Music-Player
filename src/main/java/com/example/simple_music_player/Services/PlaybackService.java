@@ -12,6 +12,7 @@ import javafx.beans.property.*;
 
 import javafx.scene.control.ListView;
 import javafx.scene.media.Media;
+import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
 import lombok.Getter;
@@ -22,10 +23,13 @@ import ws.schild.jave.encode.AudioAttributes;
 import ws.schild.jave.encode.EncodingAttributes;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class PlaybackService {
     @Getter
@@ -123,6 +127,7 @@ public class PlaybackService {
         }
         System.out.println("Currently Playing:-> Song Id:: " + songId + " , Index:: " + idx);
         //Check if it is flac
+        //Checkpoint 1
         File audioFile = new File(t.getPath());
         if (!audioFile.exists()) {
             System.out.println("Cannot find the file specified: " + audioFile.getAbsolutePath());
@@ -145,11 +150,43 @@ public class PlaybackService {
         Media media;
         try {
             media = new Media(audioFile.toURI().toString());
-        } catch (Exception e) {
-            System.out.println("Cannot find the file specified " + audioFile.getAbsolutePath());
-            safelyDeleteSong(songId);
-            next();
-            return;
+        } catch (MediaException me) {
+            System.out.println("MediaException, renaming original file: " + audioFile.getName());
+
+            File finalAudioFile = audioFile;
+            CompletableFuture.runAsync(() -> {
+                File safeFile = new File(finalAudioFile.getParentFile(), "ini_syncedX_" + System.currentTimeMillis() + "." + ext);
+                try {
+                    // Move the file safely
+                    Files.move(finalAudioFile.toPath(), safeFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+                    // Update DB
+                    trackDao.updateTrackPath(songId, safeFile.getAbsolutePath());
+
+                    // Now construct Media on FX thread
+                    Platform.runLater(() -> {
+                        try {
+                            Media newMedia = new Media(safeFile.toURI().toString());
+                            mediaPlayer = new MediaPlayer(newMedia);
+                            mediaPlayer.play();
+                        } catch (MediaException e2) {
+                            System.err.println("Failed to load renamed file: " + safeFile.getAbsolutePath());
+                            safelyDeleteSong(songId);
+                            Platform.runLater(() -> {
+                                try { next(); } catch (SQLException ex) { ex.printStackTrace(); }
+                            });
+                        }
+                    });
+                } catch (Exception ex) {
+                    System.err.println("Could not rename file: " + finalAudioFile.getAbsolutePath());
+                    safelyDeleteSong(songId);
+                    Platform.runLater(() -> {
+                        try { next(); } catch (SQLException e) { e.printStackTrace(); }
+                    });
+                }
+            });
+
+            return; // exit play() immediately to avoid blocking FX thread
         }
 
         mediaPlayer = new MediaPlayer(media);
@@ -262,7 +299,7 @@ public class PlaybackService {
             mediaPlayer.dispose();
         }
 
-        //Check if it is flac
+        //Check if it is flac //Checkpoint 2
         File audioFile = new File(t.getPath());
         if (!audioFile.exists()) {
             System.out.println("Cannot find the file specified: " + audioFile.getAbsolutePath());
@@ -285,8 +322,48 @@ public class PlaybackService {
             audioFile = convertFlacToTempWav(audioFile);
         }
 
+        Media media;
+        try {
+            media = new Media(audioFile.toURI().toString());
+        } catch (MediaException me) {
+            System.out.println("MediaException, renaming original file: " + audioFile.getName());
 
-        Media media = new Media(audioFile.toURI().toString());
+            File finalAudioFile = audioFile;
+            CompletableFuture.runAsync(() -> {
+                File safeFile = new File(finalAudioFile.getParentFile(), "syncedX_" + System.currentTimeMillis() + "." + ext);
+                try {
+                    // Move the file safely
+                    Files.move(finalAudioFile.toPath(), safeFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+                    // Update DB
+                    trackDao.updateTrackPath(songId, safeFile.getAbsolutePath());
+
+                    // Now construct Media on FX thread
+                    Platform.runLater(() -> {
+                        try {
+                            Media newMedia = new Media(safeFile.toURI().toString());
+                            mediaPlayer = new MediaPlayer(newMedia);
+                            mediaPlayer.play();
+                        } catch (MediaException e2) {
+                            System.err.println("Failed to load renamed file: " + safeFile.getAbsolutePath());
+                            safelyDeleteSong(songId);
+                            Platform.runLater(() -> {
+                                try { next(); } catch (SQLException ex) { ex.printStackTrace(); }
+                            });
+                        }
+                    });
+                } catch (Exception ex) {
+                    System.err.println("Could not rename file: " + finalAudioFile.getAbsolutePath());
+                    safelyDeleteSong(songId);
+                    Platform.runLater(() -> {
+                        try { next(); } catch (SQLException e) { e.printStackTrace(); }
+                    });
+                }
+            });
+
+            return;
+        }
+        
         mediaPlayer = new MediaPlayer(media);
 
         mediaPlayer.setOnReady(() -> {

@@ -61,6 +61,20 @@ public class TrackDAO {
         }
     }
 
+    public void updateTrackPath(int trackId, String newPath) throws SQLException {
+        String sql = "UPDATE songs SET path = ? WHERE id = ?;";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newPath);
+            ps.setInt(2, trackId);
+            int updated = ps.executeUpdate();
+            if (updated == 0) {
+                System.out.println("No track found with ID: " + trackId);
+            } else {
+                System.out.println("Track path updated for ID: " + trackId);
+            }
+        }
+    }
+
     public String getTrackPath() {
         String sql = "SELECT path FROM songs LIMIT 1";
         try (PreparedStatement ps = conn.prepareStatement(sql);
