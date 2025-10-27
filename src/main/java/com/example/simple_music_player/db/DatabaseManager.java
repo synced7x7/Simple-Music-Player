@@ -93,7 +93,7 @@ public class DatabaseManager {
 
         String createMiscTable = """
                     CREATE TABLE IF NOT EXISTS misc (
-                        path TEXT PRIMARY KEY,
+                        id INTEGER PRIMARY KEY,
                         last_modified BIGINT
                     );
                 """;

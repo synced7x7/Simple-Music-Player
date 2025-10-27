@@ -12,26 +12,25 @@ public class MiscDAO {
         this.conn = connection;
     }
 
-    public void upsertFileTimestamp(String path, long lastModified) throws SQLException {
+    public void upsertFileTimestamp(long lastModified) throws SQLException {
         String sql = """
-        INSERT INTO misc(path, last_modified)
-        VALUES (?, ?)
-        ON CONFLICT(path) DO UPDATE SET last_modified=excluded.last_modified;
+        INSERT OR REPLACE INTO misc (id, last_modified)
+        VALUES (1, ?);
     """;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, path);
-            ps.setLong(2, lastModified);
+            ps.setLong(1, lastModified);
             ps.executeUpdate();
         }
     }
 
-    public boolean isFileModified(String path, long currentLastModified) throws SQLException {
-        String sql = "SELECT last_modified FROM misc WHERE path = ?";
+
+    public boolean isFileModified(long currentLastModified) throws SQLException {
+        String sql = "SELECT last_modified FROM misc WHERE id = 1";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, path);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     long stored = rs.getLong("last_modified");
+                    System.out.println("current last modified: " + currentLastModified + " || lastModified: " + stored);
                     return stored != currentLastModified;
                 }
             }

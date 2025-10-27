@@ -53,6 +53,8 @@ public class LibraryController {
     private Label songCountLabel;
     @FXML
     private Button playlistManagerButton;
+    @FXML
+    private ProgressBar loadingProgressBar;
 
     private static final double CARD_WIDTH = 120;
     private static final double CARD_HEIGHT = 150;
@@ -62,7 +64,7 @@ public class LibraryController {
     private final TrackDAO trackDAO = new TrackDAO(DatabaseManager.getConnection());
     private final MiscDAO miscDAO = new MiscDAO(DatabaseManager.getConnection());
     private File selectedDir;
-    private final File defaultMusicDirOpener = new File("C:/Users/Asus");
+    private final File defaultMusicDirOpener = new File(System.getProperty("user.home"));
 
     private final UserPrefDAO userPrefDAO = new UserPrefDAO(DatabaseManager.getConnection());
     private final PlaylistsDAO playlistsDAO = new PlaylistsDAO(DatabaseManager.getConnection());
@@ -95,13 +97,21 @@ public class LibraryController {
             selectedDir = new File(trackDAO.getTrackPath());
         }
 
-        //Setup directory chooser
         directoryButton.setOnAction(e -> {
             DirectoryChooser directoryChooser = new DirectoryChooser();
             directoryChooser.setTitle("Select Music Directory");
-            directoryChooser.setInitialDirectory(
-                    Objects.requireNonNullElse(selectedDir, defaultMusicDirOpener)
-            );
+
+            File initialDir = selectedDir;
+            if (initialDir == null || !initialDir.exists() || !initialDir.isDirectory()) {
+                initialDir = defaultMusicDirOpener;
+            }
+
+            // Final safety fallback (just in case home folder is invalid)
+            if (!initialDir.exists() || !initialDir.isDirectory()) {
+                initialDir = new File("C:/");
+            }
+
+            directoryChooser.setInitialDirectory(initialDir);
 
             File newDir = directoryChooser.showDialog(directoryButton.getScene().getWindow());
             if (newDir == null) return;
@@ -549,7 +559,7 @@ public class LibraryController {
         if (trackDAO.getTrackPath() != null) {
             String path = trackDAO.getTrackPath();
             File dir = new File(path);
-            miscDAO.upsertFileTimestamp(path,dir.lastModified());
+            miscDAO.upsertFileTimestamp(dir.lastModified());
         }
 
         List<Integer> finalIdsToLoad = idsToLoad;
@@ -592,21 +602,19 @@ public class LibraryController {
     // --- Directory Load ---
     private void loadSongsFromDirectory(File dir) throws SQLException {
         if (dir == null || !dir.exists() || !dir.isDirectory()) return;
-        if(!miscDAO.isFileModified(dir.getAbsolutePath(), dir.lastModified())) {
+        System.out.println(dir.getAbsolutePath() + " " + dir.lastModified());
+        System.out.println("Is file modified : " + miscDAO.isFileModified(dir.lastModified()));
+        if(!miscDAO.isFileModified(dir.lastModified())) {
             System.out.println("File not modified!");
             return;
         }
-
-        if (trackDAO.getTrackPath() != null) {
-            miscDAO.upsertFileTimestamp(dir.getAbsolutePath(), dir.lastModified());
-        }
-
+        miscDAO.upsertFileTimestamp(dir.lastModified());
         toggleSort(false);
-        //
+        // --- queue service ---
         QueueService queueService = AppContext.getQueueService();
         queueService.clearQueue();
         //
-        //Clear shuffled playlist
+        // --- clear and create playlist ---
         playlistsDAO.clearAllPlaylists();
         playlistsDAO.createShuffledPlaylist();
         playlistsDAO.createNormalPlaylist();
@@ -620,15 +628,33 @@ public class LibraryController {
             return;
         }
 
+        loadingProgressBar.setVisible(true);
+        loadingProgressBar.setDisable(false);
+        loadingProgressBar.setProgress(0);
+        songListView.setDisable(true);
         CompletableFuture.runAsync(() -> {
+            int total = files.length;
+            int count = 0;
+
             for (File f : files) {
                 try {
                     Track t = new Track(f.getAbsolutePath());
                     trackDAO.updateTracks(t);
+                    count++;
+                    double finalProgress = (double) count / total;
+                    Platform.runLater(() -> loadingProgressBar.setProgress(finalProgress));
                 } catch (Exception ex) {
-                    throw new RuntimeException(ex);
+                    ex.printStackTrace();
                 }
             }
+
+            // hide bar when done
+            Platform.runLater(() -> {
+                loadingProgressBar.setProgress(1);
+                loadingProgressBar.setVisible(false);
+                loadingProgressBar.setDisable(true);
+                songListView.setDisable(false);
+            });
 
             List<Integer> allIds = trackDAO.getAllIdsSortByDefault();
 

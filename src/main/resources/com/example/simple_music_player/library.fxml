@@ -6,6 +6,7 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
@@ -45,5 +46,6 @@
                 </FXCollections>
             </items>
       </ComboBox>
+      <ProgressBar fx:id="loadingProgressBar" disable="true" layoutX="54.0" layoutY="366.0" prefHeight="18.0" prefWidth="348.0" progress="0.0" visible="false" />
     </children>
 </AnchorPane>
