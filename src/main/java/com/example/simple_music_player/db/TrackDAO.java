@@ -237,4 +237,16 @@ public class TrackDAO {
         return ids;
     }
 
+    public void removeFromLibrary(int id) throws SQLException {
+        String sql = """
+                DELETE FROM songs WHERE id = ?
+                """;
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setInt(1, id);
+        ps.executeUpdate();
+    }
+
+    public void physicallyDelete() {
+
+    }
 }

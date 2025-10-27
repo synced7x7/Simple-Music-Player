@@ -162,11 +162,16 @@ public class LibraryController {
                         System.out.println("No track found for id " + id + ". Removing...");
                         try {
                             playlistsDAO.deleteSongsFromPlaylist(UserPref.playlistId, Collections.singletonList(id));
+                            trackDAO.removeFromLibrary(id);
                         } catch (SQLException e) {
                             throw new RuntimeException(e);
                         }
                         return;
                     }
+                    final Integer songId = id; // capture for lambdas
+                    final Integer playlistId = currentPlaylistId;
+
+
                     nameLabel.setText(track.getTitle());
                     cover.setImage(null);
 
@@ -238,13 +243,78 @@ public class LibraryController {
                         }
                     });
 
+                    // -- Song Removal --
+                    MenuItem removeFromLib;
+                    if (UserPref.playlistId <= 3) {
+                        removeFromLib = new MenuItem("Remove From Library");
+                        removeFromLib.setOnAction((event) -> {
+                            try {
+                                trackDAO.removeFromLibrary(songId);
+                                playlistsDAO.deleteSongFromAllPlaylists(songId);
+                                songListView.getItems().remove(songId);
+                                songListView.getSelectionModel().clearSelection();
+                                PlaybackService.playlist.remove(songId);
+                                System.out.println("Song successfully removed from library + " + songId);
+                            } catch (SQLException e) {
+                                System.out.println("Could not remove from library: " + songId);
+                            }
+                        });
+                    } else {
+                        removeFromLib = new MenuItem("Remove From Playlist");
+                        removeFromLib.setOnAction((event) -> {
+                            try {
+                                playlistsDAO.deleteSongFromPlaylist(songId, currentPlaylistId);
+                                songListView.getItems().remove(songId);
+                                songListView.getSelectionModel().clearSelection();
+                                PlaybackService.playlist.remove(songId);
+                                System.out.println("Song successfully removed from playlist");
+                            } catch (SQLException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                    }
 
-                    // --- Other Options ---
+                    MenuItem physicallyDelete = new MenuItem("Physically Delete");
+                    physicallyDelete.setOnAction((event) -> {
+                        try {
+                            String path = trackDAO.getFileLocationById(id);
+                            if (path != null && !path.isEmpty()) {
+                                File file = new File(path);
+                                if (file.exists()) {
+                                    boolean deleted = file.delete(); // delete the actual file
+                                    if (!deleted) {
+                                        System.err.println("Could not delete file: " + path);
+                                        return;
+                                    }
+                                }
+                            }
+                            trackDAO.removeFromLibrary(id);
+                            playlistsDAO.deleteSongFromAllPlaylists(id);
+                            System.out.println("Removed from Library & Deleted File: " + id);
+                            songListView.getItems().remove(Integer.valueOf(id));
+                            PlaybackService.playlist.remove(id);
+                            //playbackService.next();
+                        } catch (SQLException e) {
+                            System.err.println("Error removing song from DB: " + id);
+                            e.printStackTrace();
+                        }
+                    });
+
+                    Menu remove = new Menu("Remove");
+                    if(UserPref.playlistId <=2)
+                        remove.getItems().addAll(removeFromLib, physicallyDelete);
+                    else
+                        remove.getItems().addAll(removeFromLib);
+
+                    // --- Song Info ---
                     MenuItem viewDetails = new MenuItem("View Details");
 
                     // --- Attach to ContextMenu ---
                     ContextMenu contextMenu = new ContextMenu();
-                    contextMenu.getItems().addAll(queueMenu, addToPlaylist, openFileLocation, viewDetails);
+                    if(UserPref.playlistId != 3)
+                        contextMenu.getItems().addAll(queueMenu, addToPlaylist, openFileLocation, remove, viewDetails);
+                    else
+                        contextMenu.getItems().addAll(queueMenu, addToPlaylist, openFileLocation, viewDetails);
 
                     card.setOnMouseClicked(e -> {
                         if (e.getButton() == MouseButton.PRIMARY) {
@@ -283,7 +353,7 @@ public class LibraryController {
                                 contextMenu.hide();
                             }
                             e.consume();
-                        } else if (e.getButton() == MouseButton.SECONDARY) {
+                        } else if (e.getButton() == MouseButton.SECONDARY && UserPref.playlistId == currentPlaylistId) {
                             if (contextMenu.isShowing()) {
                                 contextMenu.hide();
                             }
@@ -333,7 +403,6 @@ public class LibraryController {
         });
 
     }
-
 
     // --- Sorting ---
     private void sortLibrary(String criteria) {
@@ -399,7 +468,7 @@ public class LibraryController {
     private void loadInitialDirectoryFromDatabase() throws SQLException {
         //User Pref Setter
         int playlistId = userPrefDAO.getPlaylistId();
-        UserPref.playlistId = userPrefDAO.getPlaylistId();
+        UserPref.playlistId = playlistId;
         currentPlaylistId = playlistId;
 
         String sortingPref = playlistsDAO.getSortingPref(playlistId);

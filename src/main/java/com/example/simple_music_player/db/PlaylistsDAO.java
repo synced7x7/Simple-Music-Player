@@ -296,7 +296,6 @@ public class PlaylistsDAO {
         }
     }
 
-
     public String getSortingPref(int playlistId) throws SQLException {
         String sql = """
         SELECT sort FROM playlists WHERE id = ?;
@@ -344,5 +343,22 @@ public class PlaylistsDAO {
         return "";
     }
 
+    public void deleteSongFromAllPlaylists(int songId) throws SQLException {
+        String sql = "DELETE FROM playlist_songs WHERE song_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, songId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void deleteSongFromPlaylist(int songId, int playlistId) throws SQLException {
+        String sql = "DELETE FROM playlist_songs WHERE song_id = ? AND playlist_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, songId);
+            ps.setInt(2, playlistId);
+            ps.executeUpdate();
+        }
+    }
 
 }

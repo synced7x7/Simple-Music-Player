@@ -118,7 +118,7 @@ public class PlaybackService {
 
         if (mediaPlayer != null) {
             mediaPlayer.stop();
-            mediaPlayer.dispose();
+            //mediaPlayer.dispose();
         }
         System.out.println("Currently Playing:-> Song Id:: " + songId + " , Index:: " + idx);
         //Check if it is flac
@@ -227,6 +227,7 @@ public class PlaybackService {
         NowPlayingController.visualizerController.cleanup();
         if (index < 0 || index >= playlist.size()) return;
 
+
         UserPref.playlistNo = index;
         currentIndex = index;
         int songId = playlist.get(index);
@@ -253,6 +254,9 @@ public class PlaybackService {
         mediaPlayer.setOnReady(() -> {
             mediaPlayer.play();
         });
+
+        setVolume(UserPref.volume);
+        System.out.println("Volume: " + UserPref.volume);
 
         setupDurationListener(mediaPlayer);
 
