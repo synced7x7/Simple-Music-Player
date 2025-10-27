@@ -353,7 +353,7 @@ public class PlaybackService {
         }
     }
 
-    private String formatTime(int seconds) {
+    public String formatTime(int seconds) {
         int minutes = seconds / 60;
         int sec = seconds % 60;
         return String.format("%02d:%02d", minutes, sec);

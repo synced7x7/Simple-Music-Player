@@ -7,6 +7,7 @@ import com.example.simple_music_player.Services.AppContext;
 import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Services.PlaylistService;
 import com.example.simple_music_player.Services.QueueService;
+import com.example.simple_music_player.Utility.SongDetailsUtility;
 import com.example.simple_music_player.Utility.SongIdAndIndexUtility;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.PlaylistsDAO;
@@ -308,6 +309,11 @@ public class LibraryController {
 
                     // --- Song Info ---
                     MenuItem viewDetails = new MenuItem("View Details");
+                    viewDetails.setOnAction((event) -> {
+                        SongDetailsUtility songDetailsUtiliy = null;
+                        songDetailsUtiliy = new SongDetailsUtility();
+                        songDetailsUtiliy.openSongDetails(songId);
+                    });
 
                     // --- Attach to ContextMenu ---
                     ContextMenu contextMenu = new ContextMenu();

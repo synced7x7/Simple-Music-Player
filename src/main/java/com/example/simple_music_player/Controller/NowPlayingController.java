@@ -232,7 +232,7 @@ public class NowPlayingController {
         Label appName = new Label("🎵 SIMPLE MUSIC PLAYER");
         appName.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
 
-        Label version = new Label("Version 0.2.0");
+        Label version = new Label("Version 0.3.0");
         Label author = new Label("Developed by: synced_x_");
         Label mail = new Label("synced7x7@gmail.com");
         Label credits = new Label("Releases");
@@ -258,7 +258,7 @@ public class NowPlayingController {
         // Clicking "Updates" → open website
         credits.setOnMouseClicked(event -> {
             try {
-                Desktop.getDesktop().browse(new URI("https://github.com/synced7x7/Simple-Music-Player/tags"));
+                Desktop.getDesktop().browse(new URI("https://github.com/synced7x7/Simple-Music-Player/releases"));
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
