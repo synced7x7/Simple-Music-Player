@@ -9,10 +9,7 @@ import com.example.simple_music_player.Services.PlaylistService;
 import com.example.simple_music_player.Services.QueueService;
 import com.example.simple_music_player.Utility.SongDetailsUtility;
 import com.example.simple_music_player.Utility.SongIdAndIndexUtility;
-import com.example.simple_music_player.db.DatabaseManager;
-import com.example.simple_music_player.db.PlaylistsDAO;
-import com.example.simple_music_player.db.TrackDAO;
-import com.example.simple_music_player.db.UserPrefDAO;
+import com.example.simple_music_player.db.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -28,7 +25,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
 import lombok.Getter;
 
-import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.sql.SQLException;
@@ -46,6 +42,8 @@ public class LibraryController {
     @FXML
     private ComboBox<String> sortComboBox;
     @FXML
+    private ComboBox<String> refreshComboBox;
+    @FXML
     private ImageView backgroundImage;
     @FXML
     private Button reverseButton;
@@ -62,11 +60,9 @@ public class LibraryController {
     private final PlaybackService playbackService = NowPlayingController.getPlaybackService();
 
     private final TrackDAO trackDAO = new TrackDAO(DatabaseManager.getConnection());
-
+    private final MiscDAO miscDAO = new MiscDAO(DatabaseManager.getConnection());
     private File selectedDir;
     private final File defaultMusicDirOpener = new File("C:/Users/Asus");
-    private File[] prevFiles = null;
-    private boolean dirChanged = false;
 
     private final UserPrefDAO userPrefDAO = new UserPrefDAO(DatabaseManager.getConnection());
     private final PlaylistsDAO playlistsDAO = new PlaylistsDAO(DatabaseManager.getConnection());
@@ -75,6 +71,19 @@ public class LibraryController {
     public static boolean isPlaylistChanged = false;
     @Getter
     public int currentPlaylistId;
+
+    @Getter
+    public Map<String, Long> fileLastModified = new HashMap<>();
+
+    private boolean isFileModified(File file) {
+        long lastModified = file.lastModified();
+        Long stored = fileLastModified.get(file.getAbsolutePath());
+        if (stored == null || stored != lastModified) {
+            fileLastModified.put(file.getAbsolutePath(), lastModified);
+            return true;
+        }
+        return false;
+    }
 
     @FXML
     public void initialize() throws SQLException {
@@ -99,7 +108,6 @@ public class LibraryController {
 
             if (selectedDir == null || !selectedDir.equals(newDir)) {
                 System.out.println("Directory changed: clearing old tracks");
-                dirChanged = true;
                 trackDAO.deleteAllTracks();
                 playbackService.clearList();
             }
@@ -119,6 +127,31 @@ public class LibraryController {
             if (newVal != null && UserPref.shuffle == 0) sortLibrary(newVal);
             else System.out.println("Shuffle Mode is active. Can't sort");
         });
+
+        refreshComboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? "\uD83D\uDCDC" : item);
+            }
+        });
+
+
+        refreshComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == null) return;
+
+            if (newVal.equals("Update Library")) {
+                try {
+                    loadSongsFromDirectory(new File(trackDAO.getTrackPath()));
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            Platform.runLater(() -> {
+                refreshComboBox.getSelectionModel().clearSelection();
+            });
+        });
+
 
         reverseButton.setOnAction(e -> {
             if (UserPref.shuffle == 0) sortLibrary("Reverse");
@@ -282,7 +315,7 @@ public class LibraryController {
                             if (path != null && !path.isEmpty()) {
                                 File file = new File(path);
                                 if (file.exists()) {
-                                    boolean deleted = file.delete(); // delete the actual file
+                                    boolean deleted = file.delete();
                                     if (!deleted) {
                                         System.err.println("Could not delete file: " + path);
                                         return;
@@ -302,7 +335,7 @@ public class LibraryController {
                     });
 
                     Menu remove = new Menu("Remove");
-                    if(UserPref.playlistId <=2)
+                    if (UserPref.playlistId <= 2)
                         remove.getItems().addAll(removeFromLib, physicallyDelete);
                     else
                         remove.getItems().addAll(removeFromLib);
@@ -317,7 +350,7 @@ public class LibraryController {
 
                     // --- Attach to ContextMenu ---
                     ContextMenu contextMenu = new ContextMenu();
-                    if(UserPref.playlistId != 3)
+                    if (UserPref.playlistId != 3)
                         contextMenu.getItems().addAll(queueMenu, addToPlaylist, openFileLocation, remove, viewDetails);
                     else
                         contextMenu.getItems().addAll(queueMenu, addToPlaylist, openFileLocation, viewDetails);
@@ -514,8 +547,9 @@ public class LibraryController {
         }
 
         if (trackDAO.getTrackPath() != null) {
-            File dir = new File(trackDAO.getTrackPath());
-            prevFiles = dir.listFiles(this::isAudioFile);
+            String path = trackDAO.getTrackPath();
+            File dir = new File(path);
+            miscDAO.upsertFileTimestamp(path,dir.lastModified());
         }
 
         List<Integer> finalIdsToLoad = idsToLoad;
@@ -558,6 +592,15 @@ public class LibraryController {
     // --- Directory Load ---
     private void loadSongsFromDirectory(File dir) throws SQLException {
         if (dir == null || !dir.exists() || !dir.isDirectory()) return;
+        if(!miscDAO.isFileModified(dir.getAbsolutePath(), dir.lastModified())) {
+            System.out.println("File not modified!");
+            return;
+        }
+
+        if (trackDAO.getTrackPath() != null) {
+            miscDAO.upsertFileTimestamp(dir.getAbsolutePath(), dir.lastModified());
+        }
+
         toggleSort(false);
         //
         QueueService queueService = AppContext.getQueueService();
@@ -570,11 +613,6 @@ public class LibraryController {
         playlistsDAO.createFavPlaylist();
 
         File[] files = dir.listFiles(this::isAudioFile);
-        if (Arrays.equals(prevFiles, files)) {
-            System.out.println("No songs changed in the directory");
-            return;
-        }
-        prevFiles = files;
 
         if (files == null || files.length == 0) {
             playbackService.setPlaylist(Collections.emptyList(), true);
@@ -612,7 +650,6 @@ public class LibraryController {
                     throw new RuntimeException(e);
                 }
                 songListView.getItems().setAll(allIds);
-                dirChanged = false;
                 NowPlayingController npc = NowPlayingController.getInstance();
                 if (npc != null) { //initialize Controller
                     npc.setInitialVolumeSliderControllerValue(UserPref.volume);

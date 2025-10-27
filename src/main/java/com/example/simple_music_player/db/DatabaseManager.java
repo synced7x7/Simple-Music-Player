@@ -91,6 +91,13 @@ public class DatabaseManager {
                     );
                 """;
 
+        String createMiscTable = """
+                    CREATE TABLE IF NOT EXISTS misc (
+                        path TEXT PRIMARY KEY,
+                        last_modified BIGINT
+                    );
+                """;
+
 
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createSongsTable);
@@ -100,6 +107,7 @@ public class DatabaseManager {
             stmt.execute(createUserPrefTable);
             stmt.execute(createPlaylistsTable);
             stmt.execute(createPlaylistSongsTable);
+            stmt.execute(createMiscTable);
         }
     }
 

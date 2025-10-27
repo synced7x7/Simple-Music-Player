@@ -49,6 +49,7 @@ public class TrackDAO {
         }
     }
 
+
     public void deleteAllTracks() {
         String sql = "DELETE FROM songs";
 
@@ -76,7 +77,7 @@ public class TrackDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null;
+        return "";
     }
 
     public String getFileLocationById(int id) throws SQLException {
@@ -246,7 +247,4 @@ public class TrackDAO {
         ps.executeUpdate();
     }
 
-    public void physicallyDelete() {
-
-    }
 }

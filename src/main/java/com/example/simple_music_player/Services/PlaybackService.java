@@ -6,13 +6,11 @@ import com.example.simple_music_player.Controller.NowPlayingController;
 import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
-import com.example.simple_music_player.db.DatabaseManager;
-import com.example.simple_music_player.db.PlaylistsDAO;
-import com.example.simple_music_player.db.TrackDAO;
-import com.example.simple_music_player.db.UserPrefDAO;
+import com.example.simple_music_player.db.*;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 
+import javafx.scene.control.ListView;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
@@ -96,6 +94,10 @@ public class PlaybackService {
         }
     }
 
+    public void addToPlaylist(List<Integer> ids) throws SQLException {
+        playlist.addAll(ids);
+    }
+
     //Playlist for initial loading for directory
     public void setPlaylist(List<Integer> ids, int idx, String status, long ts) throws SQLException {
         playlist = ids;
@@ -113,7 +115,6 @@ public class PlaybackService {
         UserPref.playlistNo = currentIndex;
         int songId = playlist.get(idx);
         Track t = trackDao.getTrackById(songId);
-        currentTrack.set(null);
         currentTrack.set(t);
 
         if (mediaPlayer != null) {
@@ -123,13 +124,34 @@ public class PlaybackService {
         System.out.println("Currently Playing:-> Song Id:: " + songId + " , Index:: " + idx);
         //Check if it is flac
         File audioFile = new File(t.getPath());
+        if (!audioFile.exists()) {
+            System.out.println("Cannot find the file specified: " + audioFile.getAbsolutePath());
+            safelyDeleteSong(songId);
+            // Move to next track safely
+            try {
+                next();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            return; // exit early
+        }
+
         String ext = getFileExtension(audioFile);
 
         if (ext.equals("flac")) {
             audioFile = convertFlacToTempWav(audioFile);
         }
 
-        Media media = new Media(audioFile.toURI().toString());
+        Media media;
+        try {
+            media = new Media(audioFile.toURI().toString());
+        } catch (Exception e) {
+            System.out.println("Cannot find the file specified " + audioFile.getAbsolutePath());
+            safelyDeleteSong(songId);
+            next();
+            return;
+        }
+
         mediaPlayer = new MediaPlayer(media);
         setupDurationListener(mediaPlayer);
         if (status == null) status = "Play";
@@ -242,11 +264,27 @@ public class PlaybackService {
 
         //Check if it is flac
         File audioFile = new File(t.getPath());
+        if (!audioFile.exists()) {
+            System.out.println("Cannot find the file specified: " + audioFile.getAbsolutePath());
+
+            // Safely remove it from DB and playlist
+            safelyDeleteSong(songId);
+
+            // Move to next track safely
+            try {
+                next();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            return; // exit early
+        }
+
         String ext = getFileExtension(audioFile);
 
         if (ext.equals("flac")) {
             audioFile = convertFlacToTempWav(audioFile);
         }
+
 
         Media media = new Media(audioFile.toURI().toString());
         mediaPlayer = new MediaPlayer(media);
@@ -279,6 +317,41 @@ public class PlaybackService {
             setListViewFocus(playlistsDAO.getPlaylistSongsIdx(libraryController.getCurrentPlaylistId(), songId, songLocator.getLastSortBS(), ascending));
         }
     }
+
+    private void safelyDeleteSong(int songId) {
+        try {
+            Track t = trackDao.getTrackById(songId);
+            if (t == null) return;
+
+            String path = t.getPath();
+            if (path != null && !path.isEmpty()) {
+                File file = new File(path);
+                if (file.exists()) {
+                    boolean deleted = file.delete();
+                    if (!deleted) {
+                        System.err.println("Could not delete file: " + path);
+                    } else {
+                        System.out.println("Deleted file: " + path);
+                    }
+                }
+            }
+
+            // Remove from database and playlists
+            trackDao.removeFromLibrary(songId);
+            playlistsDAO.deleteSongFromAllPlaylists(songId);
+
+            // Remove from UI and playback list
+            ListView<Integer> songListView = libraryController.getSongListView();
+            Platform.runLater(() -> {
+                songListView.getItems().remove(Integer.valueOf(songId));
+                PlaybackService.playlist.remove((Integer) songId);
+            });
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public void setVolume(double volume) {
         if (mediaPlayer != null) {

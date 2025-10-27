@@ -53,6 +53,22 @@ public class PlaylistsDAO {
         }
     }
 
+    public void updateSongInPlaylist(int playlistId, int songId) {
+        String sql = """
+        INSERT OR IGNORE INTO playlist_songs (playlist_id, song_id)
+        VALUES (?, ?);
+    """;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, playlistId);
+            ps.setInt(2, songId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
     public void deleteSongsFromPlaylist(int playlistId, List<Integer> songIds) throws SQLException {
         if (songIds == null || songIds.isEmpty()) return; // nothing to delete
 
