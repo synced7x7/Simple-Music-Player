@@ -54,7 +54,10 @@ public class SongDetailsUtility {
         Label channels = styledLabel("Channels: " + safe(t.getChannels()), false);
         Label duration = styledLabel("Duration: " + playbackService.formatTime(Integer.parseInt(t.getLength())), false);
         Label dateAdded = styledLabel("Added: " + safe(t.getDateAdded()), false);
-
+        // -- File Size --
+        File f = new File(t.getPath());
+        long size = f.length();
+        Label fileSize = styledLabel("File Size: " + safe(formatFileSize(size)), false);
         // --- Clickable Path Label ---
         Label path = styledLabel("Path: " + safe(t.getPath()), false);
         path.setWrapText(true);
@@ -79,7 +82,7 @@ public class SongDetailsUtility {
         });
 
         VBox infoBox = new VBox(6, title, artist, album, genre, year, format,
-                bitrate, sampleRate, channels, duration, dateAdded, path);
+                bitrate, sampleRate, channels, duration, dateAdded, fileSize, path);
         infoBox.setAlignment(Pos.CENTER_LEFT);
         infoBox.setPadding(new Insets(10, 20, 20, 20));
 
@@ -101,6 +104,15 @@ public class SongDetailsUtility {
         stage.sizeToScene();
         stage.show();
     }
+
+    private String formatFileSize(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        int exp = (int) (Math.log(bytes) / Math.log(1024));
+        String pre = "KMGTPE".charAt(exp - 1) + "";
+        return String.format("%.1f %sB", bytes / Math.pow(1024, exp), pre);
+    }
+
+
 
     private Label styledLabel(String text, boolean isTitle) {
         Label lbl = new Label(text);
