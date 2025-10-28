@@ -8,7 +8,7 @@ A lightweight, memory-efficient music player built with **JavaFX**. Supports sor
 ## 🔧 Tech Stack
 
 * **Java 17+**
-* **JavaFX 25**
+* **JavaFX 24**
 * **SQLite** (embedded)
 * **Maven**
 
