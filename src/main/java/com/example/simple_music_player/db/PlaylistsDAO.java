@@ -387,4 +387,22 @@ public class PlaylistsDAO {
         }
     }
 
+    public void removeDuplicates(int playlistId) throws SQLException {
+        String sql = """
+        DELETE FROM playlist_songs
+        WHERE id NOT IN (
+            SELECT MIN(id)
+            FROM playlist_songs
+            WHERE playlist_id = ?
+            GROUP BY song_id
+        ) AND playlist_id = ?;
+    """;
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, playlistId);
+            ps.setInt(2, playlistId);
+            ps.executeUpdate();
+        }
+    }
+
 }

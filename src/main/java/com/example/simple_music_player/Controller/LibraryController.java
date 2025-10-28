@@ -791,7 +791,7 @@ public class LibraryController {
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
-
+                toggleRemoveDuplicatesButton(UserPref.playlistId >= 3 && shouldRestoreFocus);
                 // Restore focus AFTER items are loaded
                 if (shouldRestoreFocus && !PlaybackService.playlist.isEmpty()) {
                     Platform.runLater(() -> {
@@ -830,7 +830,23 @@ public class LibraryController {
 
     @FXML
     private void removeDuplicatesFromPlaylists() {
+        try {
+            // Remove duplicates from the in-memory playlist
+            List<Integer> uniquePlaylist = new ArrayList<>(new LinkedHashSet<>(PlaybackService.playlist));
+            PlaybackService.playlist.clear();
+            PlaybackService.playlist.addAll(uniquePlaylist);
 
+            // Update the database
+            playlistsDAO.removeDuplicates(currentPlaylistId);
+
+            // Refresh UI
+            songListView.getItems().setAll(uniquePlaylist);
+            songListView.getSelectionModel().clearSelection();
+
+            System.out.println("Duplicate songs successfully removed from playlist.");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void toggleRemoveDuplicatesButton(boolean enable) {
