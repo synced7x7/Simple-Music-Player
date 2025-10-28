@@ -21,6 +21,6 @@ public class UserPrefRealtimeDAO {
     }
 
     private void getIsHiddenAlbum() {
-        
+
     }
 }
