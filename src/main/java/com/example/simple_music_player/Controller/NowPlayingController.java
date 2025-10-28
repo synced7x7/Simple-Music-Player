@@ -482,13 +482,13 @@ public class NowPlayingController {
     private MainController mainController;
 
     @FXML
-    private void toggleLibraryView() {
+    private void toggleLibraryView() throws SQLException {
         if (mainController != null) mainController.toggleSidePanels(true);
         else System.out.println("Main Controller is null");
     }
 
     @FXML
-    private void toggleAlbumView() {
+    private void toggleAlbumView() throws SQLException {
         if (mainController != null) mainController.toggleSidePanels(false);
         else System.out.println("Main Controller is null");
     }
