@@ -9,7 +9,7 @@ A lightweight, memory-efficient music player built with **JavaFX**.
 
 * **Java 17+**
 * **JavaFX 24**
-* **SQLite** (embedded)
+* **SQLite**
 * **Maven**
 
 ---
