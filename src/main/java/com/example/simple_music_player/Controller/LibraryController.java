@@ -55,6 +55,8 @@ public class LibraryController {
     private Button playlistManagerButton;
     @FXML
     private ProgressBar loadingProgressBar;
+    @FXML
+    private Button removeDuplicatesButton;
 
     private static final double CARD_WIDTH = 120;
     private static final double CARD_HEIGHT = 150;
@@ -73,19 +75,6 @@ public class LibraryController {
     public static boolean isPlaylistChanged = false;
     @Getter
     public int currentPlaylistId;
-
-    @Getter
-    public Map<String, Long> fileLastModified = new HashMap<>();
-
-    private boolean isFileModified(File file) {
-        long lastModified = file.lastModified();
-        Long stored = fileLastModified.get(file.getAbsolutePath());
-        if (stored == null || stored != lastModified) {
-            fileLastModified.put(file.getAbsolutePath(), lastModified);
-            return true;
-        }
-        return false;
-    }
 
     @FXML
     public void initialize() throws SQLException {
@@ -180,6 +169,7 @@ public class LibraryController {
             private final ImageView cover = new ImageView();
             private final Label nameLabel = new Label();
             private final Button favButton = new Button();
+            private final Label qLabel = new Label();
 
             {
                 card.setPrefSize(CARD_WIDTH, CARD_HEIGHT);
@@ -191,13 +181,17 @@ public class LibraryController {
                 nameLabel.setLayoutY(CARD_WIDTH + 5);
                 nameLabel.setWrapText(true);
 
+                qLabel.setLayoutX(CARD_WIDTH - 25);
+                qLabel.setLayoutY(CARD_HEIGHT - 5);
+
+
                 // --- Favorite Button Styling ---
                 favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 16px;");
                 favButton.setLayoutX(CARD_WIDTH - 25); // bottom-right corner
                 favButton.setLayoutY(CARD_HEIGHT - 25);
                 favButton.setText("♡");
 
-                card.getChildren().addAll(cover, nameLabel, favButton);
+                card.getChildren().addAll(cover, nameLabel, qLabel, favButton);
             }
 
 
@@ -240,6 +234,24 @@ public class LibraryController {
                         favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 16px;");
                     }
 
+                    boolean isInQ = false;
+                    QueueService queueService = AppContext.getQueueService();
+                    int count = 0;
+                    LinkedList<Integer> q = queueService.getQueueList();
+                    if (!q.isEmpty()) {
+                        count = Math.toIntExact(q.stream().filter(item -> Objects.equals(item, id)).count());
+                        if (count > 0) {
+                            isInQ = true;
+                            System.out.println("ID " + id + " appears " + count + " times in the queue.");
+                        }
+                    }
+
+                    if (isInQ) {
+                        qLabel.setText(String.valueOf(count));
+                    } else {
+                        qLabel.setText("");
+                    }
+
                     // Async thumbnail load
                     CompletableFuture
                             .supplyAsync(() -> new Image(new ByteArrayInputStream(track.getCompressedArtworkData())))
@@ -252,13 +264,11 @@ public class LibraryController {
                     // --- Queue Menu ---
                     MenuItem addToQueue = new MenuItem("Add to Queue");
                     addToQueue.setOnAction(e -> {
-                        QueueService queueService = AppContext.getQueueService();
                         queueService.addToQueue(id);
                         System.out.println("QueueList: " + queueService.getQueueList());
                     });
                     MenuItem removeFromQueue = new MenuItem("Remove from Queue");
                     removeFromQueue.setOnAction(e -> {
-                        QueueService queueService = AppContext.getQueueService();
                         queueService.removeFromQueue(id);
                         System.out.println("QueueList: " + queueService.getQueueList());
                     });
@@ -377,9 +387,9 @@ public class LibraryController {
                                 isPlaylistChanged = false;
                                 try {
                                     //shifted to new playlist
-                                    QueueService queueService = AppContext.getQueueService();
                                     queueService.clearQueue();
                                     currentPlaylistId = UserPref.playlistId;
+                                    toggleRemoveDuplicatesButton( currentPlaylistId > 3);
                                     int reverse = playlistsDAO.getReverse(currentPlaylistId);
                                     String sort = playlistsDAO.getSortingPref(currentPlaylistId);
                                     boolean ascending = reverse != 1;
@@ -525,6 +535,7 @@ public class LibraryController {
         int playlistId = userPrefDAO.getPlaylistId();
         UserPref.playlistId = playlistId;
         currentPlaylistId = playlistId;
+        toggleRemoveDuplicatesButton(currentPlaylistId > 3);
 
         String sortingPref = playlistsDAO.getSortingPref(playlistId);
         int reverse = playlistsDAO.getReverse(playlistId);
@@ -666,7 +677,8 @@ public class LibraryController {
 
             if (UserPref.volume == 0) UserPref.volume = 0.75;
 
-
+            currentPlaylistId = 2;
+            toggleRemoveDuplicatesButton(false);
             UserPref.setUserPref(0, 0, "Play", 0, 0, 1, UserPref.volume, 2);
             try {
                 playlistsDAO.insertSongsInPlaylist(2, allIds);
@@ -760,7 +772,7 @@ public class LibraryController {
         //right-clicking song card
     }
 
-    public void loadPlaylistView(int playlistId, String playlistName) throws SQLException {
+    public void loadPlaylistView(int playlistId) throws SQLException {
         isPlaylistChanged = true;
         UserPref.playlistId = playlistId;
         boolean ascending = getReverseStatusOfPlaylist(playlistId);
@@ -814,6 +826,23 @@ public class LibraryController {
 
     private void clearSearchField() {
         searchField.clear();
+    }
+
+    @FXML
+    private void removeDuplicatesFromPlaylists() {
+
+    }
+
+    private void toggleRemoveDuplicatesButton(boolean enable) {
+        if (enable) {
+            removeDuplicatesButton.setVisible(true);
+            removeDuplicatesButton.setManaged(true);
+            removeDuplicatesButton.setDisable(false);
+        } else {
+            removeDuplicatesButton.setVisible(false);
+            removeDuplicatesButton.setManaged(false);
+            removeDuplicatesButton.setDisable(true);
+        }
     }
 
 }

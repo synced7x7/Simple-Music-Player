@@ -118,7 +118,7 @@ public class PlaylistService {
                         LibraryController libraryController = LibraryController.getInstance();
                         if (libraryController != null) {
                             try {
-                                libraryController.loadPlaylistView(playlist.getId(), playlist.getName());
+                                libraryController.loadPlaylistView(playlist.getId());
                             } catch (SQLException ex) {
                                 throw new RuntimeException(ex);
                             }

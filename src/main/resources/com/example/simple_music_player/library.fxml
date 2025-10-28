@@ -47,5 +47,6 @@
             </items>
       </ComboBox>
       <ProgressBar fx:id="loadingProgressBar" disable="true" layoutX="54.0" layoutY="366.0" prefHeight="18.0" prefWidth="348.0" progress="0.0" visible="false" />
+      <Button fx:id="removeDuplicatesButton" layoutX="94.0" layoutY="42.0" mnemonicParsing="false" onAction="#removeDuplicatesFromPlaylists" prefHeight="26.0" prefWidth="34.0" text="⌦" />
     </children>
 </AnchorPane>
