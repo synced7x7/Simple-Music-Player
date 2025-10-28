@@ -98,6 +98,15 @@ public class DatabaseManager {
                     );
                 """;
 
+        String createUserPrefRealtimeTable = """
+                    CREATE TABLE IF NOT EXISTS user_pref_realtime (
+                    id INTEGER PRIMARY KEY,
+                    isHiddenLibrary INTEGER,
+                    isHiddenAlbum INTEGER
+                    );
+                """;
+
+
 
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createSongsTable);
@@ -108,6 +117,7 @@ public class DatabaseManager {
             stmt.execute(createPlaylistsTable);
             stmt.execute(createPlaylistSongsTable);
             stmt.execute(createMiscTable);
+            stmt.execute(createUserPrefRealtimeTable);
         }
     }
 

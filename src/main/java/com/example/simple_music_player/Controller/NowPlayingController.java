@@ -24,6 +24,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import lombok.Getter;
+import lombok.Setter;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
@@ -477,5 +478,19 @@ public class NowPlayingController {
         }
     }
 
+    @Setter
+    private MainController mainController;
+
+    @FXML
+    private void toggleLibraryView() {
+        if (mainController != null) mainController.toggleSidePanels(true);
+        else System.out.println("Main Controller is null");
+    }
+
+    @FXML
+    private void toggleAlbumView() {
+        if (mainController != null) mainController.toggleSidePanels(false);
+        else System.out.println("Main Controller is null");
+    }
 
 }

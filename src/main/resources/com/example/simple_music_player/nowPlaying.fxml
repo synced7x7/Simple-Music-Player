@@ -18,7 +18,7 @@
             <ImageView fx:id="backAlbumCover" fitWidth="456.0" preserveRatio="true" StackPane.alignment="CENTER" />
         </children>
     </StackPane>
-    <ImageView fitHeight="750.0" fitWidth="450.0" opacity="0.85" pickOnBounds="true">
+    <ImageView fitHeight="751.0" fitWidth="451.0" opacity="0.85" pickOnBounds="true">
         <image>
             <Image url="@../../../Images/ShadedImage.jpg" />
         </image>
@@ -54,10 +54,10 @@
     <Button fx:id="infoButton" layoutX="33.0" layoutY="14.0" mnemonicParsing="false" onAction="#infoButtonHandler" text="𝒊" />
     <Button fx:id="shuffleButton" layoutX="29.0" layoutY="541.0" mnemonicParsing="false" onAction="#toggleShuffle" text="🔀" />
     <Button fx:id="repeatButton" layoutX="29.0" layoutY="505.0" mnemonicParsing="false" onAction="#toggleRepeat" text="🔁" />
-
-
+    <Button fx:id="toggleLibraryButton" layoutX="416.0" layoutY="14.0" mnemonicParsing="false" onAction="#toggleLibraryView" opacity="0.5" prefHeight="26.0" prefWidth="30.0" text="▶" />
     <!-- Volume Control -->
     <Label layoutX="418.0" layoutY="566.0" text="🔊" />
     <Slider fx:id="volumeSlider" blockIncrement="0.01" layoutX="371.0" layoutY="505.0" max="1" min="0" prefHeight="14.0" prefWidth="106.0" rotate="-90.0" value="0.5" />
     <Button fx:id="lyricsButton" layoutX="28.0" layoutY="466.0" mnemonicParsing="false" onAction="#toggleLyrics" text="၊၊||၊" />
+   <Button fx:id="toggleAlbumButton" layoutX="3.0" layoutY="104.0" mnemonicParsing="false" onAction="#toggleAlbumView" opacity="0.5" prefHeight="6.0" prefWidth="30.0" rotate="180.0" text="▶" />
 </AnchorPane>

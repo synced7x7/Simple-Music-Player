@@ -1,5 +1,6 @@
 package com.example.simple_music_player;
 
+import com.example.simple_music_player.Controller.MainController;
 import com.example.simple_music_player.Controller.NowPlayingController;
 import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.db.DatabaseManager;
@@ -10,6 +11,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class SimpleMusicPlayer extends Application {
 
@@ -20,10 +22,13 @@ public class SimpleMusicPlayer extends Application {
 
         FXMLLoader fxmlLoader = new FXMLLoader(SimpleMusicPlayer.class.getResource("main.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/Style/MainController.css")).toExternalForm());
         stage.setResizable(false);
         stage.setTitle("Simple Music Player");
         stage.setScene(scene);
         stage.show();
+        MainController mainController = MainController.getInstance();
+        mainController.setStage(stage);
     }
 
     public static void main(String[] args) {
