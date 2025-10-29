@@ -78,6 +78,8 @@ public class NowPlayingController {
     private ScrollPane lyricsScrollPane;
     @FXML
     private VBox lyricsFlow;
+    @FXML
+    private Button toggleLibraryButton;
 
     private List<LyricLine> currentLyricLines = new ArrayList<>();
     public static VisualizerService visualizerController;
@@ -491,6 +493,21 @@ public class NowPlayingController {
     private void toggleAlbumView() throws SQLException {
         if (mainController != null) mainController.toggleSidePanels(false);
         else System.out.println("Main Controller is null");
+    }
+
+    public void showLibraryButton(boolean enable) {
+        if(!enable) {
+            toggleLibraryButton.setVisible(false);
+            toggleLibraryButton.setManaged(false);
+        } else {
+            toggleLibraryButton.setVisible(true);
+            toggleLibraryButton.setManaged(true);
+        }
+    }
+
+    public void hideShuffleButton() {
+        shuffleButton.setVisible(false);
+        shuffleButton.setManaged(false);
     }
 
 }

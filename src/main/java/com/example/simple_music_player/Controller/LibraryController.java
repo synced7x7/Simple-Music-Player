@@ -3,10 +3,7 @@ package com.example.simple_music_player.Controller;
 import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
-import com.example.simple_music_player.Services.AppContext;
-import com.example.simple_music_player.Services.PlaybackService;
-import com.example.simple_music_player.Services.PlaylistService;
-import com.example.simple_music_player.Services.QueueService;
+import com.example.simple_music_player.Services.*;
 import com.example.simple_music_player.SimpleMusicPlayer;
 import com.example.simple_music_player.Utility.SongDetailsUtility;
 import com.example.simple_music_player.Utility.SongIdAndIndexUtility;
@@ -101,6 +98,9 @@ public class LibraryController {
         //Load initial library from DB
         if(SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
             loadInitialDirectoryFromDatabase();
+        else {
+            loadFileFromCommandLineArgument();
+        }
 
         PlaybackService.setLibraryController(this);
         if (trackDAO.getTrackPath() != null) {
@@ -925,6 +925,16 @@ public class LibraryController {
 
     private void refreshSongCountLabel() throws SQLException {
         songCountLabel.setText(playlistsDAO.getPlaylistName(currentPlaylistId) + " - " + PlaybackService.playlist.size() + " songs");
+    }
+
+    private void loadFileFromCommandLineArgument() throws SQLException {
+        System.out.println("Loading songs by using command Line Argument");
+        TempPlaylistService tempPlaylistService = new TempPlaylistService(playbackService);
+        tempPlaylistService.loadTempPlaylist();
+        NowPlayingController npc = NowPlayingController.getInstance();
+        npc.showLibraryButton(false);
+        npc.hideShuffleButton();
+        refreshSongCountLabel();
     }
 
 }

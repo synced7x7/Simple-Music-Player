@@ -6,6 +6,7 @@ import com.example.simple_music_player.Controller.NowPlayingController;
 import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
+import com.example.simple_music_player.SimpleMusicPlayer;
 import com.example.simple_music_player.db.*;
 import javafx.application.Platform;
 import javafx.beans.property.*;
@@ -37,6 +38,7 @@ public class PlaybackService {
     private int currentIndex = -1; //tracks the song that is active
     private MediaPlayer mediaPlayer; //plays sound
 
+    private final TempTrackDAO tempTrackDAO = new TempTrackDAO(DatabaseManager.getConnection());
     private final TrackDAO trackDao = new TrackDAO(DatabaseManager.getConnection());
     private final ObjectProperty<Track> currentTrack = new SimpleObjectProperty<>(null); //value changes to listener automatically
     //double value combined with listener changes //used in progress bar
@@ -118,7 +120,17 @@ public class PlaybackService {
         System.out.println("Initial Playing: " + idx);
         UserPref.playlistNo = currentIndex;
         int songId = playlist.get(idx);
-        Track t = trackDao.getTrackById(songId);
+        Track t;
+        if(SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
+            t = trackDao.getTrackById(songId);
+        else{ //for commandline Argument
+            t = tempTrackDAO.getTrackById(songId);
+            double vol = userPrefDAO.getVolume();
+            setVolume(vol);
+            nowPlayingController.setInitialVolumeSliderControllerValue(vol);
+            UserPref.volume = vol;
+            nowPlayingController.toggleCountdown();
+        }
         currentTrack.set(t);
 
         if (mediaPlayer != null) {
@@ -290,7 +302,16 @@ public class PlaybackService {
         UserPref.playlistNo = index;
         currentIndex = index;
         int songId = playlist.get(index);
-        Track t = trackDao.getTrackById(songId);  // fetch from DB only now
+        Track t;
+        if(SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
+            t = trackDao.getTrackById(songId);
+        else{
+            System.out.println("Song Id: " + songId);
+            t = tempTrackDAO.getTrackById(songId);
+            System.out.println("temp track = " + t);
+        }
+
+
         currentTrack.set(t);
         System.out.println("Currently Playing:-> Song Id:: " + songId + " , Index:: " + index);
 
@@ -530,6 +551,7 @@ public class PlaybackService {
             tempWavFile = null;
         }
         userPrefDAO.setUserPref();
+        tempTrackDAO.deleteSongsFromTempTable();
     }
 
     public void initialTimePropertyBinding() {

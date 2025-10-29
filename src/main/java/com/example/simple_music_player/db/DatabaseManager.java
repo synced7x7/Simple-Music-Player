@@ -107,7 +107,25 @@ public class DatabaseManager {
                     );
                 """;
 
-
+        String createTempSongsTable = """
+                    CREATE TABLE IF NOT EXISTS temp_songs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        path TEXT UNIQUE NOT NULL,
+                        title TEXT,
+                        artist TEXT,
+                        album TEXT,
+                        genre TEXT,
+                        year TEXT,
+                        format TEXT,
+                        bitrate TEXT,
+                        sampleRate TEXT,
+                        channels TEXT,
+                        length TEXT,
+                        artwork BLOB,
+                        compressed_artwork BLOB,
+                        date_added TEXT
+                    );
+                """;
 
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createSongsTable);
@@ -119,6 +137,7 @@ public class DatabaseManager {
             stmt.execute(createPlaylistSongsTable);
             stmt.execute(createMiscTable);
             stmt.execute(createUserPrefRealtimeTable);
+            stmt.execute(createTempSongsTable);
         }
     }
 

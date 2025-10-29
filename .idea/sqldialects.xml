@@ -4,6 +4,7 @@
     <file url="file://$PROJECT_DIR$/src/main/java/com/example/simple_music_player/db/DatabaseManager.java" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/example/simple_music_player/db/MiscDAO.java" dialect="SQLite" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/example/simple_music_player/db/PlaylistsDAO.java" dialect="SQLite" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/example/simple_music_player/db/TempTrackDAO.java" dialect="SQLite" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/example/simple_music_player/db/TrackDAO.java" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/example/simple_music_player/db/UserPrefDAO.java" dialect="SQLite" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/example/simple_music_player/db/UserPrefRealtimeDAO.java" dialect="SQLite" />

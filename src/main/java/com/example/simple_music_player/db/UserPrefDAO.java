@@ -25,7 +25,7 @@ public class UserPrefDAO {
     """;
 
         LibraryController libraryController = LibraryController.getInstance();
-        if(UserPref.playlistId == 0) {
+        if(UserPref.playlistId == 0) { //args
             libraryController.setCurrentPlaylistId(2);
             UserPref.playlistNo = getPlaylistNo();
             UserPref.timestamp = getTimeStamp();
@@ -33,7 +33,6 @@ public class UserPrefDAO {
             UserPref.repeat = getRepeat();
             UserPref.shuffle = getShuffle();
             UserPref.isRundown = getIsRundown();
-            UserPref.volume = getVolume();
         }
         if(UserPref.volume == 0) UserPref.volume = 1;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

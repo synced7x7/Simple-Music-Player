@@ -1,6 +1,7 @@
 package com.example.simple_music_player.Controller;
 
 
+import com.example.simple_music_player.SimpleMusicPlayer;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.UserPrefRealtimeDAO;
 import javafx.application.Platform;
@@ -34,7 +35,10 @@ public class MainController {
 
     @Getter
     private static MainController instance;
-    public MainController() { instance = this; }
+
+    public MainController() {
+        instance = this;
+    }
 
     @FXML
     private void initialize() {
@@ -42,8 +46,14 @@ public class MainController {
         npc.setMainController(this);
         Platform.runLater(() -> {
             try {
-                isHiddenAlbum = !userPrefRealtimeDAO.getIsHiddenAlbum();
-                isHiddenLibrary = !userPrefRealtimeDAO.getIsHiddenLibrary();
+                if(SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty()) {
+                    isHiddenAlbum = !userPrefRealtimeDAO.getIsHiddenAlbum();
+                    isHiddenLibrary = !userPrefRealtimeDAO.getIsHiddenLibrary();
+                } else {
+                    isHiddenAlbum = false;
+                    isHiddenLibrary = false;
+                }
+
                 toggleSidePanels(true);
                 toggleSidePanels(false);
             } catch (SQLException e) {
@@ -51,17 +61,20 @@ public class MainController {
             }
         });
     }
+
     // Called by NowPlayingController
     public void toggleSidePanels(boolean isLibrary) throws SQLException {
         if (isLibrary) {
             isHiddenLibrary = !isHiddenLibrary;
-            userPrefRealtimeDAO.setIsHiddenLibrary(isHiddenLibrary);
+            if(SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
+                userPrefRealtimeDAO.setIsHiddenLibrary(isHiddenLibrary);
             libraryPane.setVisible(!isHiddenLibrary);
             libraryPane.setManaged(!isHiddenLibrary);
             System.out.println("LibraryView Pane Toggled");
         } else {
             isHiddenAlbum = !isHiddenAlbum;
-            userPrefRealtimeDAO.setIsHiddenAlbum(isHiddenAlbum);
+            if(SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
+                userPrefRealtimeDAO.setIsHiddenAlbum(isHiddenAlbum);
             albumCoverPane.setVisible(!isHiddenAlbum);
             albumCoverPane.setManaged(!isHiddenAlbum);
             System.out.println("AlbumCoverPane Toggled");

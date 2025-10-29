@@ -20,6 +20,7 @@ public class SimpleMusicPlayer extends Application {
 
     PlaybackService playbackService = NowPlayingController.getPlaybackService();
     public static List<String> argument = new ArrayList<>();
+
     @Override
     public void start(Stage stage) throws IOException {
         DatabaseManager.initialize();
@@ -36,7 +37,12 @@ public class SimpleMusicPlayer extends Application {
     }
 
     public static void main(String[] args) {
-        argument = List.of(args);
+        /*argument = List.of(args);
+        argument = List.of(
+                "C:\\music\\music 2\\rosa_walton__hallie_coggins_-_i_really_want_to_stay_at_your_house_(z3.fm).mp3",
+                "C:\\music\\music 2\\calvin_harris__disciples_-_how_deep_is_your_love_(z3.fm).mp3"
+        );*/
+
         launch();
     }
 
