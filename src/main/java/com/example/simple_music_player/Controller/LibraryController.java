@@ -831,7 +831,7 @@ public class LibraryController {
     private void openPlaylistManager() {
         clearSearchField();
         PlaylistService playlistService = new PlaylistService();
-        playlistService.openPlaylistSelectionWindow(-1); // -1 refers to opening playlistManager from library not from
+        playlistService.openPlaylistSelectionWindow(Collections.singletonList(-1)); // -1 refers to opening playlistManager from library not from
         //right-clicking song card
     }
 

@@ -22,13 +22,14 @@ public class PlaylistService {
     private final PlaylistsDAO playlistsDAO = new PlaylistsDAO(DatabaseManager.getConnection());
     LibraryController libraryController = LibraryController.getInstance();
 
-    public void openPlaylistSelectionWindow(int songId) {
+    public void openPlaylistSelectionWindow(List<Integer> songIds) {
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setTitle("Add to Playlist");
-        if(songId == -1){
+        if (songIds.size() == 1 && songIds.getFirst() == -1) {
             stage.setTitle("Playlist Manager");
         }
+
 
         VBox root = new VBox(10);
         root.setPadding(new Insets(10));
@@ -47,11 +48,11 @@ public class PlaylistService {
         scrollPane.setStyle("-fx-background-color: transparent;");
 
         // Load existing playlists
-        loadPlaylists(playlistContainer, songId);
+        loadPlaylists(playlistContainer, songIds);
 
         Button createNewBtn = new Button("Create New Playlist");
         createNewBtn.setPrefWidth(360);
-        createNewBtn.setOnAction(e -> openCreatePlaylistWindow(stage, playlistContainer, songId));
+        createNewBtn.setOnAction(e -> openCreatePlaylistWindow(stage, playlistContainer, songIds));
 
         root.getChildren().addAll(title, scrollPane, createNewBtn);
 
@@ -61,7 +62,7 @@ public class PlaylistService {
         stage.show();
     }
 
-    private void loadPlaylists(VBox playlistContainer, int songId) {
+    private void loadPlaylists(VBox playlistContainer, List<Integer> songIds) {
         playlistContainer.getChildren().clear();
 
         try {
@@ -91,7 +92,7 @@ public class PlaylistService {
                 Button  addBtn = new Button("✚");
                 addBtn.setMinWidth(35);
                 addBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
-                if(songId==-1) {
+                if (songIds.size() == 1 && songIds.getFirst() == -1) {
                     addBtn.setVisible(false);
                     addBtn.setDisable(true);
                 }
@@ -113,7 +114,7 @@ public class PlaylistService {
                 }
 
                 name.setOnMouseClicked(e -> {
-                    if(songId == -1) {
+                    if (songIds.size() == 1 && songIds.getFirst() == -1) {
                         System.out.println("Loading playlist: " + name.getText());
                         if (libraryController != null) {
                             try {
@@ -129,8 +130,8 @@ public class PlaylistService {
 
                 addBtn.setOnAction(e -> {
                     try {
-                        playlistsDAO.insertSongsInPlaylist(playlist.getId(), Collections.singletonList(songId));
-                        System.out.println("Added song " + songId + " to playlist: " + playlist.getName());
+                        playlistsDAO.insertSongsInPlaylist(playlist.getId(), songIds);
+                        System.out.println("Added song " + songIds + " to playlist: " + playlist.getName());
                     } catch (SQLException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -191,7 +192,7 @@ public class PlaylistService {
         }
     }
 
-    private void openCreatePlaylistWindow(Stage parentStage, VBox playlistContainer, int songId) {
+    private void openCreatePlaylistWindow(Stage parentStage, VBox playlistContainer, List<Integer> songIds) {
         Stage stage = new Stage();
         stage.initOwner(parentStage);
         stage.initModality(Modality.WINDOW_MODAL);
@@ -218,7 +219,7 @@ public class PlaylistService {
             if (!name.isEmpty()) {
                 try {
                     playlistsDAO.createPlaylist(name);
-                    loadPlaylists(playlistContainer, songId);
+                    loadPlaylists(playlistContainer, songIds);
                     stage.close();
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
