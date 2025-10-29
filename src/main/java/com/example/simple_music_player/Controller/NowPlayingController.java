@@ -63,6 +63,8 @@ public class NowPlayingController {
     @FXML
     private AnchorPane visualizerHolder;
     @FXML
+    private AnchorPane realtimeVisualizerHolder;
+    @FXML
     private Button infoButton;
     @FXML
     private Button repeatButton;
