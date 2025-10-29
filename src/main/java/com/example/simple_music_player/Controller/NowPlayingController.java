@@ -5,6 +5,7 @@ import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.Services.PlaybackService;
+import com.example.simple_music_player.Services.RealtimeVisualizerService;
 import com.example.simple_music_player.Services.VisualizerService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -86,6 +87,8 @@ public class NowPlayingController {
     private List<LyricLine> currentLyricLines = new ArrayList<>();
     public static VisualizerService visualizerController;
     @Getter
+    private RealtimeVisualizerService realtimeVisualizerController;
+    @Getter
     private static final PlaybackService playbackService = new PlaybackService(); //one instance to be shared among all
     @Getter
     private static NowPlayingController instance;  // static reference
@@ -108,12 +111,18 @@ public class NowPlayingController {
             playbackService.setVolume(newVal.doubleValue());
             UserPref.volume = newVal.doubleValue();
         });
-        //
 
+        //Visualizer
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/simple_music_player/visualizer.fxml"));
         AnchorPane visualizer = loader.load();
         visualizerController = loader.getController();
         visualizerHolder.getChildren().add(visualizer);
+
+        //Realtime Visualizer
+        FXMLLoader loader2 = new FXMLLoader(getClass().getResource("/com/example/simple_music_player/realtimeVisualizer.fxml"));
+        AnchorPane visualizer2 = loader2.load();
+        realtimeVisualizerController = loader2.getController();
+        realtimeVisualizerHolder.getChildren().add(visualizer2);
 
         // Anchor it to fill the holder
         AnchorPane.setTopAnchor(visualizer, 0.0);
@@ -237,7 +246,7 @@ public class NowPlayingController {
         Label appName = new Label("🎵 SIMPLE MUSIC PLAYER");
         appName.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
 
-        Label version = new Label("Version 0.4.0");
+        Label version = new Label("Version 0.5.0");
         Label author = new Label("Developed by: synced_x_");
         Label mail = new Label("synced7x7@gmail.com");
         Label credits = new Label("Releases");

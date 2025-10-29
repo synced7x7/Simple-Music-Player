@@ -248,6 +248,18 @@ public class PlaybackService {
     }
 
     private void setupDurationListener(MediaPlayer player) {
+        // === VISUALIZER HOOK ===
+        if (NowPlayingController.getInstance().getRealtimeVisualizerController() != null) {
+            RealtimeVisualizerService visualizer = NowPlayingController.getInstance().getRealtimeVisualizerController();
+            mediaPlayer.setAudioSpectrumNumBands(128);     // Number of frequency bars
+            mediaPlayer.setAudioSpectrumInterval(0.02);    // ~50 FPS update rate
+            mediaPlayer.setAudioSpectrumThreshold(-80);    // Sensitivity
+
+            mediaPlayer.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> {
+                visualizer.updateSpectrum(magnitudes);
+            });
+        }
+
         player.currentTimeProperty().addListener((obs, oldT, newT) -> {
             if (playlist == null || playlist.isEmpty()) {
                 progress.set(0);
