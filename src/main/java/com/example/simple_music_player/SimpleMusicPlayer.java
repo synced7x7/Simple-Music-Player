@@ -11,11 +11,15 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public class SimpleMusicPlayer extends Application {
 
     PlaybackService playbackService = NowPlayingController.getPlaybackService();
+    public static List<String> argument = new ArrayList<>();
     @Override
     public void start(Stage stage) throws IOException {
         DatabaseManager.initialize();
@@ -32,6 +36,7 @@ public class SimpleMusicPlayer extends Application {
     }
 
     public static void main(String[] args) {
+        argument = List.of(args);
         launch();
     }
 

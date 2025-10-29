@@ -7,6 +7,7 @@ import com.example.simple_music_player.Services.AppContext;
 import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Services.PlaylistService;
 import com.example.simple_music_player.Services.QueueService;
+import com.example.simple_music_player.SimpleMusicPlayer;
 import com.example.simple_music_player.Utility.SongDetailsUtility;
 import com.example.simple_music_player.Utility.SongIdAndIndexUtility;
 import com.example.simple_music_player.db.*;
@@ -81,6 +82,7 @@ public class LibraryController {
     private static LibraryController instance;
     public static boolean isPlaylistChanged = false;
     @Getter
+    @Setter
     public int currentPlaylistId;
 
     private boolean isDescendant(Node parent, Node child) {
@@ -95,8 +97,11 @@ public class LibraryController {
     public void initialize() throws SQLException {
         instance = this;
         songListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
         //Load initial library from DB
-        loadInitialDirectoryFromDatabase();
+        if(SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
+            loadInitialDirectoryFromDatabase();
+
         PlaybackService.setLibraryController(this);
         if (trackDAO.getTrackPath() != null) {
             selectedDir = new File(trackDAO.getTrackPath());

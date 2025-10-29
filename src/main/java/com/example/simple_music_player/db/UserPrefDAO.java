@@ -16,6 +16,8 @@ public class UserPrefDAO {
     }
 
     public void setUserPref() throws SQLException {
+
+
         String sql = """
         INSERT OR REPLACE INTO user_pref 
         (id, playlistNo, timestamp, status, repeat, shuffle, isRundown, volume, playlistId)
@@ -23,6 +25,17 @@ public class UserPrefDAO {
     """;
 
         LibraryController libraryController = LibraryController.getInstance();
+        if(UserPref.playlistId == 0) {
+            libraryController.setCurrentPlaylistId(2);
+            UserPref.playlistNo = getPlaylistNo();
+            UserPref.timestamp = getTimeStamp();
+            UserPref.status = getUserStatus();
+            UserPref.repeat = getRepeat();
+            UserPref.shuffle = getShuffle();
+            UserPref.isRundown = getIsRundown();
+            UserPref.volume = getVolume();
+        }
+        if(UserPref.volume == 0) UserPref.volume = 1;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             // 1 -> playlistNo
             ps.setInt(1, UserPref.playlistNo);
