@@ -20,7 +20,7 @@ import java.util.List;
 
 public class PlaylistService {
     private final PlaylistsDAO playlistsDAO = new PlaylistsDAO(DatabaseManager.getConnection());
-
+    LibraryController libraryController = LibraryController.getInstance();
 
     public void openPlaylistSelectionWindow(int songId) {
         Stage stage = new Stage();
@@ -115,7 +115,6 @@ public class PlaylistService {
                 name.setOnMouseClicked(e -> {
                     if(songId == -1) {
                         System.out.println("Loading playlist: " + name.getText());
-                        LibraryController libraryController = LibraryController.getInstance();
                         if (libraryController != null) {
                             try {
                                 libraryController.loadPlaylistView(playlist.getId());

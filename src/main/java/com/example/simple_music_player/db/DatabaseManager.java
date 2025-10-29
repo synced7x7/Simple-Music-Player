@@ -87,7 +87,8 @@ public class DatabaseManager {
                         playlist_id INTEGER NOT NULL,
                         song_id INTEGER NOT NULL,
                         FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
-                        FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE
+                        FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE,
+                        UNIQUE (playlist_id, song_id)
                     );
                 """;
 

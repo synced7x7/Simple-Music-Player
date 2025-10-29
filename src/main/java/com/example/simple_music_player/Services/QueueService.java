@@ -27,7 +27,7 @@ public class QueueService {
         refreshSongListView();
     }
 
-    private void refreshSongListView () {
+    public void refreshSongListView () {
         LibraryController libraryController = LibraryController.getInstance();
         libraryController.getSongListView().refresh();
     }

@@ -12,6 +12,7 @@ import com.example.simple_music_player.Utility.SongIdAndIndexUtility;
 import com.example.simple_music_player.db.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -21,9 +22,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.DirectoryChooser;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -35,6 +38,7 @@ import java.util.concurrent.CompletableFuture;
 public class LibraryController {
 
     @Getter
+    @Setter
     @FXML
     private ListView<Integer> songListView;
     @FXML
@@ -57,6 +61,8 @@ public class LibraryController {
     private ProgressBar loadingProgressBar;
     @FXML
     private Button removeDuplicatesButton;
+    @FXML
+    public AnchorPane root;
 
     private static final double CARD_WIDTH = 120;
     private static final double CARD_HEIGHT = 150;
@@ -76,15 +82,30 @@ public class LibraryController {
     @Getter
     public int currentPlaylistId;
 
+    private boolean isDescendant(Node parent, Node child) {
+        while (child != null) {
+            if (child == parent) return true;
+            child = child.getParent();
+        }
+        return false;
+    }
+
     @FXML
     public void initialize() throws SQLException {
         instance = this;
+        songListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         //Load initial library from DB
         loadInitialDirectoryFromDatabase();
         PlaybackService.setLibraryController(this);
         if (trackDAO.getTrackPath() != null) {
             selectedDir = new File(trackDAO.getTrackPath());
         }
+
+        root.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+            if (!isDescendant(songListView, (Node) e.getTarget())) {
+                songListView.getSelectionModel().clearSelection();
+            }
+        });
 
         directoryButton.setOnAction(e -> {
             DirectoryChooser directoryChooser = new DirectoryChooser();
@@ -194,13 +215,17 @@ public class LibraryController {
                 card.getChildren().addAll(cover, nameLabel, qLabel, favButton);
             }
 
-
             @Override
             protected void updateItem(Integer id, boolean empty) {
                 super.updateItem(id, empty);
                 if (empty || id == null) {
                     setGraphic(null);
                 } else {
+                    // --- Handles multiple selection ---
+                    ListView<Integer> listView = getListView();
+                    MultipleSelectionModel<Integer> selectionModel = listView.getSelectionModel();
+                    //
+
                     Track track = trackDAO.getTrackCompressedArtworkAndTitleById(id);
                     if (track == null) {
                         System.out.println("No track found for id " + id + ". Removing...");
@@ -264,14 +289,17 @@ public class LibraryController {
                     // --- Queue Menu ---
                     MenuItem addToQueue = new MenuItem("Add to Queue");
                     addToQueue.setOnAction(e -> {
-                        queueService.addToQueue(id);
+                        List<Integer> selectedIds = new ArrayList<>(selectionModel.getSelectedItems());
+                        for (Integer sid : selectedIds) queueService.addToQueue(sid);
                         System.out.println("QueueList: " + queueService.getQueueList());
                     });
                     MenuItem removeFromQueue = new MenuItem("Remove from Queue");
                     removeFromQueue.setOnAction(e -> {
-                        queueService.removeFromQueue(id);
+                        List<Integer> selectedIds = new ArrayList<>(selectionModel.getSelectedItems());
+                        for (Integer sid : selectedIds) queueService.removeFromQueue(sid);
                         System.out.println("QueueList: " + queueService.getQueueList());
                     });
+
                     Menu queueMenu = new Menu("Queue");
                     queueMenu.getItems().addAll(addToQueue, removeFromQueue);
 
@@ -279,7 +307,8 @@ public class LibraryController {
                     MenuItem addToPlaylist = new MenuItem("Add to Playlist");
                     addToPlaylist.setOnAction((event) -> {
                         PlaylistService playlistService = new PlaylistService();
-                        playlistService.openPlaylistSelectionWindow(id);
+                        List <Integer> selectedIds = new ArrayList<>(selectionModel.getSelectedItems());
+                        playlistService.openPlaylistSelectionWindow(selectedIds);
                     });
 
                     // -- Open File Location --
@@ -309,12 +338,16 @@ public class LibraryController {
                         removeFromLib = new MenuItem("Remove From Library");
                         removeFromLib.setOnAction((event) -> {
                             try {
-                                trackDAO.removeFromLibrary(songId);
-                                playlistsDAO.deleteSongFromAllPlaylists(songId);
-                                songListView.getItems().remove(songId);
-                                songListView.getSelectionModel().clearSelection();
-                                PlaybackService.playlist.remove(songId);
-                                System.out.println("Song successfully removed from library + " + songId);
+                                List<Integer> selectedIds = new ArrayList<>(selectionModel.getSelectedItems());
+                                for (Integer sId : selectedIds) {
+                                    trackDAO.removeFromLibrary(sId);
+                                    playlistsDAO.deleteSongFromAllPlaylists(sId);
+                                    songListView.getItems().remove(sId);
+                                    songListView.getSelectionModel().clearSelection();
+                                    PlaybackService.playlist.remove(sId);
+                                    refreshSongCountLabel();
+                                }
+                                System.out.println("Songs successfully removed from library + " + selectedIds);
                             } catch (SQLException e) {
                                 System.out.println("Could not remove from library: " + songId);
                             }
@@ -323,11 +356,15 @@ public class LibraryController {
                         removeFromLib = new MenuItem("Remove From Playlist");
                         removeFromLib.setOnAction((event) -> {
                             try {
-                                playlistsDAO.deleteSongFromPlaylist(songId, currentPlaylistId);
-                                songListView.getItems().remove(songId);
-                                songListView.getSelectionModel().clearSelection();
-                                PlaybackService.playlist.remove(songId);
-                                System.out.println("Song successfully removed from playlist");
+                                List<Integer> selectedIds = new ArrayList<>(selectionModel.getSelectedItems());
+                                for (Integer sId : selectedIds) {
+                                    playlistsDAO.deleteSongFromPlaylist(sId, currentPlaylistId);
+                                    songListView.getItems().remove(sId);
+                                    songListView.getSelectionModel().clearSelection();
+                                    PlaybackService.playlist.remove(sId);
+                                    refreshSongCountLabel();
+                                }
+                                System.out.println("Songs successfully removed from playlist: " + selectedIds);
                             } catch (SQLException e) {
                                 throw new RuntimeException(e);
                             }
@@ -337,23 +374,26 @@ public class LibraryController {
                     MenuItem physicallyDelete = new MenuItem("Physically Delete");
                     physicallyDelete.setOnAction((event) -> {
                         try {
-                            String path = trackDAO.getFileLocationById(id);
-                            if (path != null && !path.isEmpty()) {
-                                File file = new File(path);
-                                if (file.exists()) {
-                                    boolean deleted = file.delete();
-                                    if (!deleted) {
-                                        System.err.println("Could not delete file: " + path);
-                                        return;
+                            List<Integer> selectedIds = new ArrayList<>(selectionModel.getSelectedItems());
+                            for (Integer sId : selectedIds) {
+                                String path = trackDAO.getFileLocationById(sId);
+                                if (path != null && !path.isEmpty()) {
+                                    File file = new File(path);
+                                    if (file.exists()) {
+                                        boolean deleted = file.delete();
+                                        if (!deleted) {
+                                            System.err.println("Could not delete file: " + path);
+                                            return;
+                                        }
                                     }
                                 }
+                                trackDAO.removeFromLibrary(sId);
+                                playlistsDAO.deleteSongFromAllPlaylists(sId);
+                                System.out.println("Removed from Library & Deleted File: " + sId);
+                                songListView.getItems().remove(Integer.valueOf(sId));
+                                PlaybackService.playlist.remove(sId);
+                                refreshSongCountLabel();
                             }
-                            trackDAO.removeFromLibrary(id);
-                            playlistsDAO.deleteSongFromAllPlaylists(id);
-                            System.out.println("Removed from Library & Deleted File: " + id);
-                            songListView.getItems().remove(Integer.valueOf(id));
-                            PlaybackService.playlist.remove(id);
-                            //playbackService.next();
                         } catch (SQLException e) {
                             System.err.println("Error removing song from DB: " + id);
                             e.printStackTrace();
@@ -383,13 +423,29 @@ public class LibraryController {
 
                     card.setOnMouseClicked(e -> {
                         if (e.getButton() == MouseButton.PRIMARY) {
+                            if (e.isControlDown()) {
+                                songListView.getSelectionModel().select(songListView.getItems().indexOf(id));
+                                e.consume();
+                                return;
+                            } else if (e.isShiftDown()) {
+                                int last = songListView.getSelectionModel().getSelectedIndex();
+                                int current = songListView.getItems().indexOf(id);
+                                songListView.getSelectionModel().selectRange(Math.min(last, current), Math.max(last, current) + 1);
+                                e.consume();
+                                return;
+                            } else {
+                                // Single click → clear selection and play
+                                songListView.getSelectionModel().clearSelection();
+                                songListView.getSelectionModel().select(songListView.getItems().indexOf(id));
+                            }
+
                             if (isPlaylistChanged) {
                                 isPlaylistChanged = false;
                                 try {
                                     //shifted to new playlist
                                     queueService.clearQueue();
                                     currentPlaylistId = UserPref.playlistId;
-                                    toggleRemoveDuplicatesButton( currentPlaylistId > 3);
+                                    toggleRemoveDuplicatesButton(currentPlaylistId > 3);
                                     int reverse = playlistsDAO.getReverse(currentPlaylistId);
                                     String sort = playlistsDAO.getSortingPref(currentPlaylistId);
                                     boolean ascending = reverse != 1;
@@ -426,30 +482,37 @@ public class LibraryController {
                             System.out.println("SongId: " + id + " Index: " + idx);
                             contextMenu.show(card, e.getScreenX(), e.getScreenY());
                             e.consume();
+                        } else {
+                            songListView.getSelectionModel().clearSelection();
                         }
                     });
 
                     favButton.setOnAction(e -> {
-                        if (favButton.getText().equals("♡")) {
-                            favButton.setText("♥");
-                            favButton.setStyle("-fx-background-color: transparent; -fx-text-fill: red; -fx-font-size: 16px;");
-                            List<Integer> songIds = new ArrayList<>();
-                            songIds.add(id);
-                            try {
-                                playlistsDAO.insertSongsInPlaylist(3, songIds);
-                            } catch (SQLException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                        } else {
-                            favButton.setText("♡");
-                            favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 16px;");
-                            List<Integer> songIds = new ArrayList<>();
-                            songIds.add(id);
-                            try {
+                        try {
+                            if (favButton.getText().equals("♡")) {
+                                favButton.setText("♥");
+                                favButton.setStyle("-fx-background-color: transparent; -fx-text-fill: red; -fx-font-size: 16px;");
+                                List<Integer> songIds = new ArrayList<>(selectionModel.getSelectedItems());
+                                songIds.add(id);
+                                System.out.println("songIds: " + songIds);
+                                for (int sId : songIds) {
+                                    if (playlistsDAO.isSongInPlaylist(3, sId)) {
+                                        System.out.println("SongId: " + sId + " is in playlist");
+                                        continue;
+                                    }
+                                    playlistsDAO.updateSongInPlaylist(3, sId);
+                                }
+                                songListView.refresh();
+                            } else {
+                                favButton.setText("♡");
+                                favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 16px;");
+                                List<Integer> songIds = new ArrayList<>(selectionModel.getSelectedItems());
+                                songIds.add(id);
                                 playlistsDAO.deleteSongsFromPlaylist(3, songIds);
-                            } catch (SQLException ex) {
-                                throw new RuntimeException(ex);
+                                songListView.refresh();
                             }
+                        } catch (SQLException ex) {
+                            throw new RuntimeException(ex);
                         }
                     });
 
@@ -829,24 +892,17 @@ public class LibraryController {
     }
 
     @FXML
-    private void removeDuplicatesFromPlaylists() {
-        try {
-            // Remove duplicates from the in-memory playlist
-            List<Integer> uniquePlaylist = new ArrayList<>(new LinkedHashSet<>(PlaybackService.playlist));
-            PlaybackService.playlist.clear();
-            PlaybackService.playlist.addAll(uniquePlaylist);
+    private void removeDuplicatesFromPlaylists() throws SQLException {
+        List<Integer> uniquePlaylist = new ArrayList<>(new LinkedHashSet<>(PlaybackService.playlist));
+        PlaybackService.playlist.clear();
+        PlaybackService.playlist.addAll(uniquePlaylist);
 
-            // Update the database
-            playlistsDAO.removeDuplicates(currentPlaylistId);
+        playlistsDAO.removeDuplicates(currentPlaylistId);
 
-            // Refresh UI
-            songListView.getItems().setAll(uniquePlaylist);
-            songListView.getSelectionModel().clearSelection();
-
-            System.out.println("Duplicate songs successfully removed from playlist.");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        songListView.getItems().setAll(uniquePlaylist);
+        songListView.getSelectionModel().clearSelection();
+        refreshSongCountLabel();
+        System.out.println("Duplicate songs successfully removed from playlist.");
     }
 
     private void toggleRemoveDuplicatesButton(boolean enable) {
@@ -859,6 +915,10 @@ public class LibraryController {
             removeDuplicatesButton.setManaged(false);
             removeDuplicatesButton.setDisable(true);
         }
+    }
+
+    private void refreshSongCountLabel() throws SQLException {
+        songCountLabel.setText(playlistsDAO.getPlaylistName(currentPlaylistId) + " - " + PlaybackService.playlist.size() + " songs");
     }
 
 }

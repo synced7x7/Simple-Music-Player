@@ -473,6 +473,7 @@ public class PlaybackService {
         while (!queueList.isEmpty()) {
             int nextId = queueList.pollFirst();
             int indexInPlaylist = playlist.indexOf(nextId);
+            queueService.refreshSongListView();
             if (indexInPlaylist != -1) {
                 currentIndex = indexInPlaylist;
                 play(currentIndex);
