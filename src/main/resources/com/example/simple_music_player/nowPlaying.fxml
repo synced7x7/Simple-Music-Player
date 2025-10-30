@@ -15,12 +15,15 @@
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="450.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.NowPlayingController">
     <StackPane prefHeight="750.0" prefWidth="456.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <children>
-            <ImageView fx:id="backAlbumCover" fitWidth="456.0" preserveRatio="true" StackPane.alignment="CENTER" />
+            <ImageView fx:id="backAlbumCover" fitWidth="456.0" preserveRatio="true" StackPane.alignment="CENTER">
+            <image>
+               <Image url="@../../../../../../../../../Downloads/Ariana%20Grande%20-%207%20Rings%20(Drill%20Remix)%20What%20If%20Ariana%20Grande%20Made%20Drill%20Music.jpg" />
+            </image></ImageView>
         </children>
     </StackPane>
-    <ImageView fitHeight="751.0" fitWidth="451.0" opacity="0.85" pickOnBounds="true">
+    <ImageView fitHeight="751.0" fitWidth="456.0" opacity="0.93" pickOnBounds="true">
         <image>
-            <Image url="@../../../Images/ShadedImage.jpg" />
+            <Image url="@../../../Images/ShadedImage_00000.png" />
         </image>
     </ImageView>
    <Label fx:id="syncedXLyricsLabel" alignment="CENTER" layoutX="34.0" layoutY="85.0" prefHeight="89.0" prefWidth="383.0" text="SyncedXMode" textAlignment="CENTER" textFill="WHITE" visible="false" wrapText="true">
@@ -36,7 +39,7 @@
             </effect>
         </ImageView>
     </StackPane>
-    <ScrollPane fx:id="lyricsScrollPane" hbarPolicy="NEVER" layoutX="52.0" layoutY="53.0" prefHeight="406.0" prefWidth="343.0">
+    <ScrollPane fx:id="lyricsScrollPane" hbarPolicy="NEVER" layoutX="64.0" layoutY="47.0" prefHeight="390.0" prefWidth="343.0">
       <content>
          <VBox fx:id="lyricsFlow" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: #000000;" />
       </content>
@@ -46,24 +49,24 @@
             <Font name="System Bold" size="21.0" />
         </font>
     </Label>
-    <Button fx:id="playButton" alignment="CENTER" layoutX="201.0" layoutY="683.0" text="Play" />
-    <Button fx:id="nextButton" layoutX="288.0" layoutY="682.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="59.0" text="Next" />
-    <Button fx:id="prevButton" layoutX="84.0" layoutY="683.0" mnemonicParsing="false" text="Previous" />
-    <Label fx:id="nameLabel" alignment="CENTER" layoutX="52.0" layoutY="473.0" prefHeight="26.0" prefWidth="343.0" text="Title" />
-    <Label fx:id="artistLabel" alignment="CENTER" layoutX="52.0" layoutY="503.0" prefHeight="26.0" prefWidth="343.0" text="Aritst" />
-    <Label fx:id="albumLabel" alignment="CENTER" layoutX="53.0" layoutY="534.0" prefHeight="26.0" prefWidth="343.0" text="Album" />
+    <Button fx:id="playButton" alignment="CENTER" layoutX="199.0" layoutY="701.0" text="Play" />
+    <Button fx:id="nextButton" layoutX="286.0" layoutY="700.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="59.0" text="Next" />
+    <Button fx:id="prevButton" layoutX="82.0" layoutY="701.0" mnemonicParsing="false" text="Previous" />
+    <Label fx:id="nameLabel" alignment="CENTER" layoutX="50.0" layoutY="483.0" prefHeight="26.0" prefWidth="343.0" text="Title" />
+    <Label fx:id="artistLabel" alignment="CENTER" layoutX="50.0" layoutY="521.0" prefHeight="26.0" prefWidth="343.0" text="Aritst" />
+    <Label fx:id="albumLabel" alignment="CENTER" layoutX="51.0" layoutY="552.0" prefHeight="26.0" prefWidth="343.0" text="Album" />
     <Label fx:id="timeLabel" alignment="CENTER" layoutX="404.0" layoutY="627.0" onMouseClicked="#toggleCountdown" prefHeight="18.0" prefWidth="38.0" text="00:00" />
-    <Label fx:id="bitRateLabel" alignment="CENTER" layoutX="287.0" layoutY="575.0" prefHeight="26.0" prefWidth="61.0" text="Bitrate" />
-    <Label fx:id="formatLabel" alignment="CENTER" layoutX="103.0" layoutY="575.0" prefHeight="26.0" prefWidth="59.0" text="Format" />
-    <Label fx:id="sampleRateLabel" alignment="CENTER" layoutX="189.0" layoutY="575.0" prefHeight="26.0" prefWidth="72.0" text="Samplerate" />
-    <AnchorPane fx:id="visualizerHolder" layoutX="43.0" layoutY="605.0" prefHeight="62.0" prefWidth="362.0" />
+    <Label fx:id="bitRateLabel" alignment="CENTER" layoutX="285.0" layoutY="593.0" prefHeight="26.0" prefWidth="61.0" text="Bitrate" />
+    <Label fx:id="formatLabel" alignment="CENTER" layoutX="101.0" layoutY="593.0" prefHeight="26.0" prefWidth="59.0" text="Format" />
+    <Label fx:id="sampleRateLabel" alignment="CENTER" layoutX="187.0" layoutY="593.0" prefHeight="26.0" prefWidth="72.0" text="Samplerate" />
+    <AnchorPane fx:id="visualizerHolder" layoutX="41.0" layoutY="623.0" prefHeight="62.0" prefWidth="362.0" />
     <Button fx:id="infoButton" layoutX="33.0" layoutY="14.0" mnemonicParsing="false" onAction="#infoButtonHandler" text="𝒊" />
-    <Button fx:id="shuffleButton" layoutX="29.0" layoutY="541.0" mnemonicParsing="false" onAction="#toggleShuffle" text="🔀" />
-    <Button fx:id="repeatButton" layoutX="29.0" layoutY="505.0" mnemonicParsing="false" onAction="#toggleRepeat" text="🔁" />
+    <Button fx:id="shuffleButton" layoutX="13.0" layoutY="562.0" mnemonicParsing="false" onAction="#toggleShuffle" text="🔀" />
+    <Button fx:id="repeatButton" layoutX="13.0" layoutY="521.0" mnemonicParsing="false" onAction="#toggleRepeat" text="🔁" />
     <Button fx:id="toggleLibraryButton" layoutX="416.0" layoutY="14.0" mnemonicParsing="false" onAction="#toggleLibraryView" opacity="0.5" prefHeight="26.0" prefWidth="30.0" text="▶" />
     <!-- Volume Control -->
     <Label layoutX="418.0" layoutY="566.0" text="🔊" />
-    <Slider fx:id="volumeSlider" blockIncrement="0.01" layoutX="371.0" layoutY="505.0" max="1" min="0" prefHeight="14.0" prefWidth="106.0" rotate="-90.0" value="0.5" />
-    <Button fx:id="lyricsButton" layoutX="28.0" layoutY="466.0" mnemonicParsing="false" onAction="#toggleLyrics" text="၊၊||၊" />
+    <Slider fx:id="volumeSlider" blockIncrement="0.01" layoutX="371.0" layoutY="474.0" max="1" min="0" prefHeight="14.0" prefWidth="106.0" rotate="-90.0" value="0.5" />
+    <Button fx:id="lyricsButton" layoutX="12.0" layoutY="483.0" mnemonicParsing="false" onAction="#toggleLyrics" text="၊၊||၊" />
    <Button fx:id="toggleAlbumButton" layoutX="3.0" layoutY="104.0" mnemonicParsing="false" onAction="#toggleAlbumView" opacity="0.5" prefHeight="6.0" prefWidth="30.0" rotate="180.0" text="▶" />
 </AnchorPane>
