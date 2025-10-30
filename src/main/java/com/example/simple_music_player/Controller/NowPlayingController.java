@@ -30,6 +30,7 @@ import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.TagException;
+
 import java.awt.Desktop;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,6 +84,11 @@ public class NowPlayingController {
     private VBox lyricsFlow;
     @FXML
     private Button toggleLibraryButton;
+    @FXML
+    private Label syncedXLyricsLabel;
+
+    private List<LyricLine> syncedLyricLines = new ArrayList<>();
+    private int lastSyncedLabelIndex = -1;
 
     private List<LyricLine> currentLyricLines = new ArrayList<>();
     public static VisualizerService visualizerController;
@@ -93,7 +99,8 @@ public class NowPlayingController {
     @Getter
     private static NowPlayingController instance;  // static reference
     private int lastHighlightedIndex = -1;
-    private int lyricsToggleCount  = 0;
+    @Getter
+    private int lyricsToggleCount = 0;
 
     public NowPlayingController() {
         instance = this;   // set when FXML is loaded
@@ -201,6 +208,16 @@ public class NowPlayingController {
                     throw new RuntimeException(e);
                 }
             }
+
+            if (lyricsToggleCount == 2) {
+                try {
+                    displaySyncedLyricInLabel(newT.getLyrics());
+                } catch (CannotReadException | TagException | InvalidAudioFrameException | IOException |
+                         ReadOnlyFileException e) {
+                    syncedXLyricsLabel.setText("syncedX");
+                    throw new RuntimeException(e);
+                }
+            }
         });
     }
 
@@ -247,7 +264,7 @@ public class NowPlayingController {
         Label appName = new Label("🎵 SIMPLE MUSIC PLAYER");
         appName.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
 
-        Label version = new Label("Version 0.5.0");
+        Label version = new Label("Version 0.5.5");
         Label author = new Label("Developed by: synced_x_");
         Label mail = new Label("synced7x7@gmail.com");
         Label credits = new Label("Releases");
@@ -347,8 +364,12 @@ public class NowPlayingController {
         Track currentTrack = playbackService.getCurrentTrack();
 
         switch (lyricsToggleCount) {
+            // === CASE 0: Album cover only ===
             case 0 -> {
+                syncedXLyricsLabel.setVisible(false);
+                syncedXLyricsLabel.setText("");
                 isLyricsActive = false;
+
                 currentLyricLines.clear();
                 lastHighlightedIndex = -1;
 
@@ -360,6 +381,8 @@ public class NowPlayingController {
 
                 realtimeVisualizerController.stopVisualizer();
             }
+
+            // === CASE 1: Full Lyrics View ===
             case 1 -> {
                 isLyricsActive = true;
 
@@ -369,23 +392,94 @@ public class NowPlayingController {
                 lyricsScrollPane.setVisible(true);
                 lyricsScrollPane.setManaged(true);
 
+                syncedXLyricsLabel.setVisible(false);
+
                 if (currentTrack != null) {
                     displayLyrics(currentTrack.getLyrics());
                 } else {
                     currentLyricLines.clear();
                     lastHighlightedIndex = -1;
                 }
+
+                realtimeVisualizerController.stopVisualizer();
             }
+
+            // === CASE 2: SyncedX Mode (Single Line + Visualizer) ===
             case 2 -> {
+                isLyricsActive = false;
                 currentLyricLines.clear();
+                lastHighlightedIndex = -1;
+
+                albumCover.setVisible(false);
+                albumCover.setManaged(false);
 
                 lyricsScrollPane.setVisible(false);
                 lyricsScrollPane.setManaged(false);
 
+                syncedXLyricsLabel.setVisible(true);
+
+                // 🔹 Show synced lyric in label or fallback
+                if (currentTrack != null && currentTrack.getLyrics() != null) {
+                    displaySyncedLyricInLabel(currentTrack.getLyrics());
+                } else {
+                    syncedXLyricsLabel.setText("syncedX");
+                }
+
+                // 🔹 Start visualizer
                 realtimeVisualizerController.startVisualizer();
                 playbackService.setupVisualizerListener(playbackService.getMediaPlayer());
-                System.out.println("SyncedXMode");
+
+                System.out.println("SyncedXMode Activated");
             }
+        }
+    }
+
+
+    public void displaySyncedLyricInLabel(String lyrics) {
+        syncedXLyricsLabel.setText(""); // reset
+        syncedLyricLines.clear();
+        lastSyncedLabelIndex = -1;
+
+        if (lyrics == null || lyrics.isEmpty()) {
+            syncedXLyricsLabel.setText("syncedX");
+            return;
+        }
+
+        List<LyricLine> parsed = parseLyrics(lyrics);
+        if (parsed.isEmpty()) {
+            // Not synced, plain text
+            syncedXLyricsLabel.setText("syncedX");
+            return;
+        }
+
+        syncedLyricLines = parsed;
+        syncedXLyricsLabel.setText(parsed.get(0).getText()); // initialize first line
+    }
+
+    public void updateSyncedLyricLabel(Duration currentTime) {
+        if (syncedLyricLines.isEmpty()) return;
+
+        int currentIndex = -1;
+
+        for (int i = 0; i < syncedLyricLines.size(); i++) {
+            Duration lineTime = syncedLyricLines.get(i).getTimestamp();
+
+            if (currentTime.greaterThanOrEqualTo(lineTime)) {
+                if (i < syncedLyricLines.size() - 1) {
+                    Duration next = syncedLyricLines.get(i + 1).getTimestamp();
+                    if (currentTime.lessThan(next)) {
+                        currentIndex = i;
+                        break;
+                    }
+                } else {
+                    currentIndex = i;
+                }
+            }
+        }
+
+        if (currentIndex != -1 && currentIndex != lastSyncedLabelIndex) {
+            syncedXLyricsLabel.setText(syncedLyricLines.get(currentIndex).getText());
+            lastSyncedLabelIndex = currentIndex;
         }
     }
 
@@ -540,7 +634,7 @@ public class NowPlayingController {
     }
 
     public void showLibraryButton(boolean enable) {
-        if(!enable) {
+        if (!enable) {
             toggleLibraryButton.setVisible(false);
             toggleLibraryButton.setManaged(false);
         } else {

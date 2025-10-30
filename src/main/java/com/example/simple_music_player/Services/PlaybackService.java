@@ -291,7 +291,11 @@ public class PlaybackService {
 
                 // Highlight current lyric - WRAP IN Platform.runLater
                 if (currentTrack.get() != null && nowPlayingController != null) {
-                    Platform.runLater(() -> nowPlayingController.highlightCurrentLyric(newT));
+                    Platform.runLater(() -> {
+                        nowPlayingController.highlightCurrentLyric(newT);
+                        nowPlayingController.updateSyncedLyricLabel(newT);
+                    });
+
                 }
 
                 int currentSec = (int) newT.toSeconds();
