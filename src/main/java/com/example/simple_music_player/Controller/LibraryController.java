@@ -1,5 +1,6 @@
 package com.example.simple_music_player.Controller;
 
+import com.example.simple_music_player.Enum.DirectoryMode;
 import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
@@ -10,7 +11,6 @@ import com.example.simple_music_player.Utility.SongIdAndIndexUtility;
 import com.example.simple_music_player.db.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -96,7 +96,7 @@ public class LibraryController {
         songListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         //Load initial library from DB
-        if(SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
+        if (SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
             loadInitialDirectoryFromDatabase();
         else {
             loadFileFromCommandLineArgument();
@@ -140,7 +140,7 @@ public class LibraryController {
 
             selectedDir = newDir;
             try {
-                loadSongsFromDirectory(selectedDir);
+                loadSongsFromDirectory(selectedDir, DirectoryMode.DIR_CHANGE);
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             }
@@ -170,18 +170,19 @@ public class LibraryController {
 
 
         refreshComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal == null) return;
-
-            if (newVal.equals("Update Library")) {
-                try {
-                    loadSongsFromDirectory(new File(trackDAO.getTrackPath()));
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
+            try {
+                if (newVal == null) return;
+                if (newVal.equals("Update Library")) {
+                    loadSongsFromDirectory(new File(trackDAO.getTrackPath()), DirectoryMode.REFRESH_MODE);
+                } else if (newVal.equals("Force Refresh")) {
+                    loadSongsFromDirectory(new File(trackDAO.getTrackPath()), DirectoryMode.FORCE);
                 }
+                Platform.runLater(() -> {
+                    refreshComboBox.getSelectionModel().clearSelection();
+                });
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-            Platform.runLater(() -> {
-                refreshComboBox.getSelectionModel().clearSelection();
-            });
         });
 
 
@@ -313,7 +314,7 @@ public class LibraryController {
                     MenuItem addToPlaylist = new MenuItem("Add to Playlist");
                     addToPlaylist.setOnAction((event) -> {
                         PlaylistService playlistService = new PlaylistService();
-                        List <Integer> selectedIds = new ArrayList<>(selectionModel.getSelectedItems());
+                        List<Integer> selectedIds = new ArrayList<>(selectionModel.getSelectedItems());
                         playlistService.openPlaylistSelectionWindow(selectedIds);
                     });
 
@@ -686,11 +687,12 @@ public class LibraryController {
 
 
     // --- Directory Load ---
-    private void loadSongsFromDirectory(File dir) throws SQLException {
+    private void loadSongsFromDirectory(File dir, DirectoryMode directoryMode) throws SQLException {
         if (dir == null || !dir.exists() || !dir.isDirectory()) return;
         System.out.println(dir.getAbsolutePath() + " " + dir.lastModified());
         System.out.println("Is file modified : " + miscDAO.isFileModified(dir.lastModified()));
-        if (!miscDAO.isFileModified(dir.lastModified())) {
+
+        if ((directoryMode == DirectoryMode.DIR_CHANGE || directoryMode == DirectoryMode.REFRESH_MODE) && !miscDAO.isFileModified(dir.lastModified())) {
             System.out.println("File not modified!");
             return;
         }
@@ -700,8 +702,8 @@ public class LibraryController {
         QueueService queueService = AppContext.getQueueService();
         queueService.clearQueue();
         //
-        // --- clear and create playlist ---
-        playlistsDAO.clearAllPlaylists();
+        // --- Create playlist ---
+        if(directoryMode == DirectoryMode.DIR_CHANGE) playlistsDAO.clearAllPlaylists();
         playlistsDAO.createShuffledPlaylist();
         playlistsDAO.createNormalPlaylist();
         playlistsDAO.createFavPlaylist();

@@ -25,7 +25,7 @@
     </ImageView>
    <Label fx:id="syncedXLyricsLabel" alignment="CENTER" layoutX="34.0" layoutY="85.0" prefHeight="89.0" prefWidth="383.0" text="SyncedXMode" textAlignment="CENTER" textFill="WHITE" visible="false" wrapText="true">
       <font>
-         <Font name="Castellar" size="14.0" />
+         <Font name="SansSerif Regular" size="14.0" />
       </font>
    </Label>
    <AnchorPane fx:id="realtimeVisualizerHolder" layoutX="-2.0" layoutY="143.0" prefHeight="316.0" prefWidth="451.0" />

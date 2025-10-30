@@ -42,6 +42,7 @@
             <items>
                 <FXCollections fx:factory="observableArrayList">
                     <String fx:value="Update Library" />
+                    <String fx:value="Force Refresh" />
                     <String fx:value="Settings" />
                 </FXCollections>
             </items>

@@ -97,13 +97,13 @@ public class NowPlayingController {
     @Getter
     private static final PlaybackService playbackService = new PlaybackService(); //one instance to be shared among all
     @Getter
-    private static NowPlayingController instance;  // static reference
+    private static NowPlayingController instance;
     private int lastHighlightedIndex = -1;
     @Getter
     private int lyricsToggleCount = 0;
 
     public NowPlayingController() {
-        instance = this;   // set when FXML is loaded
+        instance = this;
     }
 
     private boolean isLyricsActive = false;
@@ -274,7 +274,7 @@ public class NowPlayingController {
         VBox root = new VBox(10, appName, version, author, mail, credits);
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(15));
-
+/**/
         Scene scene = new Scene(root, 300, 200);
         infoStage.setScene(scene);
         infoStage.initModality(Modality.APPLICATION_MODAL);

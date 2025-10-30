@@ -40,9 +40,10 @@ public class PlaylistsDAO {
 
     public void insertSongsInPlaylist(int playlistId, List<Integer> songIds) throws SQLException {
         String insertSongs = """
-                INSERT INTO playlist_songs (playlist_id, song_id)
-                VALUES (?, ?)
-                """;
+        INSERT OR IGNORE INTO playlist_songs (playlist_id, song_id)
+        VALUES (?, ?)
+    """;
+
         try (PreparedStatement ps = conn.prepareStatement(insertSongs)) {
             for (Integer songId : songIds) {
                 ps.setInt(1, playlistId);
@@ -52,6 +53,7 @@ public class PlaylistsDAO {
             ps.executeBatch();
         }
     }
+
 
     public void updateSongInPlaylist(int playlistId, int songId) {
         String sql = """
