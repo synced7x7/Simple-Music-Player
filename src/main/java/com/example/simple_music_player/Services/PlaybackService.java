@@ -36,6 +36,7 @@ public class PlaybackService {
     @Getter
     @Setter
     private int currentIndex = -1; //tracks the song that is active
+    @Getter
     private MediaPlayer mediaPlayer; //plays sound
 
     private final TempTrackDAO tempTrackDAO = new TempTrackDAO(DatabaseManager.getConnection());
@@ -247,19 +248,20 @@ public class PlaybackService {
         }
     }
 
-    private void setupDurationListener(MediaPlayer player) {
+    public void setupVisualizerListener(MediaPlayer mediaPlayer) {
         // === VISUALIZER HOOK ===
         if (NowPlayingController.getInstance().getRealtimeVisualizerController() != null) {
             RealtimeVisualizerService visualizer = NowPlayingController.getInstance().getRealtimeVisualizerController();
             mediaPlayer.setAudioSpectrumNumBands(128);     // Number of frequency bars
             mediaPlayer.setAudioSpectrumInterval(0.02);    // ~50 FPS update rate
             mediaPlayer.setAudioSpectrumThreshold(-80);    // Sensitivity
-
             mediaPlayer.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> {
                 visualizer.updateSpectrum(magnitudes);
             });
         }
+    }
 
+    private void setupDurationListener(MediaPlayer player) {
         player.currentTimeProperty().addListener((obs, oldT, newT) -> {
             if (playlist == null || playlist.isEmpty()) {
                 progress.set(0);

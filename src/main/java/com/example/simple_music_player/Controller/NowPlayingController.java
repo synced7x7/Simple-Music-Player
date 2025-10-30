@@ -93,6 +93,7 @@ public class NowPlayingController {
     @Getter
     private static NowPlayingController instance;  // static reference
     private int lastHighlightedIndex = -1;
+    private int lyricsToggleCount  = 0;
 
     public NowPlayingController() {
         instance = this;   // set when FXML is loaded
@@ -341,21 +342,49 @@ public class NowPlayingController {
 
     @FXML
     private void toggleLyrics() throws CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException, IOException {
-        isLyricsActive = !isLyricsActive;
-        albumCover.setVisible(!isLyricsActive);
-        albumCover.setManaged(!isLyricsActive);
-        lyricsScrollPane.setVisible(isLyricsActive);
-        lyricsScrollPane.setManaged(isLyricsActive);
+        lyricsToggleCount = (lyricsToggleCount + 1) % 3;
+        System.out.println("Lyrics Toggle Count = " + lyricsToggleCount);
 
-        if (isLyricsActive && playbackService.getCurrentTrack() != null) {
-            Track currentTrack = playbackService.getCurrentTrack();
-            displayLyrics(currentTrack.getLyrics());
-           // System.out.println("Lyrics: " + currentTrack.getLyrics());
-        } else {
-            currentLyricLines.clear();
-            lastHighlightedIndex = -1;
+        Track currentTrack = playbackService.getCurrentTrack();
+
+        switch (lyricsToggleCount) {
+            case 0 -> {
+                isLyricsActive = false;
+                currentLyricLines.clear();
+                lastHighlightedIndex = -1;
+
+                albumCover.setVisible(true);
+                albumCover.setManaged(true);
+
+                lyricsScrollPane.setVisible(false);
+                lyricsScrollPane.setManaged(false);
+
+                realtimeVisualizerController.stopVisualizer();
+            }
+            case 1 -> {
+                isLyricsActive = true;
+
+                albumCover.setVisible(false);
+                albumCover.setManaged(false);
+
+                lyricsScrollPane.setVisible(true);
+                lyricsScrollPane.setManaged(true);
+
+                if (currentTrack != null) {
+                    displayLyrics(currentTrack.getLyrics());
+                } else {
+                    currentLyricLines.clear();
+                    lastHighlightedIndex = -1;
+                }
+            }
+            case 2 -> {
+                realtimeVisualizerController.startVisualizer();
+                playbackService.setupVisualizerListener(playbackService.getMediaPlayer());
+                System.out.println("SyncedXMode");
+            }
         }
     }
+
 
     private void displayLyrics(String lyrics) throws CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException, IOException {
         lyricsFlow.getChildren().clear();

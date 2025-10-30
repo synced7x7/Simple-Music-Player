@@ -6,6 +6,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
+import lombok.Setter;
 
 public class RealtimeVisualizerService {
 
@@ -19,6 +20,8 @@ public class RealtimeVisualizerService {
 
     // For drawing at ~60 FPS
     private AnimationTimer animationTimer;
+    @Setter
+    private boolean isRunning = false;
 
     @FXML
     public void initialize() {
@@ -29,7 +32,21 @@ public class RealtimeVisualizerService {
         // Initialize array to avoid NPE
         currentMagnitudes = new float[128]; // default band count
 
-        // Start animation loop
+    }
+
+    public void startVisualizer() {
+        if (animationTimer == null) {
+            createAnimationTimer();
+        }
+        if (!isRunning) {
+            animationTimer.start();
+            isRunning = true;
+        }
+        waveformCanvas.setVisible(true);
+        waveformCanvas.setManaged(true);
+    }
+
+    private void createAnimationTimer() {
         animationTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
@@ -39,12 +56,9 @@ public class RealtimeVisualizerService {
         animationTimer.start();
     }
 
-    /**
-     * Called externally (e.g., from MediaPlayer’s AudioSpectrumListener)
-     */
+
     public void updateSpectrum(float[] magnitudes) {
         if (magnitudes == null) return;
-
         // Copy and smooth values
         int len = Math.min(magnitudes.length, currentMagnitudes.length);
         for (int i = 0; i < len; i++) {
@@ -82,4 +96,28 @@ public class RealtimeVisualizerService {
             gc.fillRect(xLeft, (height / 2.0) - barHeight, bandWidth - 1, barHeight * 2);
         }
     }
+
+    public void stopVisualizer() {
+        if(!isRunning) return;
+        isRunning = false;
+        if (animationTimer != null ) {
+            animationTimer.stop();
+        }
+
+        // Hide canvas
+        waveformCanvas.setVisible(false);
+        waveformCanvas.setManaged(false);
+
+        // Optionally clear visual memory
+        clearCanvas();
+
+        // Allow GC to reclaim unused memory
+        currentMagnitudes = new float[128];
+    }
+
+    private void clearCanvas() {
+        GraphicsContext gc = waveformCanvas.getGraphicsContext2D();
+        gc.clearRect(0, 0, waveformCanvas.getWidth(), waveformCanvas.getHeight());
+    }
+
 }
