@@ -67,8 +67,6 @@ public class NowPlayingController {
     @FXML
     private AnchorPane realtimeVisualizerHolder;
     @FXML
-    private Button infoButton;
-    @FXML
     private Button repeatButton;
     @FXML
     private Button shuffleButton;
@@ -76,8 +74,6 @@ public class NowPlayingController {
     private Slider volumeSlider;
     @FXML
     private ImageView backAlbumCover;
-    @FXML
-    private Button lyricsButton;
     @FXML
     private ScrollPane lyricsScrollPane;
     @FXML
@@ -274,7 +270,7 @@ public class NowPlayingController {
         VBox root = new VBox(10, appName, version, author, mail, credits);
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(15));
-/**/
+        /**/
         Scene scene = new Scene(root, 300, 200);
         infoStage.setScene(scene);
         infoStage.initModality(Modality.APPLICATION_MODAL);
@@ -292,7 +288,7 @@ public class NowPlayingController {
             try {
                 Desktop.getDesktop().browse(new URI("https://github.com/synced7x7/Simple-Music-Player/releases"));
             } catch (Exception ex) {
-                ex.printStackTrace();
+                throw new RuntimeException(ex);
             }
         });
     }
@@ -453,7 +449,7 @@ public class NowPlayingController {
         }
 
         syncedLyricLines = parsed;
-        syncedXLyricsLabel.setText(parsed.get(0).getText()); // initialize first line
+        syncedXLyricsLabel.setText(parsed.getFirst().getText()); // initialize first line
     }
 
     public void updateSyncedLyricLabel(Duration currentTime) {
@@ -513,18 +509,12 @@ public class NowPlayingController {
                 text.setStyle("-fx-fill: white; -fx-font-size: 14px; -fx-cursor: hand;");
 
                 // Make clickable
-                text.setOnMouseClicked(e -> {
-                    playbackService.seek(lyricLine.getTimestamp());
-                });
+                text.setOnMouseClicked(e -> playbackService.seek(lyricLine.getTimestamp()));
 
                 // Hover effect
-                text.setOnMouseEntered(e -> {
-                    text.setStyle("-fx-fill: #4CAF50; -fx-font-size: 14px; -fx-cursor: hand; -fx-underline: true;");
-                });
+                text.setOnMouseEntered(e -> text.setStyle("-fx-fill: #4CAF50; -fx-font-size: 14px; -fx-cursor: hand; -fx-underline: true;"));
 
-                text.setOnMouseExited(e -> {
-                    text.setStyle("-fx-fill: white; -fx-font-size: 14px; -fx-cursor: hand;");
-                });
+                text.setOnMouseExited(e -> text.setStyle("-fx-fill: white; -fx-font-size: 14px; -fx-cursor: hand;"));
 
                 lyricsFlow.getChildren().add(text);
             }

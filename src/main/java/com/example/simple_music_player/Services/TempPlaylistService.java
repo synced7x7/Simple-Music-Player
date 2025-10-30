@@ -4,8 +4,6 @@ import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.SimpleMusicPlayer;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.TempTrackDAO;
-import com.example.simple_music_player.db.TrackDAO;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +19,7 @@ public class TempPlaylistService {
 
     public void loadTempPlaylist() throws SQLException {
         List<String> filePaths = SimpleMusicPlayer.argument;
-        List<Integer> idsToLoad = new ArrayList<>();
+
         for (String path : filePaths) {
             try {
                 Track track = new Track(path); // Create Track from file
@@ -32,7 +30,7 @@ public class TempPlaylistService {
             }
         }
 
-        idsToLoad = (tempTrackDAO.getAllIdsSortByDefault());
+        List<Integer> idsToLoad = new ArrayList<>(tempTrackDAO.getAllIdsSortByDefault());
         System.out.println("idsToLoad: " + idsToLoad);
         playbackService.setPlaylist(idsToLoad, 0, "Play", 0);
     }

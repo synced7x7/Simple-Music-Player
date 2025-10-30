@@ -55,8 +55,6 @@ public class LibraryController {
     @FXML
     private Label songCountLabel;
     @FXML
-    private Button playlistManagerButton;
-    @FXML
     private ProgressBar loadingProgressBar;
     @FXML
     private Button removeDuplicatesButton;
@@ -177,9 +175,7 @@ public class LibraryController {
                 } else if (newVal.equals("Force Refresh")) {
                     loadSongsFromDirectory(new File(trackDAO.getTrackPath()), DirectoryMode.FORCE);
                 }
-                Platform.runLater(() -> {
-                    refreshComboBox.getSelectionModel().clearSelection();
-                });
+                Platform.runLater(() -> refreshComboBox.getSelectionModel().clearSelection());
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -244,18 +240,15 @@ public class LibraryController {
                         }
                         return;
                     }
-                    final Integer songId = id; // capture for lambdas
-                    final Integer playlistId = currentPlaylistId;
-
-
+                    final Integer songId = id;
                     nameLabel.setText(track.getTitle());
                     cover.setImage(null);
 
-                    boolean isFavorite = false;
+                    boolean isFavorite;
                     try {
                         isFavorite = playlistsDAO.isSongInPlaylist(3, id);
                     } catch (SQLException e) {
-                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
 
                     if (isFavorite) {
@@ -397,13 +390,13 @@ public class LibraryController {
                                 trackDAO.removeFromLibrary(sId);
                                 playlistsDAO.deleteSongFromAllPlaylists(sId);
                                 System.out.println("Removed from Library & Deleted File: " + sId);
-                                songListView.getItems().remove(Integer.valueOf(sId));
+                                songListView.getItems().remove(sId);
                                 PlaybackService.playlist.remove(sId);
                                 refreshSongCountLabel();
                             }
                         } catch (SQLException e) {
                             System.err.println("Error removing song from DB: " + id);
-                            e.printStackTrace();
+                            throw new RuntimeException(e);
                         }
                     });
 
@@ -416,7 +409,7 @@ public class LibraryController {
                     // --- Song Info ---
                     MenuItem viewDetails = new MenuItem("View Details");
                     viewDetails.setOnAction((event) -> {
-                        SongDetailsUtility songDetailsUtiliy = null;
+                        SongDetailsUtility songDetailsUtiliy;
                         songDetailsUtiliy = new SongDetailsUtility();
                         songDetailsUtiliy.openSongDetails(songId);
                     });
@@ -732,7 +725,7 @@ public class LibraryController {
                     double finalProgress = (double) count / total;
                     Platform.runLater(() -> loadingProgressBar.setProgress(finalProgress));
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    throw new RuntimeException(ex);
                 }
             }
 

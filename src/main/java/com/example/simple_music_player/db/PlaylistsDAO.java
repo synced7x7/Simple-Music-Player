@@ -65,7 +65,7 @@ public class PlaylistsDAO {
             ps.setInt(2, songId);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -156,28 +156,6 @@ public class PlaylistsDAO {
                 """;
         try (PreparedStatement ps = conn.prepareStatement(createPlaylist)) {
             ps.executeUpdate();
-        }
-    }
-
-
-    public void replaceSongsInPlaylist(int playlistId, List<Integer> newSongIds) throws SQLException {
-        String deleteSql = "DELETE FROM playlist_songs WHERE playlist_id = ?";
-        try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
-            ps.setInt(1, playlistId);
-            ps.executeUpdate();
-        }
-
-        String insertSql = """
-                INSERT INTO playlist_songs (playlist_id, song_id)
-                VALUES (?, ?)
-                """;
-        try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
-            for (Integer songId : newSongIds) {
-                ps.setInt(1, playlistId);
-                ps.setInt(2, songId);
-                ps.addBatch();
-            }
-            ps.executeBatch();
         }
     }
 

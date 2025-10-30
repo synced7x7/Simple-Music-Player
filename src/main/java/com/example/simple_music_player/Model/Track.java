@@ -5,11 +5,7 @@ import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Utility.CompressionUtility;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.Mp3File;
-import javafx.scene.SnapshotParameters;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import javafx.scene.image.WritableImage;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,22 +22,15 @@ import org.jaudiotagger.tag.TagField;
 import org.jaudiotagger.tag.flac.FlacTag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
-import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyUSLT;
 import org.jaudiotagger.tag.images.Artwork;
-
 import java.util.List;
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-
-import javafx.embed.swing.SwingFXUtils;
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 
 @Getter
@@ -124,7 +113,7 @@ public class Track {
 
         } catch (Exception e) {
             System.out.println("Error reading metadata for: " + filePath);
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         String l = Integer.toString(len);

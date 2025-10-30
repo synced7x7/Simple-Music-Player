@@ -42,7 +42,7 @@ public class TempTrackDAO {
             ps.setString(14, track.getDateAdded());
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -54,7 +54,7 @@ public class TempTrackDAO {
                 if (rs.next()) return mapRowToTrack(rs);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return null;
     }
@@ -68,7 +68,7 @@ public class TempTrackDAO {
                 ids.add(rs.getInt("id"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return ids;
     }
@@ -98,7 +98,7 @@ public class TempTrackDAO {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

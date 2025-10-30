@@ -45,7 +45,7 @@ public class TrackDAO {
             ps.setString(14, track.getDateAdded());
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -57,7 +57,7 @@ public class TrackDAO {
             ps.executeUpdate();
             System.out.println("Deletion of all songs from the database is successful.");
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -89,7 +89,7 @@ public class TrackDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return "";
     }
@@ -138,7 +138,7 @@ public class TrackDAO {
                 ids.add(rs.getInt("id"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return ids;
     }
@@ -151,7 +151,7 @@ public class TrackDAO {
                 if (rs.next()) return mapRowToTrack(rs);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return null;
     }
@@ -169,7 +169,7 @@ public class TrackDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return null;
     }
@@ -208,7 +208,7 @@ public class TrackDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         return ids;
@@ -246,7 +246,7 @@ public class TrackDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         return ids;

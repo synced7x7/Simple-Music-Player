@@ -6,22 +6,15 @@ import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.UserPrefRealtimeDAO;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
 
 public class MainController {
-    @FXML
-    private SplitPane mainSplitPane;
     @FXML
     private AnchorPane albumCoverPane;
     @FXML

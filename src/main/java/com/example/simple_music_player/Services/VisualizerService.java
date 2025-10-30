@@ -11,7 +11,6 @@ import javafx.scene.paint.Color;
 import javax.sound.sampled.*;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -102,12 +101,12 @@ public class VisualizerService {
                 Platform.runLater(this::drawWaveform);
 
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }).start();
     }
 
-    private Random random = new Random();
+    private final Random random = new Random();
 
     private void processFromNoWavFile(File audioFile, String fileFormat) {
         try {
@@ -135,7 +134,6 @@ public class VisualizerService {
             temporalCopiedFile.delete();
 
         } catch (Exception e) {
-            e.printStackTrace();
             System.out.println("Error processing " + fileFormat + " file: " + audioFile.getName());
             // Create fallback empty waveform
             waveform = new float[300];
@@ -163,7 +161,7 @@ public class VisualizerService {
             encoder.encode(new MultimediaObject(sourceFile), destinationFile, attributes);
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
     }
 
@@ -238,7 +236,7 @@ public class VisualizerService {
             bitstream.close();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -323,7 +321,7 @@ public class VisualizerService {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

@@ -14,9 +14,9 @@ public class MiscDAO {
 
     public void upsertFileTimestamp(long lastModified) throws SQLException {
         String sql = """
-        INSERT OR REPLACE INTO misc (id, last_modified)
-        VALUES (1, ?);
-    """;
+                    INSERT OR REPLACE INTO misc (id, last_modified)
+                    VALUES (1, ?);
+                """;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, lastModified);
             ps.executeUpdate();

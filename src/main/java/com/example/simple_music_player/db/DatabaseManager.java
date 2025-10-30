@@ -26,8 +26,8 @@ public class DatabaseManager {
                 createTables();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
             System.err.println("❌ Failed to initialize SQLite database.");
+            throw new RuntimeException(e);
         }
     }
 
@@ -154,7 +154,7 @@ public class DatabaseManager {
                 connection.close();
                 System.out.println("🔒 SQLite connection closed.");
             } catch (SQLException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
     }

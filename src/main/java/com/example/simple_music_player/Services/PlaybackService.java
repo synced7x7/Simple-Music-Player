@@ -63,10 +63,6 @@ public class PlaybackService {
         return currentTrack.get();
     }
 
-    public ReadOnlyDoubleProperty progressProperty() {
-        return progress;
-    }
-
     @Getter
     public static List<Integer> playlist;// just keep IDs of songs in order
     @Setter
@@ -99,10 +95,6 @@ public class PlaybackService {
             currentIndex = 0;
             play(currentIndex);
         }
-    }
-
-    public void addToPlaylist(List<Integer> ids) throws SQLException {
-        playlist.addAll(ids);
     }
 
     //Playlist for initial loading for directory
@@ -149,7 +141,7 @@ public class PlaybackService {
             try {
                 next();
             } catch (SQLException ex) {
-                ex.printStackTrace();
+                throw new RuntimeException(ex);
             }
             return; // exit early
         }
@@ -186,7 +178,7 @@ public class PlaybackService {
                             System.err.println("Failed to load renamed file: " + safeFile.getAbsolutePath());
                             safelyDeleteSong(songId);
                             Platform.runLater(() -> {
-                                try { next(); } catch (SQLException ex) { ex.printStackTrace(); }
+                                try { next(); } catch (SQLException ex) { throw new RuntimeException(ex); }
                             });
                         }
                     });
@@ -194,7 +186,7 @@ public class PlaybackService {
                     System.err.println("Could not rename file: " + finalAudioFile.getAbsolutePath());
                     safelyDeleteSong(songId);
                     Platform.runLater(() -> {
-                        try { next(); } catch (SQLException e) { e.printStackTrace(); }
+                        try { next(); } catch (SQLException e) { throw new RuntimeException(e); }
                     });
                 }
             });
@@ -255,9 +247,7 @@ public class PlaybackService {
             mediaPlayer.setAudioSpectrumNumBands(128);     // Number of frequency bars
             mediaPlayer.setAudioSpectrumInterval(0.02);    // ~50 FPS update rate
             mediaPlayer.setAudioSpectrumThreshold(-80);    // Sensitivity
-            mediaPlayer.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> {
-                visualizer.updateSpectrum(magnitudes);
-            });
+            mediaPlayer.setAudioSpectrumListener((timestamp, duration, magnitudes, phases) -> visualizer.updateSpectrum(magnitudes));
         }
     }
 
@@ -358,7 +348,7 @@ public class PlaybackService {
             try {
                 next();
             } catch (SQLException ex) {
-                ex.printStackTrace();
+                throw new RuntimeException(ex);
             }
             return; // exit early
         }
@@ -395,7 +385,7 @@ public class PlaybackService {
                             System.err.println("Failed to load renamed file: " + safeFile.getAbsolutePath());
                             safelyDeleteSong(songId);
                             Platform.runLater(() -> {
-                                try { next(); } catch (SQLException ex) { ex.printStackTrace(); }
+                                try { next(); } catch (SQLException ex) { throw new RuntimeException(ex); }
                             });
                         }
                     });
@@ -403,7 +393,7 @@ public class PlaybackService {
                     System.err.println("Could not rename file: " + finalAudioFile.getAbsolutePath());
                     safelyDeleteSong(songId);
                     Platform.runLater(() -> {
-                        try { next(); } catch (SQLException e) { e.printStackTrace(); }
+                        try { next(); } catch (SQLException e) { throw new RuntimeException(e); }
                     });
                 }
             });
@@ -413,9 +403,7 @@ public class PlaybackService {
         
         mediaPlayer = new MediaPlayer(media);
 
-        mediaPlayer.setOnReady(() -> {
-            mediaPlayer.play();
-        });
+        mediaPlayer.setOnReady(() -> mediaPlayer.play());
 
         setVolume(UserPref.volume);
         setupDurationListener(mediaPlayer);
@@ -473,7 +461,7 @@ public class PlaybackService {
             });
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -664,7 +652,6 @@ public class PlaybackService {
             return tempWavFile;
 
         } catch (Exception e) {
-            e.printStackTrace();
             System.err.println("Failed to convert FLAC to WAV, returning original file");
             return flacFile; // Fallback to original (will fail but prevents crash)
         }

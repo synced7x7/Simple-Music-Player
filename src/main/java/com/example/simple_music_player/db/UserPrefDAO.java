@@ -19,8 +19,7 @@ public class UserPrefDAO {
 
 
         String sql = """
-        INSERT OR REPLACE INTO user_pref 
-        (id, playlistNo, timestamp, status, repeat, shuffle, isRundown, volume, playlistId)
+        INSERT OR REPLACE INTO user_pref (id, playlistNo, timestamp, status, repeat, shuffle, isRundown, volume, playlistId)
         VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)
     """;
 

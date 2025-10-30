@@ -15,7 +15,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.List;
 
 public class PlaylistService {
