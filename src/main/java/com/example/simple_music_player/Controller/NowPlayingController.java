@@ -343,7 +343,6 @@ public class NowPlayingController {
     @FXML
     private void toggleLyrics() throws CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException, IOException {
         lyricsToggleCount = (lyricsToggleCount + 1) % 3;
-        System.out.println("Lyrics Toggle Count = " + lyricsToggleCount);
 
         Track currentTrack = playbackService.getCurrentTrack();
 
@@ -378,6 +377,11 @@ public class NowPlayingController {
                 }
             }
             case 2 -> {
+                currentLyricLines.clear();
+
+                lyricsScrollPane.setVisible(false);
+                lyricsScrollPane.setManaged(false);
+
                 realtimeVisualizerController.startVisualizer();
                 playbackService.setupVisualizerListener(playbackService.getMediaPlayer());
                 System.out.println("SyncedXMode");

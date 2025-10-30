@@ -261,6 +261,14 @@ public class PlaybackService {
         }
     }
 
+    private void restartVisualizer() {
+        RealtimeVisualizerService   realtimeVisualizerService = NowPlayingController.getInstance().getRealtimeVisualizerController();
+        if(!realtimeVisualizerService.getIsRunning()) return;
+        realtimeVisualizerService.stopVisualizer();
+        realtimeVisualizerService.startVisualizer();
+        setupVisualizerListener(mediaPlayer);
+    }
+
     private void setupDurationListener(MediaPlayer player) {
         player.currentTimeProperty().addListener((obs, oldT, newT) -> {
             if (playlist == null || playlist.isEmpty()) {
@@ -407,6 +415,7 @@ public class PlaybackService {
 
         setVolume(UserPref.volume);
         setupDurationListener(mediaPlayer);
+        restartVisualizer();
 
         mediaPlayer.setOnEndOfMedia(() -> {
             if (UserPref.repeat == 1) {
@@ -614,7 +623,7 @@ public class PlaybackService {
     private File tempWavFile = null; // Store temp file reference
     private Encoder encoder;
 
-    private String getFileExtension(File file) {
+    public String getFileExtension(File file) {
         String name = file.getName();
         int lastDot = name.lastIndexOf('.');
         if (lastDot == -1) return "";

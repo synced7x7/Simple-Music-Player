@@ -1,5 +1,7 @@
 package com.example.simple_music_player.Model;
 
+import com.example.simple_music_player.Controller.NowPlayingController;
+import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Utility.CompressionUtility;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.Mp3File;
@@ -184,13 +186,17 @@ public class Track {
     }
 
     public String getLyrics() throws CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException, IOException {
+
         if (lyrics == null || lyrics.isEmpty()) {
             AudioFile audioFile = AudioFileIO.read(new File(path));
+            PlaybackService playbackService = NowPlayingController.getPlaybackService();
+            String ext = playbackService.getFileExtension(new File(path));
+            if (ext.equals("wav")) return lyrics;
             Tag tag = audioFile.getTag();
             if (tag != null) {
                 //Jaudiotagger default lyrics extraction
                 lyrics = tag.getFirst(FieldKey.LYRICS);
-                if(lyrics == null || lyrics.isEmpty()){
+                if (lyrics == null || lyrics.isEmpty()) {
                     System.out.println("Failed to extract lyrics using default JaudioTagger");
                 } else return lyrics;
 
@@ -209,7 +215,7 @@ public class Track {
                     }
                 }
 
-                if(lyrics == null || lyrics.isEmpty()){
+                if (lyrics == null || lyrics.isEmpty()) {
                     System.out.println("Failed to extract lyrics using default USLT lyrics extraction");
                 } else return lyrics;
 
@@ -249,7 +255,7 @@ public class Track {
                     }
                 }
 
-                if(lyrics == null || lyrics.isEmpty()){
+                if (lyrics == null || lyrics.isEmpty()) {
                     System.out.println("Failed to extract lyrics using mp3agic extraction");
                 } else return lyrics;
             }
