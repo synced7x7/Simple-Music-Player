@@ -7,6 +7,11 @@ import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Services.RealtimeVisualizerService;
 import com.example.simple_music_player.Services.VisualizerService;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -20,6 +25,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.CubicCurve;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -82,9 +88,15 @@ public class NowPlayingController {
     private Button toggleLibraryButton;
     @FXML
     private Label syncedXLyricsLabel;
+    @FXML
+    private CubicCurve curve;
 
     private List<LyricLine> syncedLyricLines = new ArrayList<>();
     private int lastSyncedLabelIndex = -1;
+    private final DoubleProperty progress = new SimpleDoubleProperty(0);
+    public DoubleProperty progressProperty() {
+        return progress;
+    }
 
     private List<LyricLine> currentLyricLines = new ArrayList<>();
     public static VisualizerService visualizerController;
@@ -196,6 +208,7 @@ public class NowPlayingController {
                 backAlbumCover.setImage(null);
             }
 
+            //Lyrics
             if (isLyricsActive) {
                 try {
                     displayLyrics(newT.getLyrics());
@@ -214,7 +227,24 @@ public class NowPlayingController {
                     throw new RuntimeException(e);
                 }
             }
+
+            //Curve ProgressBar
+            animateCurveProgress();
         });
+
+        //Curve Stylize
+        curve.setStroke(javafx.scene.paint.Color.web("#00d4ff"));
+        curve.setEffect(new javafx.scene.effect.DropShadow(10, javafx.scene.paint.Color.web("#00d4ff")));
+    }
+
+    private void animateCurveProgress() {
+        double curveLength = 500;
+        curve.getStrokeDashArray().setAll(curveLength, curveLength);
+
+        // Bind strokeDashOffset to (1 - progress)
+        curve.strokeDashOffsetProperty().bind(
+                progress.multiply(-curveLength).add(curveLength)
+        );
     }
 
     @FXML

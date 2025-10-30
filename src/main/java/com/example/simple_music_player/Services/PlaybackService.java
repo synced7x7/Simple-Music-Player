@@ -114,9 +114,9 @@ public class PlaybackService {
         UserPref.playlistNo = currentIndex;
         int songId = playlist.get(idx);
         Track t;
-        if(SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
+        if (SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
             t = trackDao.getTrackById(songId);
-        else{ //for commandline Argument
+        else { //for commandline Argument
             t = tempTrackDAO.getTrackById(songId);
             double vol = userPrefDAO.getVolume();
             setVolume(vol);
@@ -178,7 +178,11 @@ public class PlaybackService {
                             System.err.println("Failed to load renamed file: " + safeFile.getAbsolutePath());
                             safelyDeleteSong(songId);
                             Platform.runLater(() -> {
-                                try { next(); } catch (SQLException ex) { throw new RuntimeException(ex); }
+                                try {
+                                    next();
+                                } catch (SQLException ex) {
+                                    throw new RuntimeException(ex);
+                                }
                             });
                         }
                     });
@@ -186,7 +190,11 @@ public class PlaybackService {
                     System.err.println("Could not rename file: " + finalAudioFile.getAbsolutePath());
                     safelyDeleteSong(songId);
                     Platform.runLater(() -> {
-                        try { next(); } catch (SQLException e) { throw new RuntimeException(e); }
+                        try {
+                            next();
+                        } catch (SQLException e) {
+                            throw new RuntimeException(e);
+                        }
                     });
                 }
             });
@@ -252,8 +260,8 @@ public class PlaybackService {
     }
 
     private void restartVisualizer() {
-        RealtimeVisualizerService   realtimeVisualizerService = NowPlayingController.getInstance().getRealtimeVisualizerController();
-        if(!realtimeVisualizerService.getIsRunning()) return;
+        RealtimeVisualizerService realtimeVisualizerService = NowPlayingController.getInstance().getRealtimeVisualizerController();
+        if (!realtimeVisualizerService.getIsRunning()) return;
         realtimeVisualizerService.stopVisualizer();
         realtimeVisualizerService.startVisualizer();
         setupVisualizerListener(mediaPlayer);
@@ -288,6 +296,9 @@ public class PlaybackService {
 
                 }
 
+                if (nowPlayingController != null)
+                    nowPlayingController.progressProperty().bind(progress);
+
                 int currentSec = (int) newT.toSeconds();
                 int totalSec = (int) total.toSeconds();
 
@@ -319,9 +330,9 @@ public class PlaybackService {
         currentIndex = index;
         int songId = playlist.get(index);
         Track t;
-        if(SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
+        if (SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
             t = trackDao.getTrackById(songId);
-        else{
+        else {
             System.out.println("Song Id: " + songId);
             t = tempTrackDAO.getTrackById(songId);
             System.out.println("temp track = " + t);
@@ -385,7 +396,11 @@ public class PlaybackService {
                             System.err.println("Failed to load renamed file: " + safeFile.getAbsolutePath());
                             safelyDeleteSong(songId);
                             Platform.runLater(() -> {
-                                try { next(); } catch (SQLException ex) { throw new RuntimeException(ex); }
+                                try {
+                                    next();
+                                } catch (SQLException ex) {
+                                    throw new RuntimeException(ex);
+                                }
                             });
                         }
                     });
@@ -393,14 +408,18 @@ public class PlaybackService {
                     System.err.println("Could not rename file: " + finalAudioFile.getAbsolutePath());
                     safelyDeleteSong(songId);
                     Platform.runLater(() -> {
-                        try { next(); } catch (SQLException e) { throw new RuntimeException(e); }
+                        try {
+                            next();
+                        } catch (SQLException e) {
+                            throw new RuntimeException(e);
+                        }
                     });
                 }
             });
 
             return;
         }
-        
+
         mediaPlayer = new MediaPlayer(media);
 
         mediaPlayer.setOnReady(() -> mediaPlayer.play());
