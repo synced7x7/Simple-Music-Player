@@ -3,6 +3,7 @@ package com.example.simple_music_player.Services;
 import com.example.simple_music_player.Controller.AlbumCoverController;
 import com.example.simple_music_player.Controller.LibraryController;
 import com.example.simple_music_player.Controller.NowPlayingController;
+import com.example.simple_music_player.Enum.MediaStatus;
 import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
@@ -514,9 +515,11 @@ public class PlaybackService {
         }
         MediaPlayer.Status s = mediaPlayer.getStatus();
         if (s == MediaPlayer.Status.PLAYING) {
+            nowPlayingController.togglePlayPause(MediaStatus.PAUSED);
             UserPref.status = "Pause";
             pause();
         } else {
+            nowPlayingController.togglePlayPause(MediaStatus.PLAYING);
             UserPref.status = "Play";
             play();
         }

@@ -335,47 +335,57 @@ public class VisualizerService {
             int length = waveform.length;
             double barWidth = canvasWidth / length;
 
-            // Create canvas for off-screen rendering
-            Canvas offscreenCanvas = new Canvas(canvasWidth, canvasHeight);
-            GraphicsContext imgGc = offscreenCanvas.getGraphicsContext2D();
+            // Clear canvas to transparent
+            GraphicsContext gc = waveformCanvas.getGraphicsContext2D();
+            gc.clearRect(0, 0, canvasWidth, canvasHeight);
 
-            imgGc.setFill(Color.LIGHTBLUE);
-
+            // Draw bars directly on transparent canvas
             for (int i = 0; i < length; i++) {
                 double value = waveform[i];
                 double barHeight = value * canvasHeight * 0.7;
-                imgGc.fillRect(i * barWidth, (canvasHeight - barHeight) / 2, barWidth, barHeight);
+                gc.setFill(Color.CORNFLOWERBLUE);  // waveform color
+                gc.fillRect(i * barWidth, (canvasHeight - barHeight) / 2, barWidth, barHeight);
             }
-
-            // Cache the waveform as image
-            waveformImage = offscreenCanvas.snapshot(null, null);
-
-            // Draw initial view
-            GraphicsContext gc = waveformCanvas.getGraphicsContext2D();
-            gc.clearRect(0, 0, canvasWidth, canvasHeight);
-            gc.drawImage(waveformImage, 0, 0, canvasWidth, canvasHeight);
         });
     }
 
+
     public void updateProgress(double progress) {
-        if (waveformImage == null) return;
+        if (waveform == null || waveform.length == 0) return;
 
         Platform.runLater(() -> {
             GraphicsContext gc = waveformCanvas.getGraphicsContext2D();
             double canvasWidth = waveformCanvas.getWidth();
             double canvasHeight = waveformCanvas.getHeight();
+            int length = waveform.length;
+            double barWidth = canvasWidth / length;
 
-            // Draw the cached waveform image
+            // Clear canvas
             gc.clearRect(0, 0, canvasWidth, canvasHeight);
-            gc.drawImage(waveformImage, 0, 0, canvasWidth, canvasHeight);
 
-            // Draw progress overlay (dark blue rectangle)
-            gc.setGlobalAlpha(0.4); // optional transparency
-            gc.setFill(Color.DARKBLUE);
+            // Draw progress overlay first
+            gc.setGlobalAlpha(0.3); // semi-transparent
+            gc.setFill(Color.DARKBLUE); // overlay color
             gc.fillRect(0, 0, canvasWidth * progress, canvasHeight);
-            gc.setGlobalAlpha(1.0);
+            gc.setGlobalAlpha(1.0); // reset alpha
+
+            // Draw waveform bars over the overlay
+            for (int i = 0; i < length; i++) {
+                double value = waveform[i];
+                double barHeight = value * canvasHeight * 0.7;
+
+                // If this bar is inside progress, color it differently
+                if ((i / (double) length) <= progress) {
+                    gc.setFill(Color.DEEPPINK); // played part
+                } else {
+                    gc.setFill(Color.SLATEGRAY); // remaining part
+                }
+
+                gc.fillRect(i * barWidth, (canvasHeight - barHeight) / 2, barWidth, barHeight);
+            }
         });
     }
+
 
     // Call this when changing songs or closing the visualizer
     public void cleanup() {

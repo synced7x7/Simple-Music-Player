@@ -1,5 +1,6 @@
 package com.example.simple_music_player.Controller;
 
+import com.example.simple_music_player.Enum.MediaStatus;
 import com.example.simple_music_player.Model.LyricLine;
 import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
@@ -7,11 +8,10 @@ import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Services.RealtimeVisualizerService;
 import com.example.simple_music_player.Services.VisualizerService;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
+import com.example.simple_music_player.Utility.AnimationUtils;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -22,6 +22,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
@@ -37,6 +38,7 @@ import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.TagException;
 
+import javax.print.attribute.standard.Media;
 import java.awt.Desktop;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +46,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class NowPlayingController {
     @FXML
@@ -90,10 +93,13 @@ public class NowPlayingController {
     private Label syncedXLyricsLabel;
     @FXML
     private CubicCurve curve;
+    @FXML
+    private ImageView playButtonImageView;
 
     private List<LyricLine> syncedLyricLines = new ArrayList<>();
     private int lastSyncedLabelIndex = -1;
     private final DoubleProperty progress = new SimpleDoubleProperty(0);
+
     public DoubleProperty progressProperty() {
         return progress;
     }
@@ -366,21 +372,14 @@ public class NowPlayingController {
         playbackService.setVolume(volumeSlider.getValue());
     }
 
-
     public void updateShuffleButtonStyle() {
-        if (UserPref.shuffle == 1) {
-            shuffleButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
-        } else {
-            shuffleButton.setStyle("");
-        }
+        boolean isActive = (UserPref.shuffle == 1);
+        shuffleButton.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), isActive);
     }
 
     public void updateRepeatButtonStyle() {
-        if (UserPref.repeat == 1) {
-            repeatButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
-        } else {
-            repeatButton.setStyle("");
-        }
+        boolean isActive = (UserPref.repeat == 1);
+        repeatButton.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), isActive);
     }
 
     @FXML
@@ -666,6 +665,19 @@ public class NowPlayingController {
     public void hideShuffleButton() {
         shuffleButton.setVisible(false);
         shuffleButton.setManaged(false);
+    }
+
+    public void togglePlayPause(MediaStatus status) {
+        Image image;
+        if (status == MediaStatus.PLAYING) {
+            image = new Image(Objects.requireNonNull(getClass().getResource("/icons/pauseButton.png")).toExternalForm());
+            AnimationUtils.scaleDown(albumCover, 1, 0.3f);
+        } else {
+            image = new Image(Objects.requireNonNull(getClass().getResource("/icons/playButton.png")).toExternalForm());
+            AnimationUtils.scaleDown(albumCover, 0.95, 0.3f);
+        }
+        playButtonImageView.setImage(image);
+        playButton.setGraphic(playButtonImageView);
     }
 
 }

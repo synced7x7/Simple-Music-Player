@@ -7,6 +7,7 @@ import com.example.simple_music_player.db.DatabaseManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -24,13 +25,26 @@ public class SimpleMusicPlayer extends Application {
         DatabaseManager.initialize();
         FXMLLoader fxmlLoader = new FXMLLoader(SimpleMusicPlayer.class.getResource("main.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/Style/MainController.css")).toExternalForm());
+        //css loader
+        getStyleSheets(scene);
+        loadFont();
+        //
         stage.setResizable(false);
         stage.setTitle("Simple Music Player");
         stage.setScene(scene);
         stage.show();
         MainController mainController = MainController.getInstance();
         mainController.setStage(stage);
+    }
+
+    private void loadFont() {
+        Font.loadFont(getClass().getResourceAsStream("/fonts/chiffon-trial-semibold.ttf"), 14);
+    }
+
+    private void getStyleSheets(Scene scene) {
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/base.css")).toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/components.css")).toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/animations.css")).toExternalForm());
     }
 
     public static void main(String[] args) {

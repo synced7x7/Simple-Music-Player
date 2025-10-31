@@ -5,6 +5,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.effect.Glow?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -34,6 +35,28 @@
         </font>
     </Label>
     <AnchorPane fx:id="realtimeVisualizerHolder" layoutX="-2.0" layoutY="143.0" prefHeight="316.0" prefWidth="451.0" />
+    <Label fx:id="bitRateLabel" alignment="CENTER" layoutY="250.0" prefHeight="26.0" prefWidth="58.0" styleClass="tag" stylesheets="@../../../styles/components.css" text="BitRate" textFill="WHITE">
+      <font>
+         <Font name="Times New Roman Italic" size="12.0" />
+      </font>
+      <effect>
+         <Glow level="1.0" />
+      </effect></Label>
+    <Label fx:id="formatLabel" alignment="CENTER" layoutY="310.0" prefHeight="26.0" prefWidth="58.0" styleClass="tag" stylesheets="@../../../styles/components.css" text="flac" textFill="WHITE">
+      <font>
+         <Font name="Times New Roman Italic" size="12.0" />
+      </font>
+      <effect>
+         <Glow level="1.0" />
+      </effect>
+   </Label>
+    <Label fx:id="sampleRateLabel" alignment="CENTER" layoutY="280.0" prefHeight="26.0" prefWidth="58.0" styleClass="tag" stylesheets="@../../../styles/components.css" text="44kHz" textFill="WHITE">
+      <font>
+         <Font name="Times New Roman Italic" size="12.0" />
+      </font>
+      <effect>
+         <Glow level="1.0" />
+      </effect></Label>
     <StackPane layoutX="61.0" layoutY="46.0" prefHeight="404.0" prefWidth="343.0">
         <ImageView fx:id="albumCover" fitHeight="406.0" fitWidth="343.0" preserveRatio="true">
             <effect>
@@ -51,25 +74,77 @@
             <Font name="System Bold" size="21.0" />
         </font>
     </Label>
-    <Button fx:id="playButton" alignment="CENTER" layoutX="199.0" layoutY="701.0" text="Play" />
-    <Button fx:id="nextButton" layoutX="286.0" layoutY="700.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="59.0" text="Next" />
-    <Button fx:id="prevButton" layoutX="82.0" layoutY="701.0" mnemonicParsing="false" text="Previous" />
-    <Label fx:id="nameLabel" alignment="CENTER" layoutX="50.0" layoutY="483.0" prefHeight="26.0" prefWidth="343.0" text="Title" />
-    <Label fx:id="artistLabel" alignment="CENTER" layoutX="50.0" layoutY="521.0" prefHeight="26.0" prefWidth="343.0" text="Aritst" />
-    <Label fx:id="albumLabel" alignment="CENTER" layoutX="51.0" layoutY="552.0" prefHeight="26.0" prefWidth="343.0" text="Album" />
-    <Label fx:id="timeLabel" alignment="CENTER" layoutX="404.0" layoutY="627.0" onMouseClicked="#toggleCountdown" prefHeight="18.0" prefWidth="38.0" text="00:00" />
-    <Label fx:id="bitRateLabel" alignment="CENTER" layoutX="285.0" layoutY="593.0" prefHeight="26.0" prefWidth="61.0" text="Bitrate" />
-    <Label fx:id="formatLabel" alignment="CENTER" layoutX="101.0" layoutY="593.0" prefHeight="26.0" prefWidth="59.0" text="Format" />
-    <Label fx:id="sampleRateLabel" alignment="CENTER" layoutX="187.0" layoutY="593.0" prefHeight="26.0" prefWidth="72.0" text="Samplerate" />
-    <AnchorPane fx:id="visualizerHolder" layoutX="41.0" layoutY="623.0" prefHeight="62.0" prefWidth="362.0" />
+    <Button fx:id="playButton" alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" layoutX="200.0" layoutY="680.0" prefHeight="26.0" prefWidth="46.0" styleClass="play-pause-button" stylesheets="@../../../styles/components.css">
+      <graphic>
+         <ImageView fx:id="playButtonImageView" fitHeight="32.0" fitWidth="19.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+               <Image url="@../../../icons/playButton.png" />
+            </image>
+         </ImageView>
+      </graphic>
+   </Button>
+    <Button fx:id="nextButton" layoutX="264.0" layoutY="685.0" mnemonicParsing="false" prefHeight="18.0" prefWidth="59.0" styleClass="next-previous-button" stylesheets="@../../../styles/components.css">
+      <graphic>
+         <ImageView fitHeight="42.0" fitWidth="42.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+               <Image url="@../../../icons/forwardButton.png" />
+            </image>
+         </ImageView>
+      </graphic>
+      <effect>
+         <Glow level="1.0" />
+      </effect></Button>
+    <Button fx:id="prevButton" layoutX="124.0" layoutY="685.0" mnemonicParsing="false" prefHeight="18.0" prefWidth="46.0" styleClass="next-previous-button" stylesheets="@../../../styles/components.css">
+      <graphic>
+         <ImageView fitHeight="42.0" fitWidth="42.0" pickOnBounds="true" preserveRatio="true" rotate="180.0">
+            <image>
+               <Image url="@../../../icons/forwardButton.png" />
+            </image>
+         </ImageView>
+      </graphic>
+      <effect>
+         <Glow level="1.0" />
+      </effect></Button>
+    <Label fx:id="nameLabel" layoutX="41.0" layoutY="530.0" prefHeight="26.0" prefWidth="343.0" styleClass="title" stylesheets="@../../../styles/components.css" text="Title" textFill="WHITE">
+      <font>
+         <Font name="Chiffon TRIAL SemiBold" size="20.0" />
+      </font>
+      <effect>
+         <Glow level="1.0" />
+      </effect></Label>
+    <Label fx:id="artistLabel" layoutX="41.0" layoutY="559.0" prefHeight="26.0" prefWidth="343.0" text="Aritst" textFill="WHITE">
+      <effect>
+         <Glow level="1.0" />
+      </effect>
+      <font>
+         <Font name="Chiffon TRIAL Regular" size="14.0" />
+      </font></Label>
+    <Label fx:id="albumLabel" layoutX="41.0" layoutY="590.0" prefHeight="26.0" prefWidth="362.0" text="Album" textFill="WHITE">
+      <effect>
+         <Glow level="1.0" />
+      </effect>
+      <font>
+         <Font name="Chiffon TRIAL Regular" size="14.0" />
+      </font></Label>
+    <Label fx:id="timeLabel" alignment="CENTER" layoutX="406.0" layoutY="634.0" onMouseClicked="#toggleCountdown" prefHeight="18.0" prefWidth="38.0" styleClass="time-label" stylesheets="@../../../styles/components.css" text="00:00" textFill="WHITE">
+      <effect>
+         <Glow level="1.0" />
+      </effect></Label>
+    <AnchorPane fx:id="visualizerHolder" layoutX="41.0" layoutY="623.0" prefHeight="40.0" prefWidth="362.0" styleClass="waveFormCanvas" stylesheets="@../../../styles/components.css" />
     <Button fx:id="infoButton" layoutX="33.0" layoutY="14.0" mnemonicParsing="false" onAction="#infoButtonHandler" text="𝒊" />
-    <Button fx:id="shuffleButton" layoutX="13.0" layoutY="562.0" mnemonicParsing="false" onAction="#toggleShuffle" text="🔀" />
-    <Button fx:id="repeatButton" layoutX="13.0" layoutY="521.0" mnemonicParsing="false" onAction="#toggleRepeat" text="🔁" />
+    <Button fx:id="shuffleButton" layoutX="59.0" layoutY="691.0" mnemonicParsing="false" onAction="#toggleShuffle" styleClass="shuffle-button" stylesheets="@../../../styles/components.css" text="🔀" textFill="#b4b4b4">
+      <font>
+         <Font size="18.0" />
+      </font></Button>
+    <Button fx:id="repeatButton" layoutX="347.0" layoutY="691.0" mnemonicParsing="false" onAction="#toggleRepeat" styleClass="shuffle-button" stylesheets="@../../../styles/components.css" text="🔁" textFill="#969696">
+      <font>
+         <Font size="17.0" />
+      </font></Button>
     <Button fx:id="toggleLibraryButton" layoutX="416.0" layoutY="14.0" mnemonicParsing="false" onAction="#toggleLibraryView" opacity="0.5" prefHeight="26.0" prefWidth="30.0" text="▶" />
     <!-- Volume Control -->
     <Label layoutX="418.0" layoutY="566.0" text="🔊" />
     <Slider fx:id="volumeSlider" blockIncrement="0.01" layoutX="371.0" layoutY="474.0" max="1" min="0" prefHeight="14.0" prefWidth="106.0" rotate="-90.0" value="0.5" />
-    <Button fx:id="lyricsButton" layoutX="12.0" layoutY="483.0" mnemonicParsing="false" onAction="#toggleLyrics" text="၊၊||၊" />
+    <Button fx:id="lyricsButton" layoutX="14.0" layoutY="468.0" mnemonicParsing="false" onAction="#toggleLyrics" text="၊၊||၊" />
     <Button fx:id="toggleAlbumButton" layoutX="3.0" layoutY="104.0" mnemonicParsing="false" onAction="#toggleAlbumView" opacity="0.5" prefHeight="6.0" prefWidth="30.0" rotate="180.0" text="▶" />
     <CubicCurve fx:id="curve" controlX1="105.87976837158203" controlX2="332.2894287109375" controlY1="250.20001220703125" controlY2="149.39999389648438" endX="459.9999694824219" endY="298.20001220703125" fill="transparent" layoutX="-4.0" layoutY="288.0" startX="1.9999878406524658" startY="118.19998168945312" stroke="black" strokeWidth="4" />
 </AnchorPane>

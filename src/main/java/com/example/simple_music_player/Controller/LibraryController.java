@@ -1,6 +1,7 @@
 package com.example.simple_music_player.Controller;
 
 import com.example.simple_music_player.Enum.DirectoryMode;
+import com.example.simple_music_player.Enum.MediaStatus;
 import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
@@ -611,6 +612,13 @@ public class LibraryController {
 
         int idx = userPrefDAO.getPlaylistNo();
         String status = userPrefDAO.getUserStatus();
+        MediaStatus mediaStatus;
+        //Play-pause handler
+        if(status.equals("Play")) mediaStatus = MediaStatus.PLAYING;
+        else mediaStatus = MediaStatus.PAUSED;
+        NowPlayingController npc = NowPlayingController.getInstance();
+        npc.togglePlayPause(mediaStatus);
+        //
         long ts = userPrefDAO.getTimeStamp();
         List<Integer> idsToLoad;
         List<Integer> shuffleIdsToLoad = List.of();
@@ -667,14 +675,11 @@ public class LibraryController {
                 }
                 playbackService.initialTimePropertyBinding();
             }
-            NowPlayingController npc = NowPlayingController.getInstance();
-            if (npc != null) { //initialize Controller
-                npc.setInitialVolumeSliderControllerValue(UserPref.volume);
-                npc.updateShuffleButtonStyle();
-                npc.updateRepeatButtonStyle();
-            } else {
-                System.out.println("NowPlayingController not initialized yet!");
-            }
+
+            //initialize Controller
+            npc.setInitialVolumeSliderControllerValue(UserPref.volume);
+            npc.updateShuffleButtonStyle();
+            npc.updateRepeatButtonStyle();
         });
     }
 

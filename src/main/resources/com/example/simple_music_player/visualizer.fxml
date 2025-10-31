@@ -3,10 +3,7 @@
 <?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane fx:id="waveformCanvasParent" prefHeight="150.0" prefWidth="343.0" xmlns="http://javafx.com/javafx/25"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.simple_music_player.Services.VisualizerService">
+<AnchorPane fx:id="waveformCanvasParent" prefHeight="150.0" prefWidth="343.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Services.VisualizerService">
     <!-- Canvas is what we will draw into -->
-    <Canvas fx:id="waveformCanvas" height="150.0" width="343.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
-            AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
+    <Canvas fx:id="waveformCanvas" height="150.0" width="343.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" />
 </AnchorPane>
