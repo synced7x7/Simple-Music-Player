@@ -1,6 +1,5 @@
 .play-pause-button {
-    -fx-background-color:
-            linear-gradient(to top right, #a674fc, #ff003a);
+    -fx-background-color: linear-gradient(to top right, #a674fc, #ff003a);
     -fx-background-radius: 50%;
     -fx-padding: 12;
     -fx-cursor: hand;
@@ -15,8 +14,7 @@
 
 /* 🔥 Hover — brighter glow + slight scale-up */
 .play-pause-button:hover {
-    -fx-background-color:
-            linear-gradient(to bottom right, #ff5f6d, #ffc371);
+    -fx-background-color: linear-gradient(to bottom right, #ff5f6d, #ffc371);
     -fx-effect: dropshadow(gaussian, rgba(255, 100, 100, 0.8), 25, 0.6, 0, 0);
     -fx-scale-x: 1.1;
     -fx-scale-y: 1.1;
@@ -48,22 +46,26 @@
 .shuffle-button {
     -fx-background-color: transparent;
     -fx-text-fill: #b4b4b4;
-    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.2), 3, 0.6, 0, 0);
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 3, 0.6, 0, 0);
     -fx-font-size: 18px;
     -fx-font-weight: normal;
 }
 
 .shuffle-button:hover {
     -fx-text-fill: white;
-    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.6), 15, 0.8, 0, 0);
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.6), 15, 0.8, 0, 0);
 }
 
 .shuffle-button:selected {
     -fx-background-color: transparent;
     -fx-text-fill: linear-gradient(to right, #ff4b2b, #8e2de2);
-    -fx-effect: dropshadow(gaussian, rgba(255,0,0,0.6), 12, 0.5, 0, 0);
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 0, 0.6), 12, 0.5, 0, 0);
     -fx-scale-x: 1.1;
     -fx-scale-y: 1.1;
+}
+
+.shuffle-button:selected:hover {
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.6), 15, 0.4, 0, 0);
 }
 
 .waveFormCanvas {
@@ -83,4 +85,99 @@
 
 .title {
     -fx-text-fill: linear-gradient(to right, #ff4b2b, #8e2de2);
+}
+
+.lyrics-button {
+    -fx-background-color: transparent;
+}
+
+.lyrics-button:hover {
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.6), 12, 0.2, 0, 0);
+    -fx-scale-x: 1.2;
+    -fx-scale-y: 1.2;
+}
+
+.lyrics-button:pressed {
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+.curved-progress {
+    -fx-stroke: linear-gradient(to right, #ffffff, #ca98ff, #ff00a5);
+    -fx-effect: dropshadow(gaussian, #ff8ed5, 30, 0.6, 0, 0);
+}
+
+/* 🎚️ Volume Slider */
+.volume-slider {
+    -fx-control-inner-background: #ffffff;
+}
+
+/* Track (the base line) */
+.volume-slider .track {
+    -fx-background-color: rgba(253, 0, 164, 0.09);
+}
+
+/* Thumb (the handle) */
+.volume-slider .thumb {
+    -fx-background-color: linear-gradient(to bottom right, rgba(255, 255, 255, 0), rgba(255, 0, 195, 0.58));
+    -fx-scale-x: 0.8;
+    -fx-scale-y: 0.8;
+
+}
+
+.volume-slider .thumb:hover {
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+    -fx-effect: dropshadow(gaussian, #ff00a5, 20, 0.2, 0, 0);
+}
+
+.volume-slider .thumb:pressed {
+    -fx-scale-x: 0.8;
+    -fx-scale-y: 0.8;
+}
+
+.volume-button {
+    -fx-text-fill: linear-gradient(to right, #ff4b2b, #8e2de2);
+}
+
+/*--- Scroll Pane ---*/
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/* Content */
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Vertical ScrollBar */
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-pref-width: 10px; /* thin modern scrollbar */
+}
+
+/* Thumb (the draggable part) */
+.scroll-pane .thumb {
+    -fx-background-color: linear-gradient(to top right, #a674fc, #ff003a);
+    -fx-background-insets: 2;
+    -fx-background-radius: 8px;
+    -fx-effect: dropshadow(gaussian, rgba(255, 65, 108, 0.6), 20, 0.2, 2, 2);
+}
+
+/* Hover effect on thumb */
+.scroll-pane .thumb:hover {
+    -fx-background-color: linear-gradient(to bottom right, #ff5f6d, #ffc371);
+    -fx-effect: dropshadow(gaussian, rgba(255, 100, 100, 0.8), 25, 0.6, 0, 0);
+}
+
+/* Track (background of scrollbar) */
+.scroll-pane .track {
+    -fx-background-color: transparent;
+}
+
+/* Corner (bottom-right where vertical and horizontal meet) */
+.scroll-pane .corner {
+    -fx-background-color: transparent;
 }

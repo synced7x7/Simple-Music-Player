@@ -24,10 +24,12 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.CubicCurve;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -38,7 +40,6 @@ import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.TagException;
 
-import javax.print.attribute.standard.Media;
 import java.awt.Desktop;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
 import java.util.Objects;
+import java.util.Random;
 
 public class NowPlayingController {
     @FXML
@@ -95,6 +97,8 @@ public class NowPlayingController {
     private CubicCurve curve;
     @FXML
     private ImageView playButtonImageView;
+    @FXML
+    private Button lyricsButton;
 
     private List<LyricLine> syncedLyricLines = new ArrayList<>();
     private int lastSyncedLabelIndex = -1;
@@ -210,8 +214,29 @@ public class NowPlayingController {
                 albumCover.setImage(newT.getCover());
                 backAlbumCover.setImage(newT.getCover());
             } else {
-                albumCover.setImage(null);
-                backAlbumCover.setImage(null);
+                Random rand = new Random();
+                int randomNumber = rand.nextInt(6) + 1;
+                System.out.println("Random Number: "  + randomNumber);
+                Image img;
+                switch (randomNumber) {
+                    case 1 ->
+                            img = new Image(Objects.requireNonNull(getClass().getResource("/icons/visualizerico1.png")).toExternalForm());
+                    case 2 ->
+                            img = new Image(Objects.requireNonNull(getClass().getResource("/icons/visualizerico2.jpg")).toExternalForm());
+                    case 3 ->
+                            img = new Image(Objects.requireNonNull(getClass().getResource("/icons/visualizerico3.jpg")).toExternalForm());
+                    case 4 ->
+                            img = new Image(Objects.requireNonNull(getClass().getResource("/icons/visualizerico4.jpg")).toExternalForm());
+                    case 5 ->
+                            img = new Image(Objects.requireNonNull(getClass().getResource("/icons/visualizerico5.jpg")).toExternalForm());
+                    default ->
+                            img = new Image(Objects.requireNonNull(getClass().getResource("/icons/visualizerico6.jpg")).toExternalForm());
+
+                }
+                albumCover.setImage(img);
+                backAlbumCover.setImage(img);
+                AlbumCoverController albumCoverController = playbackService.getAlbumCoverController();
+                albumCoverController.setAlbumCover(img);
             }
 
             //Lyrics
@@ -238,9 +263,14 @@ public class NowPlayingController {
             animateCurveProgress();
         });
 
-        //Curve Stylize
-        curve.setStroke(javafx.scene.paint.Color.web("#00d4ff"));
-        curve.setEffect(new javafx.scene.effect.DropShadow(10, javafx.scene.paint.Color.web("#00d4ff")));
+        lyricsScrollPane.addEventFilter(ScrollEvent.SCROLL, event -> {
+            double deltaY = event.getDeltaY() * 3;
+            double height = lyricsScrollPane.getContent().getBoundsInLocal().getHeight();
+            double vValue = lyricsScrollPane.getVvalue();
+            // invert delta to match normal direction
+            lyricsScrollPane.setVvalue(vValue - deltaY / height);
+            event.consume();
+        });
     }
 
     private void animateCurveProgress() {
@@ -403,8 +433,8 @@ public class NowPlayingController {
 
                 lyricsScrollPane.setVisible(false);
                 lyricsScrollPane.setManaged(false);
-
                 realtimeVisualizerController.stopVisualizer();
+                lyricsButton.setStyle("-fx-text-fill: white");
             }
 
             // === CASE 1: Full Lyrics View ===
@@ -427,6 +457,7 @@ public class NowPlayingController {
                 }
 
                 realtimeVisualizerController.stopVisualizer();
+                lyricsButton.setStyle("-fx-text-fill: linear-gradient(to right, #6261bc, #ffffff)");
             }
 
             // === CASE 2: SyncedX Mode (Single Line + Visualizer) ===
@@ -453,6 +484,7 @@ public class NowPlayingController {
                 // 🔹 Start visualizer
                 realtimeVisualizerController.startVisualizer();
                 playbackService.setupVisualizerListener(playbackService.getMediaPlayer());
+                lyricsButton.setStyle("-fx-text-fill:   linear-gradient(to top right, #a674fc, #ff003a)");
 
                 System.out.println("SyncedXMode Activated");
             }
@@ -514,8 +546,8 @@ public class NowPlayingController {
         currentLyricLines.clear();
 
         if (lyrics == null || lyrics.isEmpty()) {
-            Text noLyrics = new Text("No lyrics available");
-            noLyrics.setStyle("-fx-fill: red; -fx-font-size: 14px;");
+            Text noLyrics = new Text("NO LYRICS AVAILABLE");
+            noLyrics.setStyle("-fx-fill: #ff6666; -fx-font-size: 16px; -fx-font-weight: bold; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 4, 0.2, 2, 2);");
             lyricsFlow.getChildren().add(noLyrics);
             return;
         }
@@ -528,22 +560,41 @@ public class NowPlayingController {
             String[] lines = lyrics.split("\n");
             for (String line : lines) {
                 Text text = new Text(line + "\n");
-                text.setStyle("-fx-fill: white; -fx-font-size: 14px;");
+                text.setStyle("""
+                            -fx-fill: linear-gradient(to top right, #a674fc, #ff003a);
+                            -fx-font-size: 14px;
+                            -fx-font-weight: bold;
+                            -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 4, 0.2, 2, 2);
+                        """);
+
+                text.wrappingWidthProperty().bind(lyricsFlow.widthProperty().subtract(20));
+                text.setTextAlignment(TextAlignment.CENTER);
                 lyricsFlow.getChildren().add(text);
             }
         } else {
             // Synced lyrics with timestamps
             for (LyricLine lyricLine : lyricLines) {
                 Text text = new Text(lyricLine.getText() + "\n");
-                text.setStyle("-fx-fill: white; -fx-font-size: 14px; -fx-cursor: hand;");
+                text.setStyle("-fx-fill: white; -fx-font-size: 14px;");
+                text.wrappingWidthProperty().bind(lyricsFlow.widthProperty().subtract(20));
+                text.setTextAlignment(TextAlignment.CENTER);
 
                 // Make clickable
-                text.setOnMouseClicked(e -> playbackService.seek(lyricLine.getTimestamp()));
+                text.setOnMouseClicked(e -> {
+                    if (!lyricLine.getTimestamp().equals(curLyricTime))
+                        playbackService.seek(lyricLine.getTimestamp());
+                });
 
                 // Hover effect
-                text.setOnMouseEntered(e -> text.setStyle("-fx-fill: #4CAF50; -fx-font-size: 14px; -fx-cursor: hand; -fx-underline: true;"));
+                text.setOnMouseEntered(e -> {
+                    if (!lyricLine.getTimestamp().equals(curLyricTime))
+                        text.setStyle("-fx-fill: linear-gradient(to bottom right, #ff5f6d, #ffc371); -fx-font-size: 14px; -fx-cursor: hand;");
+                });
 
-                text.setOnMouseExited(e -> text.setStyle("-fx-fill: white; -fx-font-size: 14px; -fx-cursor: hand;"));
+                text.setOnMouseExited(e -> {
+                    if (!lyricLine.getTimestamp().equals(curLyricTime))
+                        text.setStyle("-fx-fill: white; -fx-font-size: 14px;");
+                });
 
                 lyricsFlow.getChildren().add(text);
             }
@@ -587,6 +638,7 @@ public class NowPlayingController {
         return result;
     }
 
+    Duration curLyricTime;
 
     public void highlightCurrentLyric(Duration currentTime) {
         if (!isLyricsActive || currentLyricLines.isEmpty()) {
@@ -596,7 +648,7 @@ public class NowPlayingController {
         int currentIndex = -1;
         for (int i = 0; i < currentLyricLines.size(); i++) {
             Duration lineTime = currentLyricLines.get(i).getTimestamp();
-
+            curLyricTime = lineTime;
             if (currentTime.greaterThanOrEqualTo(lineTime)) {
                 if (i < currentLyricLines.size() - 1) {
                     Duration nextLineTime = currentLyricLines.get(i + 1).getTimestamp();
@@ -614,14 +666,14 @@ public class NowPlayingController {
 
             if (lastHighlightedIndex >= 0 && lastHighlightedIndex < lyricsFlow.getChildren().size()) {
                 Text prevText = (Text) lyricsFlow.getChildren().get(lastHighlightedIndex);
-                prevText.setStyle("-fx-fill: white; -fx-font-size: 14px; -fx-cursor: hand;");
+                prevText.setStyle("-fx-fill: white; -fx-font-size: 14px;");
             }
 
             // Highlight current
             if (currentIndex < lyricsFlow.getChildren().size()) {
                 Text currentText = (Text) lyricsFlow.getChildren().get(currentIndex);
-                currentText.setStyle("-fx-fill: #4CAF50; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand;");
-
+                AnimationUtils.scaleUp(currentText, 0.4, 1.1);
+                currentText.setStyle("-fx-fill: linear-gradient(to top right, #a674fc, #ff003a); -fx-font-size: 14px; -fx-font-weight: bold;  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 4, 0.2, 2, 2);");
                 // Scroll ScrollPane to make current lyric visible
                 double contentHeight = lyricsFlow.getHeight();
                 double viewportHeight = lyricsScrollPane.getViewportBounds().getHeight();
@@ -629,7 +681,7 @@ public class NowPlayingController {
 
                 double vValue = (y + currentText.getBoundsInParent().getHeight() / 2 - viewportHeight / 2) / (contentHeight - viewportHeight);
                 vValue = Math.max(0, Math.min(vValue, 1));
-
+                AnimationUtils.smoothScrollTo(lyricsScrollPane, vValue, 0.4);
                 lyricsScrollPane.setVvalue(vValue);
             }
 

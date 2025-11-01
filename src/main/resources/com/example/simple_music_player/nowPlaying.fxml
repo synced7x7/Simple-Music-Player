@@ -29,12 +29,6 @@
             <Image url="@../../../Images/ShadedImage_00000.png" />
         </image>
     </ImageView>
-    <Label fx:id="syncedXLyricsLabel" alignment="CENTER" layoutX="34.0" layoutY="85.0" prefHeight="89.0" prefWidth="383.0" text="SyncedXMode" textAlignment="CENTER" textFill="WHITE" visible="false" wrapText="true">
-        <font>
-            <Font name="SansSerif Regular" size="14.0" />
-        </font>
-    </Label>
-    <AnchorPane fx:id="realtimeVisualizerHolder" layoutX="-2.0" layoutY="143.0" prefHeight="316.0" prefWidth="451.0" />
     <Label fx:id="bitRateLabel" alignment="CENTER" layoutY="250.0" prefHeight="26.0" prefWidth="58.0" styleClass="tag" stylesheets="@../../../styles/components.css" text="BitRate" textFill="WHITE">
       <font>
          <Font name="Times New Roman Italic" size="12.0" />
@@ -57,6 +51,12 @@
       <effect>
          <Glow level="1.0" />
       </effect></Label>
+    <Label fx:id="syncedXLyricsLabel" alignment="CENTER" layoutX="34.0" layoutY="85.0" prefHeight="89.0" prefWidth="383.0" text="SyncedXMode" textAlignment="CENTER" textFill="WHITE" visible="false" wrapText="true">
+        <font>
+            <Font name="SansSerif Regular" size="14.0" />
+        </font>
+    </Label>
+    <AnchorPane fx:id="realtimeVisualizerHolder" layoutX="-2.0" layoutY="143.0" prefHeight="316.0" prefWidth="451.0" />
     <StackPane layoutX="61.0" layoutY="46.0" prefHeight="404.0" prefWidth="343.0">
         <ImageView fx:id="albumCover" fitHeight="406.0" fitWidth="343.0" preserveRatio="true">
             <effect>
@@ -64,9 +64,9 @@
             </effect>
         </ImageView>
     </StackPane>
-    <ScrollPane fx:id="lyricsScrollPane" hbarPolicy="NEVER" layoutX="78.0" layoutY="47.0" prefHeight="383.0" prefWidth="330.0">
+    <ScrollPane fx:id="lyricsScrollPane" hbarPolicy="NEVER" layoutX="46.0" layoutY="93.0" prefHeight="344.0" prefWidth="362.0" stylesheets="@../../../styles/components.css">
         <content>
-            <VBox fx:id="lyricsFlow" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: #000000;" />
+            <VBox fx:id="lyricsFlow" alignment="CENTER" prefHeight="344.0" prefWidth="363.0" />
         </content>
     </ScrollPane>
     <Label alignment="CENTER" layoutX="-1.0" layoutY="7.0" prefHeight="40.0" prefWidth="450.0" text="SIMPLE MUSIC PLAYER">
@@ -142,9 +142,21 @@
       </font></Button>
     <Button fx:id="toggleLibraryButton" layoutX="416.0" layoutY="14.0" mnemonicParsing="false" onAction="#toggleLibraryView" opacity="0.5" prefHeight="26.0" prefWidth="30.0" text="▶" />
     <!-- Volume Control -->
-    <Label layoutX="418.0" layoutY="566.0" text="🔊" />
-    <Slider fx:id="volumeSlider" blockIncrement="0.01" layoutX="371.0" layoutY="474.0" max="1" min="0" prefHeight="14.0" prefWidth="106.0" rotate="-90.0" value="0.5" />
-    <Button fx:id="lyricsButton" layoutX="14.0" layoutY="468.0" mnemonicParsing="false" onAction="#toggleLyrics" text="၊၊||၊" />
+    <Label layoutX="425.0" layoutY="516.0" styleClass="volume-button" stylesheets="@../../../styles/components.css" text="🔊" textFill="WHITE">
+      <effect>
+         <Glow level="1.0" />
+      </effect></Label>
+    <Slider fx:id="volumeSlider" blockIncrement="0.01" layoutX="390.0" layoutY="463.0" max="1" min="0" prefHeight="14.0" prefWidth="80.0" rotate="-90.0" styleClass="volume-slider" stylesheets="@../../../styles/components.css" value="0.5" />
+    <Button fx:id="lyricsButton" layoutX="26.0" layoutY="475.0" mnemonicParsing="false" onAction="#toggleLyrics" prefHeight="50.0" prefWidth="58.0" styleClass="lyrics-button" stylesheets="@../../../styles/components.css" text="၊၊||၊" textFill="WHITE">
+      <font>
+         <Font size="23.0" />
+      </font>
+      <effect>
+         <Glow level="1.0" />
+      </effect></Button>
     <Button fx:id="toggleAlbumButton" layoutX="3.0" layoutY="104.0" mnemonicParsing="false" onAction="#toggleAlbumView" opacity="0.5" prefHeight="6.0" prefWidth="30.0" rotate="180.0" text="▶" />
-    <CubicCurve fx:id="curve" controlX1="105.87976837158203" controlX2="332.2894287109375" controlY1="250.20001220703125" controlY2="149.39999389648438" endX="459.9999694824219" endY="298.20001220703125" fill="transparent" layoutX="-4.0" layoutY="288.0" startX="1.9999878406524658" startY="118.19998168945312" stroke="black" strokeWidth="4" />
+    <CubicCurve fx:id="curve" controlX1="105.87976837158203" controlX2="332.2894287109375" controlY1="250.20001220703125" controlY2="149.39999389648438" endX="459.9999694824219" endY="298.20001220703125" fill="transparent" layoutX="-4.0" layoutY="288.0" startX="1.9999878406524658" startY="118.19998168945312" stroke="WHITE" strokeWidth="5.0" styleClass="curved-progress">
+      <effect>
+         <Glow level="1.0" />
+      </effect></CubicCurve>
 </AnchorPane>

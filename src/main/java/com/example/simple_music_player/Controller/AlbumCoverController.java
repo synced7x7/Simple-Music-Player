@@ -2,6 +2,7 @@ package com.example.simple_music_player.Controller;
 
 import com.example.simple_music_player.Services.PlaybackService;
 import javafx.fxml.FXML;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 public class AlbumCoverController {
@@ -44,6 +45,19 @@ public class AlbumCoverController {
     public void clearCover() {
         coverFront.setImage(null);
         coverBack.setImage(null);
+    }
+
+    public void setAlbumCover(Image image) {
+        double coverAR = image.getWidth() / image.getHeight();
+        if (coverAR < screenAR) {
+            coverBack.setFitHeight(-1);
+            coverBack.setFitWidth(456);
+        } else {
+            coverBack.setFitHeight(750);
+            coverBack.setFitWidth(-1);
+        }
+        coverFront.setImage(image);
+        coverBack.setImage(image);
     }
 
 }

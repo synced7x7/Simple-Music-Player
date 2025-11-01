@@ -68,6 +68,7 @@ public class PlaybackService {
     public static List<Integer> playlist;// just keep IDs of songs in order
     @Setter
     NowPlayingController nowPlayingController;
+    @Getter
     @Setter
     AlbumCoverController albumCoverController;
     private final UserPrefDAO userPrefDAO = new UserPrefDAO(DatabaseManager.getConnection());
