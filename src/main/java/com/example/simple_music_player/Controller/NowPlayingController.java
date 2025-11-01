@@ -92,6 +92,8 @@ public class NowPlayingController {
     @FXML
     private Button toggleLibraryButton;
     @FXML
+    private Button toggleAlbumButton;
+    @FXML
     private Label syncedXLyricsLabel;
     @FXML
     private CubicCurve curve;
@@ -218,7 +220,7 @@ public class NowPlayingController {
             } else {
                 Random rand = new Random();
                 int randomNumber = rand.nextInt(6) + 1;
-                System.out.println("Random Number: "  + randomNumber);
+                System.out.println("Random Number: " + randomNumber);
                 Image img;
                 switch (randomNumber) {
                     case 1 ->
@@ -698,8 +700,9 @@ public class NowPlayingController {
 
     @FXML
     private void toggleLibraryView() throws SQLException {
-        if (mainController != null) mainController.toggleSidePanels(true);
-        else System.out.println("Main Controller is null");
+        if (mainController != null) {
+            mainController.toggleSidePanels(true);
+        } else System.out.println("Main Controller is null");
     }
 
     @FXML
@@ -712,9 +715,11 @@ public class NowPlayingController {
         if (!enable) {
             toggleLibraryButton.setVisible(false);
             toggleLibraryButton.setManaged(false);
+            toggleLibraryButton.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), false);
         } else {
             toggleLibraryButton.setVisible(true);
             toggleLibraryButton.setManaged(true);
+            toggleLibraryButton.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), true);
         }
     }
 
@@ -734,6 +739,14 @@ public class NowPlayingController {
         }
         playButtonImageView.setImage(image);
         playButton.setGraphic(playButtonImageView);
+    }
+
+    public void toggleLibraryButton(boolean enable) {
+        toggleLibraryButton.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), enable);
+    }
+
+    public void toggleAlbumWindowButton(boolean enable) {
+        toggleAlbumButton.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), enable);
     }
 
 }

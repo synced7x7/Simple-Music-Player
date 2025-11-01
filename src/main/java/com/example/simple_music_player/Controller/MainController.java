@@ -5,6 +5,7 @@ import com.example.simple_music_player.SimpleMusicPlayer;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.UserPrefRealtimeDAO;
 import javafx.application.Platform;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.AnchorPane;
@@ -63,6 +64,8 @@ public class MainController {
                 userPrefRealtimeDAO.setIsHiddenLibrary(isHiddenLibrary);
             libraryPane.setVisible(!isHiddenLibrary);
             libraryPane.setManaged(!isHiddenLibrary);
+            NowPlayingController npc = NowPlayingController.getInstance();
+            npc.toggleLibraryButton(!isHiddenLibrary);
             System.out.println("LibraryView Pane Toggled");
         } else {
             isHiddenAlbum = !isHiddenAlbum;
@@ -70,6 +73,8 @@ public class MainController {
                 userPrefRealtimeDAO.setIsHiddenAlbum(isHiddenAlbum);
             albumCoverPane.setVisible(!isHiddenAlbum);
             albumCoverPane.setManaged(!isHiddenAlbum);
+            NowPlayingController npc = NowPlayingController.getInstance();
+            npc.toggleAlbumWindowButton(!isHiddenAlbum);
             System.out.println("AlbumCoverPane Toggled");
         }
 

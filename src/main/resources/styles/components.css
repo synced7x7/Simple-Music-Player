@@ -173,10 +173,32 @@
 .window-toggle {
     -fx-background-color: white;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgb(0, 0, 0), 25, 0.3, 2, 2);
+    -fx-effect: dropshadow(gaussian, rgba(7, 7, 7, 0.8), 25, 0.6, 0, 0);
     -fx-border-color: rgba(255, 255, 255, 0.2);
     -fx-border-width: 1;
     -fx-background-radius: 0; /* flat sides */
     -fx-shape: "M 0 0 L 100 0 L 85 20 L 100 40 L 0 40 Z"; /* custom flag shape */
-    -fx-transition: all 0.3s ease;
+}
+
+.window-toggle:hover {
+    -fx-effect: dropshadow(gaussian, rgba(255, 100, 100, 0.8), 25, 0.6, 0, 0);
+}
+
+.window-toggle:pressed {
+    -fx-background-color: linear-gradient(to bottom right, #ff5f6d, #ffc371);
+    -fx-effect: dropshadow(gaussian, rgba(7, 7, 7, 0.8), 25, 0.6, 0, 0);
+}
+
+.window-toggle:selected {
+    -fx-background-color: linear-gradient(to top right, #a674fc, #ff003a);
+    -fx-effect: dropshadow(gaussian, rgba(7, 7, 7, 0.8), 25, 0.6, 0, 0);
+}
+
+.window-toggle:selected:hover {
+    -fx-effect: dropshadow(gaussian, rgba(255, 100, 100, 0.8), 25, 0.3, 0, 0);
+}
+
+.window-toggle:selected:pressed {
+    -fx-background-color: linear-gradient(to bottom right, #ff5f6d, #ffc371);
+    -fx-effect: dropshadow(gaussian, rgba(7, 7, 7, 0.8), 25, 0.6, 0, 0);
 }
