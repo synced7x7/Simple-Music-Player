@@ -23,18 +23,6 @@ public class UserPref {
         UserPref.volume = volume;
         UserPref.playlistId = playlistId;
     }
-
-    public static void userPrefChecker () {
-        System.out.println("UserPrefStatus::");
-        System.out.println("playlistNo: " + UserPref.playlistNo);
-        System.out.println("timestamp: " + UserPref.timestamp);
-        System.out.println("status: " + UserPref.status);
-        System.out.println("repeat: " + UserPref.repeat);
-        System.out.println("shuffle: " + UserPref.shuffle);
-        System.out.println("isRundown: " + UserPref.isRundown);
-        System.out.println("volume: " + UserPref.volume);
-        System.out.println("playlistId: " + UserPref.playlistId);
-    }
 }
 
 

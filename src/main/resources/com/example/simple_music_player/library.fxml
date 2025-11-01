@@ -12,10 +12,10 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane fx:id="root" prefHeight="750" prefWidth="450" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.LibraryController">
+<AnchorPane fx:id="root" prefHeight="750" prefWidth="450" style="-fx-background-color: black;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.LibraryController">
     <children>
-          <ImageView fx:id="backgroundImage" cache="true" fitHeight="750.0" fitWidth="456.0" />
-        <ImageView fitHeight="750.0" fitWidth="456.0" layoutY="-1.0" opacity="0.96" pickOnBounds="true">
+          <ImageView fx:id="backgroundImage" cache="true" fitHeight="750.0" fitWidth="450.0" />
+        <ImageView fitHeight="750.0" fitWidth="450.0" opacity="0.96" pickOnBounds="true">
          <image>
             <Image url="@../../../Images/ShadedImage.jpg" />
          </image>
@@ -32,7 +32,7 @@
             </items>
         </ComboBox>
         <!-- Virtualized list for songs -->
-        <ListView fx:id="songListView" layoutY="92.0" prefHeight="658.0" prefWidth="456.0" style="             -fx-background-color: transparent; -fx-control-inner-background: transparent;  -fx-control-inner-background-alt: transparent; " />
+        <ListView fx:id="songListView" layoutY="92.0" prefHeight="658.0" prefWidth="450.0" style="             -fx-background-color: transparent; -fx-control-inner-background: transparent;  -fx-control-inner-background-alt: transparent; " />
         <TextField fx:id="searchField" layoutX="14.0" layoutY="11.0" prefHeight="26.0" prefWidth="263.0" />
         <Button fx:id="reverseButton" layoutX="400.0" layoutY="41.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" text="🔄" />
         <Button fx:id="directoryButton" layoutX="14.0" layoutY="41.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" text="📁" />

@@ -76,10 +76,13 @@
             <VBox fx:id="lyricsFlow" alignment="CENTER" prefHeight="344.0" prefWidth="363.0" />
         </content>
     </ScrollPane>
-    <Label alignment="CENTER" layoutX="-1.0" layoutY="7.0" prefHeight="40.0" prefWidth="450.0" text="SIMPLE MUSIC PLAYER">
+    <Label alignment="CENTER" layoutX="-1.0" layoutY="7.0" prefHeight="40.0" prefWidth="450.0" styleClass="title" stylesheets="@../../../styles/components.css" text="SYNCEDX MUSIC PLAYER">
         <font>
-            <Font name="System Bold" size="21.0" />
+            <Font name="Chiffon TRIAL SemiBold" size="21.0" />
         </font>
+      <effect>
+         <Glow level="1.0" />
+      </effect>
     </Label>
     <Button fx:id="playButton" alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" layoutX="200.0" layoutY="680.0" prefHeight="26.0" prefWidth="46.0" styleClass="play-pause-button" stylesheets="@../../../styles/components.css">
       <graphic>
@@ -137,8 +140,11 @@
       <effect>
          <Glow level="1.0" />
       </effect></Label>
-    <AnchorPane fx:id="visualizerHolder" layoutX="41.0" layoutY="623.0" prefHeight="40.0" prefWidth="362.0" styleClass="waveFormCanvas" stylesheets="@../../../styles/components.css" />
-    <Button fx:id="infoButton" layoutX="33.0" layoutY="14.0" mnemonicParsing="false" onAction="#infoButtonHandler" text="𝒊" />
+    <AnchorPane fx:id="visualizerHolder" layoutX="41.0" layoutY="623.0" prefHeight="40.0" prefWidth="362.0" styleClass="waveFormCanvas" stylesheets="@../../../styles/components.css">
+      <cursor>
+         <Cursor fx:constant="HAND" />
+      </cursor></AnchorPane>
+    <Button fx:id="infoButton" layoutX="50.0" layoutY="13.0" mnemonicParsing="false" onAction="#infoButtonHandler" prefHeight="8.0" prefWidth="22.0" styleClass="info-button" stylesheets="@../../../styles/components.css" text="𝒊" />
     <Button fx:id="shuffleButton" layoutX="59.0" layoutY="691.0" mnemonicParsing="false" onAction="#toggleShuffle" styleClass="shuffle-button" stylesheets="@../../../styles/components.css" text="🔀" textFill="#b4b4b4">
       <font>
          <Font size="18.0" />

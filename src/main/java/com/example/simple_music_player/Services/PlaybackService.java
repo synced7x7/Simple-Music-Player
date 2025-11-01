@@ -423,8 +423,9 @@ public class PlaybackService {
         }
 
         mediaPlayer = new MediaPlayer(media);
-
         mediaPlayer.setOnReady(() -> mediaPlayer.play());
+        if(UserPref.status!=null && UserPref.status.equals("Pause"))
+            forceTogglePlay();
 
         setVolume(UserPref.volume);
         setupDurationListener(mediaPlayer);
@@ -524,6 +525,10 @@ public class PlaybackService {
             UserPref.status = "Play";
             play();
         }
+    }
+
+    private void forceTogglePlay() throws SQLException {
+        nowPlayingController.togglePlayPause(MediaStatus.PLAYING);
     }
 
     public void next() throws SQLException {

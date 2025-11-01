@@ -85,7 +85,7 @@ public class MainController {
                 if (!isHiddenLibrary) targetWidth += libraryPane.getWidth();
             }
             stage.setWidth(targetWidth);
-            centerStage(stage);
+            //centerStage(stage);
         } else {
             System.out.println("Stage is null");
         }

@@ -9,6 +9,7 @@ import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Services.RealtimeVisualizerService;
 import com.example.simple_music_player.Services.VisualizerService;
 import com.example.simple_music_player.Utility.AnimationUtils;
+import com.example.simple_music_player.Utility.WindowUtils;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.css.PseudoClass;
@@ -25,13 +26,14 @@ import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.CubicCurve;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import lombok.Getter;
 import lombok.Setter;
@@ -323,25 +325,51 @@ public class NowPlayingController {
 
     @FXML
     private void infoButtonHandler() {
-        UserPref.userPrefChecker();
         Stage infoStage = new Stage();
         infoStage.setTitle("About This App");
 
-        Label appName = new Label("🎵 SIMPLE MUSIC PLAYER");
-        appName.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+        Label appName = new Label("🎵 SYNCEDX MUSIC PLAYER");
+        appName.getStyleClass().add("info-title");
 
-        Label version = new Label("Version 0.5.5");
+        Label version = new Label("Version 1.0.0");
         Label author = new Label("Developed by: synced_x_");
         Label mail = new Label("synced7x7@gmail.com");
+        version.getStyleClass().add("info-text");
+        author.getStyleClass().add("info-text");
+        mail.getStyleClass().add("info-text");
         Label credits = new Label("Releases");
-        credits.setStyle("-fx-text-fill: blue; -fx-underline: true;");
-        credits.setCursor(Cursor.HAND);
+        credits.getStyleClass().add("info-credits");
 
-        VBox root = new VBox(10, appName, version, author, mail, credits);
-        root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(15));
-        /**/
-        Scene scene = new Scene(root, 300, 200);
+        // ===== Custom title bar =====
+        HBox titleBar = new HBox();
+        titleBar.getStyleClass().add("custom-title-bar");
+
+        Label titleLabel = new Label("ℹ About This App");
+        titleLabel.getStyleClass().add("title-label");
+
+        Button closeButton = new Button("×");
+        closeButton.getStyleClass().add("window-button");
+        closeButton.setOnAction(e -> infoStage.close());
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        titleBar.getChildren().addAll(titleLabel, spacer, closeButton);
+        WindowUtils.makeDraggable(infoStage, titleBar);
+        // === ===
+
+        // ===== Main content =====
+        VBox content = new VBox(10, appName, version, author, mail, credits);
+        content.setAlignment(Pos.CENTER);
+        content.setPadding(new Insets(15));
+        content.getStyleClass().add("info-root");
+
+        // Combine title bar + content
+        VBox root = new VBox(titleBar, content);
+        // === ===
+        Scene scene = new Scene(root);
+        infoStage.initStyle(StageStyle.UNDECORATED);
+        scene.setFill(Color.TRANSPARENT);
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/components.css")).toExternalForm());
         infoStage.setScene(scene);
         infoStage.initModality(Modality.APPLICATION_MODAL);
         infoStage.setResizable(false);

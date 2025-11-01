@@ -1,4 +1,20 @@
+/* SplitPane background */
+.split-pane {
+    -fx-background-color: linear-gradient(to bottom, #101010, #1a1a1a);
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+}
+
+/* SplitPane divider */
 .split-pane .split-pane-divider {
-    -fx-background-color: transparent; /* removes the visible line */
-    -fx-padding: 0; /* optional, remove extra space */
+    -fx-background-color: rgba(255, 255, 255, 0.05); /* subtle light line */
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-border-width: 0 1 0 1;
+    -fx-background-insets: 0;
+}
+
+.split-pane .split-pane > * {
+    -fx-background-insets: 0;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 10, 0.5, 0, 2);
 }

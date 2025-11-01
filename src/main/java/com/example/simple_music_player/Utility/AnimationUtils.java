@@ -4,9 +4,7 @@ import javafx.animation.*;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
@@ -186,6 +184,10 @@ public class AnimationUtils {
 
         ParallelTransition combo = new ParallelTransition(fade, scale);
         combo.play();
+    }
+
+    public static void dropshadow(Node node) {
+        node.setStyle("-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 4, 0.2, 2, 2)");
     }
 
 }

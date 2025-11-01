@@ -7,8 +7,11 @@ import com.example.simple_music_player.db.DatabaseManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -23,16 +26,20 @@ public class SimpleMusicPlayer extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         DatabaseManager.initialize();
+        stage.initStyle(StageStyle.TRANSPARENT);
         FXMLLoader fxmlLoader = new FXMLLoader(SimpleMusicPlayer.class.getResource("main.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         //css loader
         getStyleSheets(scene);
         loadFont();
         //
+        scene.setFill(Color.TRANSPARENT);
         stage.setResizable(false);
         stage.setTitle("Simple Music Player");
         stage.setScene(scene);
         stage.show();
+        System.out.println("Stage Width: " + stage.getWidth());
+
         MainController mainController = MainController.getInstance();
         mainController.setStage(stage);
     }
