@@ -32,7 +32,7 @@ public class VisualizerService {
     @FXML
     private Canvas waveformCanvas;
 
-    private float[] waveform; // Use float instead of double (half the memory)
+    private float[] waveform; // float instead of double (half the memory)
     @FXML
     private AnchorPane waveformCanvasParent;
 
@@ -42,7 +42,6 @@ public class VisualizerService {
 
     @FXML
     public void initialize() {
-        // canvas track parent size
         waveformCanvas.widthProperty().bind(waveformCanvasParent.widthProperty());
         waveformCanvas.heightProperty().bind(waveformCanvasParent.heightProperty());
 
@@ -87,9 +86,9 @@ public class VisualizerService {
 
         new Thread(() -> {
             try {
-                // Clear old waveform to free memory
+                //free memory
                 waveform = null;
-                System.gc(); // Suggest garbage collection
+                System.gc(); // garbage collection
 
                 switch (ext) {
                     case "mp3" -> loadMP3Waveform(audioFile);
@@ -135,7 +134,6 @@ public class VisualizerService {
 
         } catch (Exception e) {
             System.out.println("Error processing " + fileFormat + " file: " + audioFile.getName());
-            // Create fallback empty waveform
             waveform = new float[300];
             Arrays.fill(waveform, 0.3f);
         }
@@ -145,18 +143,17 @@ public class VisualizerService {
 
     private void transcodeToWav(File sourceFile, File destinationFile) {
         try {
-            // Set Audio Attributes
+            // Audio Attributes
             AudioAttributes audio = new AudioAttributes();
             audio.setCodec("pcm_s16le");
             audio.setChannels(2);
             audio.setSamplingRate(44100);
 
-            // Set encoding attributes
+            // encoding attributes
             EncodingAttributes attributes = new EncodingAttributes();
             attributes.setOutputFormat("wav");
             attributes.setAudioAttributes(audio);
 
-            // Encode
             encoder = encoder != null ? encoder : new Encoder();
             encoder.encode(new MultimediaObject(sourceFile), destinationFile, attributes);
 
@@ -176,9 +173,8 @@ public class VisualizerService {
 
             javazoom.jl.decoder.Header frameHeader;
             int frameCount = 0;
-            int frameSkip = 2; // Process every 2nd frame only
+            int frameSkip = 2;
 
-            // Collect max values from frames
             while ((frameHeader = bitstream.readFrame()) != null) {
                 frameCount++;
 
@@ -191,7 +187,6 @@ public class VisualizerService {
                 SampleBuffer output = (SampleBuffer) decoder.decodeFrame(frameHeader, bitstream);
                 short[] buffer = output.getBuffer();
 
-                // Find max in this frame
                 float maxInFrame = 0;
                 for (short s : buffer) {
                     float normalized = Math.abs(s) / 32768.0f;
@@ -202,29 +197,25 @@ public class VisualizerService {
                 bitstream.closeFrame();
             }
 
-            // Now downsample the collected values to targetSize
+            // downsample
             waveform = new float[targetSize];
             int collectedSize = allMaxValues.size();
 
             if (collectedSize == 0) {
-                // No data collected
                 Arrays.fill(waveform, 0);
             } else if (collectedSize <= targetSize) {
-                // We have less data than target, stretch it
                 for (int i = 0; i < targetSize; i++) {
                     int srcIndex = (int) ((double) i / targetSize * collectedSize);
                     srcIndex = Math.min(srcIndex, collectedSize - 1);
                     waveform[i] = allMaxValues.get(srcIndex);
                 }
             } else {
-                // We have more data, downsample by taking max of groups
                 float step = (float) collectedSize / targetSize;
                 for (int i = 0; i < targetSize; i++) {
                     int startIdx = (int) (i * step);
                     int endIdx = (int) ((i + 1) * step);
                     endIdx = Math.min(endIdx, collectedSize);
 
-                    // Take max of this range
                     float maxInRange = 0;
                     for (int j = startIdx; j < endIdx; j++) {
                         maxInRange = Math.max(maxInRange, allMaxValues.get(j));
@@ -246,18 +237,16 @@ public class VisualizerService {
 
             int bytesPerFrame = format.getFrameSize();
             if (bytesPerFrame == AudioSystem.NOT_SPECIFIED) {
-                bytesPerFrame = 2; // Assume 16-bit mono
+                bytesPerFrame = 2;
             }
 
             long frameLength = audioStream.getFrameLength();
             int targetSize = 300;
 
-            // Skip frames for faster processing
-            int frameSkip = 2; // Process every 2nd frame
+            int frameSkip = 2;
             List<Float> allMaxValues = new ArrayList<>();
 
-            // Calculate chunk size for reading
-            int framesPerChunk = 4096; // Read in chunks
+            int framesPerChunk = 4096;
             byte[] buffer = new byte[bytesPerFrame * framesPerChunk];
 
             long framesProcessed = 0;
@@ -268,12 +257,10 @@ public class VisualizerService {
 
                 int samplesRead = bytesRead / bytesPerFrame;
 
-                // Process samples with skipping
                 float maxInChunk = 0;
                 for (int i = 0; i < bytesRead - 1; i += bytesPerFrame * frameSkip) {
                     short sample;
 
-                    // Handle different bit depths
                     if (bytesPerFrame >= 2) {
                         sample = (short) ((buffer[i + 1] << 8) | (buffer[i] & 0xff));
                     } else {
@@ -291,21 +278,19 @@ public class VisualizerService {
                 framesProcessed += samplesRead;
             }
 
-            // Downsample to target size
+            // Downsample
             waveform = new float[targetSize];
             int collectedSize = allMaxValues.size();
 
             if (collectedSize == 0) {
                 Arrays.fill(waveform, 0);
             } else if (collectedSize <= targetSize) {
-                // Stretch to target size
                 for (int i = 0; i < targetSize; i++) {
                     int srcIndex = (int) ((double) i / targetSize * collectedSize);
                     srcIndex = Math.min(srcIndex, collectedSize - 1);
                     waveform[i] = allMaxValues.get(srcIndex);
                 }
             } else {
-                // Downsample by taking max of groups
                 float step = (float) collectedSize / targetSize;
                 for (int i = 0; i < targetSize; i++) {
                     int startIdx = (int) (i * step);
@@ -335,11 +320,9 @@ public class VisualizerService {
             int length = waveform.length;
             double barWidth = canvasWidth / length;
 
-            // Clear canvas to transparent
             GraphicsContext gc = waveformCanvas.getGraphicsContext2D();
             gc.clearRect(0, 0, canvasWidth, canvasHeight);
 
-            // Draw bars directly on transparent canvas
             for (int i = 0; i < length; i++) {
                 double value = waveform[i];
                 double barHeight = value * canvasHeight * 0.7;
@@ -360,21 +343,18 @@ public class VisualizerService {
             int length = waveform.length;
             double barWidth = canvasWidth / length;
 
-            // Clear canvas
             gc.clearRect(0, 0, canvasWidth, canvasHeight);
 
-            // Draw progress overlay first
+
             gc.setGlobalAlpha(0.3); // semi-transparent
             gc.setFill(Color.DARKBLUE); // overlay color
             gc.fillRect(0, 0, canvasWidth * progress, canvasHeight);
             gc.setGlobalAlpha(1.0); // reset alpha
 
-            // Draw waveform bars over the overlay
             for (int i = 0; i < length; i++) {
                 double value = waveform[i];
                 double barHeight = value * canvasHeight * 0.7;
 
-                // If this bar is inside progress, color it differently
                 if ((i / (double) length) <= progress) {
                     gc.setFill(Color.DEEPPINK); // played part
                 } else {
@@ -386,8 +366,6 @@ public class VisualizerService {
         });
     }
 
-
-    // Call this when changing songs or closing the visualizer
     public void cleanup() {
         waveformImage = null;
         waveform = null;

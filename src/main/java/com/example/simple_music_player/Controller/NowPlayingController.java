@@ -128,6 +128,8 @@ public class NowPlayingController {
 
     @FXML
     public void initialize() throws IOException {
+        syncedXLyricsLabel.setStyle("-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 4, 0.2, 2, 2)");
+
         playbackService.setNowPlayingController(this);
         lyricsScrollPane.setVisible(false);
         lyricsScrollPane.setManaged(false);
@@ -254,7 +256,7 @@ public class NowPlayingController {
                     displaySyncedLyricInLabel(newT.getLyrics());
                 } catch (CannotReadException | TagException | InvalidAudioFrameException | IOException |
                          ReadOnlyFileException e) {
-                    syncedXLyricsLabel.setText("syncedX");
+                    syncedXLyricsLabel.setText("SYNCED_X_");
                     throw new RuntimeException(e);
                 }
             }
@@ -478,7 +480,7 @@ public class NowPlayingController {
                 if (currentTrack != null && currentTrack.getLyrics() != null) {
                     displaySyncedLyricInLabel(currentTrack.getLyrics());
                 } else {
-                    syncedXLyricsLabel.setText("syncedX");
+                    syncedXLyricsLabel.setText("SYNCED_X_");
                 }
 
                 // 🔹 Start visualizer
@@ -498,14 +500,14 @@ public class NowPlayingController {
         lastSyncedLabelIndex = -1;
 
         if (lyrics == null || lyrics.isEmpty()) {
-            syncedXLyricsLabel.setText("syncedX");
+            syncedXLyricsLabel.setText("SYNCED_X_");
             return;
         }
 
         List<LyricLine> parsed = parseLyrics(lyrics);
         if (parsed.isEmpty()) {
             // Not synced, plain text
-            syncedXLyricsLabel.setText("syncedX");
+            syncedXLyricsLabel.setText("SYNCED_X_");
             return;
         }
 
@@ -537,6 +539,8 @@ public class NowPlayingController {
         if (currentIndex != -1 && currentIndex != lastSyncedLabelIndex) {
             syncedXLyricsLabel.setText(syncedLyricLines.get(currentIndex).getText());
             lastSyncedLabelIndex = currentIndex;
+            //Animation
+            AnimationUtils.animateSyncedLyricTransition(syncedXLyricsLabel);
         }
     }
 

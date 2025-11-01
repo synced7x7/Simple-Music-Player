@@ -13,11 +13,7 @@ public class RealtimeVisualizerService {
     private Canvas waveformCanvas;
     @FXML
     private AnchorPane waveformCanvasParent;
-
-    // Smoothed magnitudes for nicer animation
     private volatile float[] currentMagnitudes;
-
-    // For drawing at ~60 FPS
     private AnimationTimer animationTimer;
     private boolean isRunning = false;
 
@@ -27,10 +23,9 @@ public class RealtimeVisualizerService {
 
     @FXML
     public void initialize() {
-        // Canvas resizes dynamically with parent
         waveformCanvas.widthProperty().bind(waveformCanvasParent.widthProperty());
         waveformCanvas.heightProperty().bind(waveformCanvasParent.heightProperty());
-        currentMagnitudes = new float[256]; // default band count
+        currentMagnitudes = new float[256]; //bands, tested manually
 
     }
 
@@ -59,10 +54,8 @@ public class RealtimeVisualizerService {
 
     public void updateSpectrum(float[] magnitudes) {
         if (magnitudes == null) return;
-        // Copy and smooth values
         int len = Math.min(magnitudes.length, currentMagnitudes.length);
         for (int i = 0; i < len; i++) {
-            // Simple smoothing: gradual rise and decay
             currentMagnitudes[i] += (magnitudes[i] - currentMagnitudes[i]) * 0.3f;
         }
     }
@@ -77,33 +70,34 @@ public class RealtimeVisualizerService {
         if (currentMagnitudes == null) return;
 
         int bands = currentMagnitudes.length;
-
-        // ✅ Full width coverage
         double centerX = width / 2.0;
-        double bandWidth = width / (bands); // half for each side total
-
-        // ✅ Scaling factor so bars fill from center to border
+        double bandWidth = width / bands;
         double halfBands = bands / 2.0;
 
+        // Gradient colors
+        Color startColor = Color.web("#8e2de2");
+        Color endColor = Color.web("#ff4b2b");
+
+        // Draw bars
         for (int i = 0; i < bands / 2; i++) {
             double magnitude = Math.max(-60, currentMagnitudes[i]);
-            // map -60..0 → 0..height/2 (vertical full height)
             double barHeight = height * ((magnitude + 60) / 60.0);
 
-            // Positions for both sides
-            double xRight = centerX + ((i / halfBands) * (width / 2.0));
-            double xLeft  = centerX - ((i / halfBands) * (width / 2.0)) - bandWidth;
-
-            // ✅ Smooth color gradient (blue → cyan → green)
-            Color color = Color.hsb(200 - (i * 180.0 / (bands / 2.0)), 0.9, 1.0);
+            double t = i / (halfBands - 1);
+            Color color = startColor.interpolate(endColor, t);
             gc.setFill(color);
 
-            // ✅ Draw bars vertically centered, touching top/bottom
+            double xRight = centerX + ((i / halfBands) * (width / 2.0));
+            double xLeft  = centerX - ((i / halfBands) * (width / 2.0)) - bandWidth;
             double topY = (height - barHeight) / 2.0;
+
             gc.fillRect(xRight, topY, bandWidth - 1, barHeight);
             gc.fillRect(xLeft, topY, bandWidth - 1, barHeight);
         }
     }
+
+
+
 
 
     public void stopVisualizer() {
@@ -112,15 +106,9 @@ public class RealtimeVisualizerService {
         if (animationTimer != null ) {
             animationTimer.stop();
         }
-
-        // Hide canvas
         waveformCanvas.setVisible(false);
         waveformCanvas.setManaged(false);
-
-        // Optionally clear visual memory
         clearCanvas();
-
-        // Allow GC to reclaim unused memory
         currentMagnitudes = new float[256];
     }
 

@@ -2,6 +2,7 @@ package com.example.simple_music_player.Utility;
 
 import javafx.animation.*;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.DropShadow;
@@ -169,4 +170,22 @@ public class AnimationUtils {
         st.setInterpolator(Interpolator.EASE_BOTH);
         st.play();
     }
+
+    public static void animateSyncedLyricTransition(Label label) {
+        FadeTransition fade = new FadeTransition(Duration.millis(400), label);
+        fade.setFromValue(0.0);
+        fade.setToValue(1.0);
+        fade.setInterpolator(Interpolator.EASE_OUT);
+
+        ScaleTransition scale = new ScaleTransition(Duration.millis(400), label);
+        scale.setFromX(0.9);
+        scale.setFromY(0.9);
+        scale.setToX(1.0);
+        scale.setToY(1.0);
+        scale.setInterpolator(Interpolator.EASE_OUT);
+
+        ParallelTransition combo = new ParallelTransition(fade, scale);
+        combo.play();
+    }
+
 }
