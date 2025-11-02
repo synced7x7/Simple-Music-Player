@@ -2,6 +2,7 @@ package com.example.simple_music_player.Services;
 
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.SimpleMusicPlayer;
+import com.example.simple_music_player.Utility.NotificationUtil;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.TempTrackDAO;
 import java.sql.SQLException;
@@ -26,6 +27,7 @@ public class TempPlaylistService {
                 tempTrackDAO.insertIntoTempSongs(track);
             } catch (Exception e) {
                 System.out.println("Failed to load track: " + path);
+                NotificationUtil.alert("Failed to load track: " + path);
                 throw new RuntimeException(e);
             }
         }

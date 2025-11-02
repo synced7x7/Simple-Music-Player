@@ -9,6 +9,7 @@ import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Services.RealtimeVisualizerService;
 import com.example.simple_music_player.Services.VisualizerService;
 import com.example.simple_music_player.Utility.AnimationUtils;
+import com.example.simple_music_player.Utility.NotificationUtil;
 import com.example.simple_music_player.Utility.SongDetailsUtility;
 import com.example.simple_music_player.Utility.WindowUtils;
 import javafx.beans.property.DoubleProperty;
@@ -108,6 +109,12 @@ public class NowPlayingController {
     private Label titleMainLabel;
     @FXML
     private Label sizeLabel;
+    @Getter
+    @FXML
+    private Label playlistNameLabel;
+    @Getter
+    @FXML
+    private Label notificationLabel;
 
     private List<LyricLine> syncedLyricLines = new ArrayList<>();
     private int lastSyncedLabelIndex = -1;
@@ -215,7 +222,8 @@ public class NowPlayingController {
             File f = new File(newT.getPath());
             SongDetailsUtility sd = new SongDetailsUtility();
             sizeLabel.setText(sd.formatFileSize(f.length()));
-            f= null; sd = null;
+            f = null;
+            sd = null;
             //Cover
             double coverAR = newT.getCoverWidth() / newT.getCoverHeight();
             double screenAR = 0.608;
@@ -387,8 +395,38 @@ public class NowPlayingController {
 
         // Easter egg: clicking anywhere in the window updates author name
         root.setOnMouseClicked(event -> {
-            author.setText("Developed by: Tasnif Emran");
-            mail.setText("tasnifemran@gmail.com, Instagram: synced_x");
+            if (!author.getText().equals("Developed by: Tasnif Emran")) {
+                String[] easterEggs = {
+                        "Easter egg unlocked! You’re not supposed to find this",
+                        "Who clicks labels anyway? You’re my kind of user ",
+                        "Developed with care, caffeine, and bugs",
+                        "Hey, stay hydrated. Coding’s tough sometimes",
+                        "Hey friend, thanks for using the app ❤",
+                        "I believe in music and you. That’s it",
+                        "Click again, maybe you’ll get another secret… ️",
+                        "Shh… the music knows you’re here.",
+                        "You found me! But I’m shy… don’t tell anyone ",
+                        "Clicking this won’t fix your playlist… or will it?",
+                        "You’re either bored or curious… welcome to the club",
+                        "Congrats! You just pressed a secret button of destiny",
+                        "Error 404: Developer not found…",
+                        "You weren’t supposed to see this. Or were you? ️",
+                        "Beware… the code is watching.",
+                        "Even small steps lead to great journeys.",
+                        "Life’s melody plays even in silence.",
+                        "I can’t change the past… but I can change my rhythm today.",
+                        "Friendship is the strongest power, don’t forget it.",
+                        "In the shadows, everything reveals itself…",
+                        "The world is bigger than your playlist… or is it?",
+                        "Clicking this awakens secrets best left unknown…️",
+                        "Power comes with a cost… and you just paid attention.",
+                        "NOTHING IS TRUE, EVERYTHING IS PERMITTED."
+                };
+
+                NotificationUtil.alert(easterEggs[(int) (Math.random() * easterEggs.length)]);
+                author.setText("Developed by: Tasnif Emran");
+                mail.setText("tasnifemran@gmail.com, Instagram: synced_x");
+            }
         });
 
         // Clicking "Updates" → open website
@@ -785,6 +823,10 @@ public class NowPlayingController {
 
     public void toggleAlbumWindowButton(boolean enable) {
         toggleAlbumButton.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), enable);
+    }
+
+    public void setPlaylistNameLabel(String str) {
+        playlistNameLabel.setText(str);
     }
 
 }

@@ -7,6 +7,7 @@ import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.Services.*;
 import com.example.simple_music_player.SimpleMusicPlayer;
+import com.example.simple_music_player.Utility.NotificationUtil;
 import com.example.simple_music_player.Utility.SongDetailsUtility;
 import com.example.simple_music_player.Utility.SongIdAndIndexUtility;
 import com.example.simple_music_player.db.*;
@@ -233,6 +234,7 @@ public class LibraryController {
                     Track track = trackDAO.getTrackCompressedArtworkAndTitleById(id);
                     if (track == null) {
                         System.out.println("No track found for id " + id + ". Removing...");
+                        NotificationUtil.alert("No track found with id " + id + ". Removing...");
                         try {
                             playlistsDAO.deleteSongsFromPlaylist(UserPref.playlistId, Collections.singletonList(id));
                             trackDAO.removeFromLibrary(id);
@@ -293,12 +295,14 @@ public class LibraryController {
                         List<Integer> selectedIds = new ArrayList<>(selectionModel.getSelectedItems());
                         for (Integer sid : selectedIds) queueService.addToQueue(sid);
                         System.out.println("QueueList: " + queueService.getQueueList());
+                        NotificationUtil.alert("Added to Queue");
                     });
                     MenuItem removeFromQueue = new MenuItem("Remove from Queue");
                     removeFromQueue.setOnAction(e -> {
                         List<Integer> selectedIds = new ArrayList<>(selectionModel.getSelectedItems());
                         for (Integer sid : selectedIds) queueService.removeFromQueue(sid);
                         System.out.println("QueueList: " + queueService.getQueueList());
+                        NotificationUtil.alert("Removed from Queue");
                     });
 
                     Menu queueMenu = new Menu("Queue");
@@ -310,6 +314,7 @@ public class LibraryController {
                         PlaylistService playlistService = new PlaylistService();
                         List<Integer> selectedIds = new ArrayList<>(selectionModel.getSelectedItems());
                         playlistService.openPlaylistSelectionWindow(selectedIds);
+                        NotificationUtil.alert("Added to Playlist");
                     });
 
                     // -- Open File Location --
@@ -324,9 +329,11 @@ public class LibraryController {
                                     Runtime.getRuntime().exec("explorer /select,\"" + file.getAbsolutePath() + "\"");
                                 } else {
                                     System.err.println("File does not exist: " + path);
+                                    NotificationUtil.alert("File does not exist: " + path);
                                 }
                             } else {
                                 System.err.println("Path not found in database for ID: " + id);
+                                NotificationUtil.alert("Path not found in database for ID: " + id);
                             }
                         } catch (Exception e) {
                             throw new RuntimeException(e);
@@ -349,8 +356,10 @@ public class LibraryController {
                                     refreshSongCountLabel();
                                 }
                                 System.out.println("Songs successfully removed from library + " + selectedIds);
+                                NotificationUtil.alert("Songs successfully removed from library + " + selectedIds);
                             } catch (SQLException e) {
                                 System.out.println("Could not remove from library: " + songId);
+                                NotificationUtil.alert("Could not remove from library: " + songId);
                             }
                         });
                     } else {
@@ -366,6 +375,7 @@ public class LibraryController {
                                     refreshSongCountLabel();
                                 }
                                 System.out.println("Songs successfully removed from playlist: " + selectedIds);
+                                NotificationUtil.alert("Songs successfully removed from playlist: " + selectedIds);
                             } catch (SQLException e) {
                                 throw new RuntimeException(e);
                             }
@@ -384,6 +394,7 @@ public class LibraryController {
                                         boolean deleted = file.delete();
                                         if (!deleted) {
                                             System.err.println("Could not delete file: " + path);
+                                            NotificationUtil.alert("Could not delete file: " + path);
                                             return;
                                         }
                                     }
@@ -391,12 +402,14 @@ public class LibraryController {
                                 trackDAO.removeFromLibrary(sId);
                                 playlistsDAO.deleteSongFromAllPlaylists(sId);
                                 System.out.println("Removed from Library & Deleted File: " + sId);
+                                NotificationUtil.alert("Removed from Library & Deleted File: " + sId);
                                 songListView.getItems().remove(sId);
                                 PlaybackService.playlist.remove(sId);
                                 refreshSongCountLabel();
                             }
                         } catch (SQLException e) {
                             System.err.println("Error removing song from DB: " + id);
+                            NotificationUtil.alert("Error removing song from DB: " + id);
                             throw new RuntimeException(e);
                         }
                     });
@@ -456,6 +469,7 @@ public class LibraryController {
                                     UserPref.repeat = 0;
                                     toggleSort(false);
                                     NowPlayingController npc = NowPlayingController.getInstance();
+                                    npc.setPlaylistNameLabel(playlistsDAO.getPlaylistName(currentPlaylistId));
                                     npc.updateRepeatButtonStyle();
                                     npc.updateShuffleButtonStyle();
                                 } catch (SQLException ex) {
@@ -614,7 +628,7 @@ public class LibraryController {
         String status = userPrefDAO.getUserStatus();
         MediaStatus mediaStatus;
         //Play-pause handler
-        if(status.equals("Play")) mediaStatus = MediaStatus.PLAYING;
+        if (status.equals("Play")) mediaStatus = MediaStatus.PLAYING;
         else mediaStatus = MediaStatus.PAUSED;
         NowPlayingController npc = NowPlayingController.getInstance();
         npc.togglePlayPause(mediaStatus);
@@ -656,30 +670,29 @@ public class LibraryController {
         System.out.println("Shuffle Ids to load: " + shuffleIdsToLoad);
 
         Platform.runLater(() -> {
-            if (UserPref.shuffle == 0) {
-                try {
+            try {
+                if (UserPref.shuffle == 0) {
                     countSongs(finalIdsToLoad.size(), playlistId);
                     songListView.getItems().setAll(finalIdsToLoad);
                     playbackService.setPlaylist(finalIdsToLoad, idx, status, ts);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-                playbackService.initialTimePropertyBinding();
-            } else {
-                try {
+                    playbackService.initialTimePropertyBinding();
+                } else {
                     countSongs(idsToLoad.size(), playlistId);
                     songListView.getItems().setAll(idsToLoad);
                     playbackService.setPlaylist(finalShuffleIdsToLoad, idx, status, ts);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
+                    playbackService.initialTimePropertyBinding();
                 }
-                playbackService.initialTimePropertyBinding();
+                npc.setPlaylistNameLabel(playlistsDAO.getPlaylistName(playlistId));
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
 
             //initialize Controller
             npc.setInitialVolumeSliderControllerValue(UserPref.volume);
             npc.updateShuffleButtonStyle();
             npc.updateRepeatButtonStyle();
+            //Notification
+            NotificationUtil.alert("Loaded songs successfully from the directory");
         });
     }
 
@@ -692,6 +705,7 @@ public class LibraryController {
 
         if ((directoryMode == DirectoryMode.DIR_CHANGE || directoryMode == DirectoryMode.REFRESH_MODE) && !miscDAO.isFileModified(dir.lastModified())) {
             System.out.println("File not modified!");
+            NotificationUtil.alert("File not changed. Force reload for any exceptions");
             return;
         }
         miscDAO.upsertFileTimestamp(dir.lastModified());
@@ -701,7 +715,7 @@ public class LibraryController {
         queueService.clearQueue();
         //
         // --- Create playlist ---
-        if(directoryMode == DirectoryMode.DIR_CHANGE) playlistsDAO.clearAllPlaylists();
+        if (directoryMode == DirectoryMode.DIR_CHANGE) playlistsDAO.clearAllPlaylists();
         playlistsDAO.createShuffledPlaylist();
         playlistsDAO.createNormalPlaylist();
         playlistsDAO.createFavPlaylist();
@@ -764,6 +778,7 @@ public class LibraryController {
                 }
                 songListView.getItems().setAll(allIds);
                 NowPlayingController npc = NowPlayingController.getInstance();
+                npc.setPlaylistNameLabel("All Songs");
                 if (npc != null) { //initialize Controller
                     npc.setInitialVolumeSliderControllerValue(UserPref.volume);
                     npc.updateShuffleButtonStyle();
@@ -771,6 +786,7 @@ public class LibraryController {
                 } else {
                     System.out.println("NowPlayingController not initialized yet!");
                 }
+                NotificationUtil.alert("Loaded songs successfully from the directory");
             });
         });
     }
@@ -909,6 +925,7 @@ public class LibraryController {
         songListView.getSelectionModel().clearSelection();
         refreshSongCountLabel();
         System.out.println("Duplicate songs successfully removed from playlist.");
+        NotificationUtil.alert("Duplicate songs successfully removed from playlist");
     }
 
     private void toggleRemoveDuplicatesButton(boolean enable) {
@@ -935,6 +952,7 @@ public class LibraryController {
         npc.showLibraryButton(false);
         npc.hideShuffleButton();
         refreshSongCountLabel();
+        NotificationUtil.alert("Loaded songs by using command line argument successfully");
     }
 
 }

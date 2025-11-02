@@ -301,3 +301,13 @@
     -fx-background-radius: 6;
 }
 
+.playlist-name {
+    -fx-text-fill: linear-gradient(to right, #ff4b2b, #8e2de2);
+    -fx-background-color: linear-gradient(to left, rgba(217, 65, 130, 0.18), rgb(0, 0, 0));
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 15, 0.6, 3, 3);
+}
+
+.notification-label {
+    -fx-background-color: linear-gradient(to left, rgba(241, 22, 115, 0.18), rgba(0, 0, 0, 0.19));
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 15, 0.6, 3, 3);
+}

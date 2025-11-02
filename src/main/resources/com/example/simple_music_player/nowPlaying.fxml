@@ -30,6 +30,11 @@
             <Image url="@../../../Images/ShadedImage_00000.png" />
         </image>
     </ImageView>
+   <Label fx:id="playlistNameLabel" alignment="CENTER_RIGHT" blendMode="SCREEN" disable="true" layoutX="358.0" layoutY="53.0" prefHeight="27.0" prefWidth="90.0" styleClass="playlist-name" stylesheets="@../../../styles/components.css" text="SyncedXSongs" textFill="WHITE">
+      <font>
+         <Font name="Gobold Italic" size="11.0" />
+      </font>
+   </Label>
     <Label fx:id="bitRateLabel" alignment="CENTER" layoutY="250.0" prefHeight="26.0" prefWidth="58.0" styleClass="tag" stylesheets="@../../../styles/components.css" text="BitRate" textFill="WHITE">
       <font>
          <Font name="Times New Roman Italic" size="12.0" />
@@ -60,7 +65,7 @@
       <effect>
          <Glow level="1.0" />
       </effect></Label>
-    <Label fx:id="syncedXLyricsLabel" alignment="CENTER" layoutX="34.0" layoutY="108.0" prefHeight="104.0" prefWidth="383.0" styleClass="title" stylesheets="@../../../styles/components.css" text="SyncedXMode" textAlignment="CENTER" textFill="WHITE" wrapText="true">
+    <Label fx:id="syncedXLyricsLabel" alignment="CENTER" layoutX="34.0" layoutY="108.0" prefHeight="104.0" prefWidth="383.0" styleClass="title" stylesheets="@../../../styles/components.css" textAlignment="CENTER" textFill="WHITE" wrapText="true">
         <font>
             <Font name="Chiffon TRIAL SemiBold" size="17.0" />
         </font>
@@ -189,4 +194,9 @@
       <effect>
          <Glow level="1.0" />
       </effect></CubicCurve>
+   <Label fx:id="notificationLabel" alignment="CENTER" disable="true" layoutX="173.0" layoutY="588.0" prefHeight="27.0" prefWidth="277.0" styleClass="notification-label" stylesheets="@../../../styles/components.css" textFill="#ff0000e5" visible="false">
+      <font>
+         <Font name="Times New Roman Bold Italic" size="12.0" />
+      </font>
+   </Label>
 </AnchorPane>

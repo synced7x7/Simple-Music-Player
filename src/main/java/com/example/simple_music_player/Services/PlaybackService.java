@@ -8,6 +8,7 @@ import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.SimpleMusicPlayer;
+import com.example.simple_music_player.Utility.NotificationUtil;
 import com.example.simple_music_player.db.*;
 import javafx.application.Platform;
 import javafx.beans.property.*;
@@ -138,6 +139,7 @@ public class PlaybackService {
         File audioFile = new File(t.getPath());
         if (!audioFile.exists()) {
             System.out.println("Cannot find the file specified: " + audioFile.getAbsolutePath());
+            NotificationUtil.alert("Song not found: " + audioFile.getAbsolutePath());
             safelyDeleteSong(songId);
             // Move to next track safely
             try {
@@ -159,7 +161,7 @@ public class PlaybackService {
             media = new Media(audioFile.toURI().toString());
         } catch (MediaException me) {
             System.out.println("MediaException, renaming original file: " + audioFile.getName());
-
+            NotificationUtil.alert("MediaException, renaming original file: " + audioFile.getName());
             File finalAudioFile = audioFile;
             CompletableFuture.runAsync(() -> {
                 File safeFile = new File(finalAudioFile.getParentFile(), "ini_syncedX_" + System.currentTimeMillis() + "." + ext);
@@ -178,6 +180,7 @@ public class PlaybackService {
                             mediaPlayer.play();
                         } catch (MediaException e2) {
                             System.err.println("Failed to load renamed file: " + safeFile.getAbsolutePath());
+                            NotificationUtil.alert("Failed to load renamed file: " + safeFile.getAbsolutePath());
                             safelyDeleteSong(songId);
                             Platform.runLater(() -> {
                                 try {
@@ -190,6 +193,7 @@ public class PlaybackService {
                     });
                 } catch (Exception ex) {
                     System.err.println("Could not rename file: " + finalAudioFile.getAbsolutePath());
+                    NotificationUtil.alert("Could not rename file: " + finalAudioFile.getAbsolutePath());
                     safelyDeleteSong(songId);
                     Platform.runLater(() -> {
                         try {
@@ -353,6 +357,7 @@ public class PlaybackService {
         File audioFile = new File(t.getPath());
         if (!audioFile.exists()) {
             System.out.println("Cannot find the file specified: " + audioFile.getAbsolutePath());
+            NotificationUtil.alert("Could not find the file specified: " + audioFile.getAbsolutePath());
 
             // Safely remove it from DB and playlist
             safelyDeleteSong(songId);
@@ -377,6 +382,7 @@ public class PlaybackService {
             media = new Media(audioFile.toURI().toString());
         } catch (MediaException me) {
             System.out.println("MediaException, renaming original file: " + audioFile.getName());
+            NotificationUtil.alert("MediaException, renaming original file: " + audioFile.getName());
 
             File finalAudioFile = audioFile;
             CompletableFuture.runAsync(() -> {
@@ -396,6 +402,7 @@ public class PlaybackService {
                             mediaPlayer.play();
                         } catch (MediaException e2) {
                             System.err.println("Failed to load renamed file: " + safeFile.getAbsolutePath());
+                            NotificationUtil.alert("Failed to load renamed file: " + safeFile.getAbsolutePath());
                             safelyDeleteSong(songId);
                             Platform.runLater(() -> {
                                 try {
@@ -408,6 +415,7 @@ public class PlaybackService {
                     });
                 } catch (Exception ex) {
                     System.err.println("Could not rename file: " + finalAudioFile.getAbsolutePath());
+                    NotificationUtil.alert("Could not rename file: " + finalAudioFile.getAbsolutePath());
                     safelyDeleteSong(songId);
                     Platform.runLater(() -> {
                         try {
@@ -465,8 +473,10 @@ public class PlaybackService {
                     boolean deleted = file.delete();
                     if (!deleted) {
                         System.err.println("Could not delete file: " + path);
+                        NotificationUtil.alert("Could not delete file: " + path);
                     } else {
                         System.out.println("Deleted file: " + path);
+                        NotificationUtil.alert("Deleted file: " + path);
                     }
                 }
             }
@@ -604,11 +614,12 @@ public class PlaybackService {
     public void shufflePlaylist() throws SQLException {
         if (playlist.isEmpty() || currentIndex < 0 || currentIndex >= playlist.size()) {
             System.err.println("Invalid currentIndex or empty playlist");
+            NotificationUtil.alert("Invalid currentIndex or empty playlist");
             return;
         }
         SongLocator.create(libraryController.getSortStatusOfPlaylist(libraryController.getCurrentPlaylistId()), playlistsDAO.getReverse(libraryController.getCurrentPlaylistId()));
         libraryController.toggleSort(true);
-        System.out.println("Playlist before shuffling: " + playlist);
+        //System.out.println("Playlist before shuffling: " + playlist);
         int songId = playlist.get(currentIndex);
         playlist.remove(Integer.valueOf(songId));
         Collections.shuffle(playlist);
@@ -617,7 +628,7 @@ public class PlaybackService {
         playlistsDAO.deleteAllSongsFromPlaylist(1);
         playlistsDAO.insertSongsInPlaylist(1, playlist);
         UserPref.playlistNo = currentIndex;
-        System.out.println("Playlist after shuffling: " + playlist);
+        //System.out.println("Playlist after shuffling: " + playlist);
     }
 
     public void songRelocator() throws SQLException {
@@ -676,11 +687,12 @@ public class PlaybackService {
             encoder = encoder != null ? encoder : new Encoder();
             encoder.encode(new MultimediaObject(flacFile), tempWavFile, attributes);
 
-            System.out.println("Converted FLAC to temporary WAV: " + tempWavFile.getAbsolutePath());
+           // System.out.println("Converted FLAC to temporary WAV: " + tempWavFile.getAbsolutePath());
             return tempWavFile;
 
         } catch (Exception e) {
             System.err.println("Failed to convert FLAC to WAV, returning original file");
+            NotificationUtil.alert("Failed to convert FLAC to WAV, returning original file");
             return flacFile; // Fallback to original (will fail but prevents crash)
         }
     }

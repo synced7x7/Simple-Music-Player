@@ -14,11 +14,11 @@
 
 <AnchorPane fx:id="root" prefHeight="750" prefWidth="450" style="-fx-background-color: black;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.LibraryController">
     <children>
-          <ImageView fx:id="backgroundImage" cache="true" fitHeight="750.0" fitWidth="450.0" />
+        <ImageView fx:id="backgroundImage" cache="true" fitHeight="750.0" fitWidth="450.0" />
         <ImageView fitHeight="750.0" fitWidth="450.0" opacity="0.96" pickOnBounds="true">
-         <image>
-            <Image url="@../../../Images/ShadedImage.jpg" />
-         </image>
+            <image>
+                <Image url="@../../../Images/ShadedImage.jpg" />
+            </image>
         </ImageView>
         <ComboBox fx:id="sortComboBox" layoutX="317.0" layoutY="11.0" prefHeight="10.0" prefWidth="118.0" promptText="Sort">
             <items>
@@ -38,7 +38,7 @@
         <Button fx:id="directoryButton" layoutX="14.0" layoutY="41.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" text="📁" />
         <Label fx:id="songCountLabel" alignment="CENTER" layoutX="198.0" layoutY="67.0" text="521 songs" />
         <Button fx:id="playlistManagerButton" layoutX="55.0" layoutY="41.0" mnemonicParsing="false" onAction="#openPlaylistManager" prefHeight="26.0" prefWidth="34.0" text="🎼" />
-      <ComboBox fx:id="refreshComboBox" layoutX="337.0" layoutY="41.0" prefHeight="26.0" prefWidth="54.0" promptText="🛠">
+        <ComboBox fx:id="refreshComboBox" layoutX="337.0" layoutY="41.0" prefHeight="26.0" prefWidth="54.0" promptText="🛠">
             <items>
                 <FXCollections fx:factory="observableArrayList">
                     <String fx:value="Update Library" />
@@ -46,8 +46,8 @@
                     <String fx:value="Settings" />
                 </FXCollections>
             </items>
-      </ComboBox>
-      <ProgressBar fx:id="loadingProgressBar" disable="true" layoutX="54.0" layoutY="366.0" prefHeight="18.0" prefWidth="348.0" progress="0.0" visible="false" />
-      <Button fx:id="removeDuplicatesButton" layoutX="94.0" layoutY="42.0" mnemonicParsing="false" onAction="#removeDuplicatesFromPlaylists" prefHeight="26.0" prefWidth="34.0" text="⌦" />
+        </ComboBox>
+        <ProgressBar fx:id="loadingProgressBar" disable="true" layoutX="54.0" layoutY="366.0" prefHeight="18.0" prefWidth="348.0" progress="0.0" visible="false" />
+        <Button fx:id="removeDuplicatesButton" layoutX="94.0" layoutY="42.0" mnemonicParsing="false" onAction="#removeDuplicatesFromPlaylists" prefHeight="26.0" prefWidth="34.0" text="⌦" />
     </children>
 </AnchorPane>

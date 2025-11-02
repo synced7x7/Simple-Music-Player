@@ -2,6 +2,7 @@ package com.example.simple_music_player.Services;
 
 import com.example.simple_music_player.Controller.LibraryController;
 import com.example.simple_music_player.Model.Playlist;
+import com.example.simple_music_player.Utility.NotificationUtil;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.PlaylistsDAO;
 import javafx.geometry.Insets;
@@ -131,6 +132,7 @@ public class PlaylistService {
                     try {
                         playlistsDAO.insertSongsInPlaylist(playlist.getId(), songIds);
                         System.out.println("Added song " + songIds + " to playlist: " + playlist.getName());
+                        NotificationUtil.alert("Added song + " + songIds + " to playlist: " + playlist.getName());
                     } catch (SQLException ex) {
                         throw new RuntimeException(ex);
                     }

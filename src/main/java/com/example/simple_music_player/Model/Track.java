@@ -3,6 +3,7 @@ package com.example.simple_music_player.Model;
 import com.example.simple_music_player.Controller.NowPlayingController;
 import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Utility.CompressionUtility;
+import com.example.simple_music_player.Utility.NotificationUtil;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.Mp3File;
 import javafx.scene.image.Image;
@@ -113,6 +114,7 @@ public class Track {
 
         } catch (Exception e) {
             System.out.println("Error reading metadata for: " + filePath);
+            NotificationUtil.alert("Error reading metadata for: " + filePath);
             throw new RuntimeException(e);
         }
 

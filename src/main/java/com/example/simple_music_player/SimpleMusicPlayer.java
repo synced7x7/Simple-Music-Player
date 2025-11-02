@@ -38,7 +38,6 @@ public class SimpleMusicPlayer extends Application {
         stage.setTitle("Simple Music Player");
         stage.setScene(scene);
         stage.show();
-        System.out.println("Stage Width: " + stage.getWidth());
 
         MainController mainController = MainController.getInstance();
         mainController.setStage(stage);
