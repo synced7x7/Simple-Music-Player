@@ -12,6 +12,8 @@ import com.example.simple_music_player.Utility.AnimationUtils;
 import com.example.simple_music_player.Utility.NotificationUtil;
 import com.example.simple_music_player.Utility.SongDetailsUtility;
 import com.example.simple_music_player.Utility.WindowUtils;
+import javafx.animation.FadeTransition;
+import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.css.PseudoClass;
@@ -776,13 +778,13 @@ public class NowPlayingController {
     @FXML
     private void toggleLibraryView() throws SQLException {
         if (mainController != null) {
-            mainController.toggleSidePanels(true);
+            mainController.toggleSidePanels(true,0);
         } else System.out.println("Main Controller is null");
     }
 
     @FXML
     private void toggleAlbumView() throws SQLException {
-        if (mainController != null) mainController.toggleSidePanels(false);
+        if (mainController != null) mainController.toggleSidePanels(false, 0);
         else System.out.println("Main Controller is null");
     }
 
@@ -826,6 +828,24 @@ public class NowPlayingController {
 
     public void setPlaylistNameLabel(String str) {
         playlistNameLabel.setText(str);
+    }
+
+    @FXML
+    private void closeApp() {
+        MainController mainController = MainController.getInstance();
+        Stage stage = mainController.getStage();
+        FadeTransition fade = new FadeTransition(Duration.millis(200), stage.getScene().getRoot());
+        fade.setFromValue(1.0);
+        fade.setToValue(0.0);
+        fade.setOnFinished(e -> Platform.exit());
+        fade.play();
+    }
+
+    @FXML
+    private void minimizeApp() {
+        MainController mainController = MainController.getInstance();
+        Stage stage = mainController.getStage();
+        if(stage != null) stage.setIconified(true);
     }
 
 }

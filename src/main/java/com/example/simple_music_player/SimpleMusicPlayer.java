@@ -39,6 +39,7 @@ public class SimpleMusicPlayer extends Application {
         stage.setScene(scene);
         stage.show();
 
+        //Call any stage using mainController if needed. Don't forger
         MainController mainController = MainController.getInstance();
         mainController.setStage(stage);
     }

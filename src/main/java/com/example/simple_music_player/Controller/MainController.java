@@ -15,6 +15,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.sql.SQLException;
 
 public class MainController {
@@ -23,6 +24,7 @@ public class MainController {
     @FXML
     private AnchorPane libraryPane;
     @Setter
+    @Getter
     Stage stage;
     UserPrefRealtimeDAO userPrefRealtimeDAO = new UserPrefRealtimeDAO(DatabaseManager.getConnection());
     NowPlayingController npc;
@@ -42,7 +44,7 @@ public class MainController {
         npc.setMainController(this);
         Platform.runLater(() -> {
             try {
-                if(SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty()) {
+                if (SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty()) {
                     isHiddenAlbum = !userPrefRealtimeDAO.getIsHiddenAlbum();
                     isHiddenLibrary = !userPrefRealtimeDAO.getIsHiddenLibrary();
                 } else {
@@ -50,8 +52,8 @@ public class MainController {
                     isHiddenLibrary = false;
                 }
 
-                toggleSidePanels(true);
-                toggleSidePanels(false);
+                toggleSidePanels(true, 1);
+                toggleSidePanels(false, 1);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -60,10 +62,10 @@ public class MainController {
     }
 
     // Called by NowPlayingController
-    public void toggleSidePanels(boolean isLibrary) throws SQLException {
+    public void toggleSidePanels(boolean isLibrary, int ini) throws SQLException {
         if (isLibrary) {
             isHiddenLibrary = !isHiddenLibrary;
-            if(SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
+            if (SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
                 userPrefRealtimeDAO.setIsHiddenLibrary(isHiddenLibrary);
             libraryPane.setVisible(!isHiddenLibrary);
             libraryPane.setManaged(!isHiddenLibrary);
@@ -71,7 +73,7 @@ public class MainController {
             System.out.println("LibraryView Pane Toggled");
         } else {
             isHiddenAlbum = !isHiddenAlbum;
-            if(SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
+            if (SimpleMusicPlayer.argument == null || SimpleMusicPlayer.argument.isEmpty())
                 userPrefRealtimeDAO.setIsHiddenAlbum(isHiddenAlbum);
             albumCoverPane.setVisible(!isHiddenAlbum);
             albumCoverPane.setManaged(!isHiddenAlbum);
@@ -88,11 +90,20 @@ public class MainController {
             if (!isHiddenLibrary) newWidth += libraryPane.getWidth();
 
             if (!isLibrary) {
-                double delta = newWidth - oldWidth;
-                stage.setX(stage.getX() - delta);
+                if (ini != 1) {
+                    double delta = newWidth - oldWidth;
+                    stage.setX(stage.getX() - delta);
+                }
             }
             stage.setWidth(newWidth);
+            if (ini == 1) centerStage(stage);
         }
+    }
+
+    private void centerStage(Stage stage) {
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        stage.setX((screenBounds.getWidth() - stage.getWidth()) / 2);
+        stage.setY((screenBounds.getHeight() - stage.getHeight()) / 2);
     }
 
 

@@ -199,4 +199,14 @@
          <Font name="Times New Roman Bold Italic" size="12.0" />
       </font>
    </Label>
+   <Button fx:id="closeButton" blendMode="HARD_LIGHT" layoutX="418.0" layoutY="3.0" mnemonicParsing="false" onAction="#closeApp" prefHeight="32.0" prefWidth="18.0" scaleY="0.7" styleClass="window-close-button" stylesheets="@../../../styles/components.css" text="x" textFill="WHITE">
+      <effect>
+         <Glow level="1.0" />
+      </effect>
+   </Button>
+   <Button fx:id="minButton" layoutX="391.0" layoutY="3.0" mnemonicParsing="false" onAction="#minimizeApp" scaleY="0.7" styleClass="window-button" stylesheets="@../../../styles/components.css" text="-">
+      <effect>
+         <Glow level="1.0" />
+      </effect>
+   </Button>
 </AnchorPane>
