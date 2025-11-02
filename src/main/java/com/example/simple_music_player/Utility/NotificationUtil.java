@@ -24,11 +24,11 @@ public class NotificationUtil {
             AnimationUtils.slideInFromRight(nf, 100f, 0.25f);
             AnimationUtils.whitePulse(nf);
 
-            PauseTransition pause = new PauseTransition(Duration.seconds(1.5));
+            PauseTransition pause = new PauseTransition(Duration.seconds(2));
             pause.setOnFinished(e -> {
                 TranslateTransition slideOut = new TranslateTransition(Duration.seconds(0.25), nf);
                 slideOut.setFromX(0);
-                slideOut.setToX(100);
+                slideOut.setToX(500);
                 slideOut.setInterpolator(Interpolator.EASE_IN);
                 slideOut.setOnFinished(ev -> {
                     nf.setVisible(false);

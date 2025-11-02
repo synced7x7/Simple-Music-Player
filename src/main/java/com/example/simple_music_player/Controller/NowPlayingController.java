@@ -393,33 +393,32 @@ public class NowPlayingController {
         infoStage.setResizable(false);
         infoStage.show();
 
-        // Easter egg: clicking anywhere in the window updates author name
+        // Easter egg
         root.setOnMouseClicked(event -> {
             if (!author.getText().equals("Developed by: Tasnif Emran")) {
                 String[] easterEggs = {
                         "Easter egg unlocked! You’re not supposed to find this",
-                        "Who clicks labels anyway? You’re my kind of user ",
+                        "Who clicks labels anyway? You’re my kind of user",
                         "Developed with care, caffeine, and bugs",
                         "Hey, stay hydrated. Coding’s tough sometimes",
-                        "Hey friend, thanks for using the app ❤",
+                        "Hey friend, thanks for using the app",
                         "I believe in music and you. That’s it",
-                        "Click again, maybe you’ll get another secret… ️",
-                        "Shh… the music knows you’re here.",
-                        "You found me! But I’m shy… don’t tell anyone ",
-                        "Clicking this won’t fix your playlist… or will it?",
-                        "You’re either bored or curious… welcome to the club",
+                        "Click again, maybe you’ll get another secret",
+                        "Shh... the music knows you’re here",
+                        "You found me! But I’m shy... don’t tell anyone",
+                        "Clicking this won’t fix your playlist... or will it",
+                        "You’re either bored or curious... welcome to the club",
                         "Congrats! You just pressed a secret button of destiny",
-                        "Error 404: Developer not found…",
-                        "You weren’t supposed to see this. Or were you? ️",
-                        "Beware… the code is watching.",
-                        "Even small steps lead to great journeys.",
-                        "Life’s melody plays even in silence.",
-                        "I can’t change the past… but I can change my rhythm today.",
-                        "Friendship is the strongest power, don’t forget it.",
-                        "In the shadows, everything reveals itself…",
-                        "The world is bigger than your playlist… or is it?",
-                        "Clicking this awakens secrets best left unknown…️",
-                        "Power comes with a cost… and you just paid attention.",
+                        "Error 404: Developer not found",
+                        "You weren’t supposed to see this. Or were you?️",
+                        "Beware... the code is watching",
+                        "Even small steps lead to great journeys",
+                        "Life’s melody plays even in silence",
+                        "I can’t change the past... but I can change my rhythm today",
+                        "Friendship is the strongest power, don’t forget it",
+                        "In the shadows, everything reveals itself",
+                        "The world is bigger than your playlist or is it",
+                        "Clicking this awakens secrets best left unknown",
                         "NOTHING IS TRUE, EVERYTHING IS PERMITTED."
                 };
 

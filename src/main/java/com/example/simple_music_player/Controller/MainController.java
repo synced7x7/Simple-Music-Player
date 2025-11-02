@@ -80,22 +80,20 @@ public class MainController {
         }
 
         if (stage != null) {
-            double targetWidth = 465; // NowPlaying width
-            if (!isHiddenLibrary || !isHiddenAlbum) {
-                if (!isHiddenAlbum) targetWidth += albumCoverPane.getWidth();
-                if (!isHiddenLibrary) targetWidth += libraryPane.getWidth();
+            double baseWidth = 465;
+            double oldWidth = stage.getWidth();
+
+            double newWidth = baseWidth;
+            if (!isHiddenAlbum) newWidth += albumCoverPane.getWidth();
+            if (!isHiddenLibrary) newWidth += libraryPane.getWidth();
+
+            if (!isLibrary) {
+                double delta = newWidth - oldWidth;
+                stage.setX(stage.getX() - delta);
             }
-            stage.setWidth(targetWidth);
-            //centerStage(stage);
-        } else {
-            System.out.println("Stage is null");
+            stage.setWidth(newWidth);
         }
     }
 
-    private void centerStage(Stage stage) {
-        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-        stage.setX((screenBounds.getWidth() - stage.getWidth()) / 2);
-        stage.setY((screenBounds.getHeight() - stage.getHeight()) / 2);
-    }
 
 }
