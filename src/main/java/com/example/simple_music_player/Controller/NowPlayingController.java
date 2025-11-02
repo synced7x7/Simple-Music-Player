@@ -9,6 +9,7 @@ import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Services.RealtimeVisualizerService;
 import com.example.simple_music_player.Services.VisualizerService;
 import com.example.simple_music_player.Utility.AnimationUtils;
+import com.example.simple_music_player.Utility.SongDetailsUtility;
 import com.example.simple_music_player.Utility.WindowUtils;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -17,7 +18,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -103,6 +103,11 @@ public class NowPlayingController {
     private ImageView playButtonImageView;
     @FXML
     private Button lyricsButton;
+    @Getter
+    @FXML
+    private Label titleMainLabel;
+    @FXML
+    private Label sizeLabel;
 
     private List<LyricLine> syncedLyricLines = new ArrayList<>();
     private int lastSyncedLabelIndex = -1;
@@ -206,6 +211,11 @@ public class NowPlayingController {
             bitRateLabel.setText(newT.getBitrate());
             //Sample Rate
             sampleRateLabel.setText(newT.getSampleRate());
+            //File size
+            File f = new File(newT.getPath());
+            SongDetailsUtility sd = new SongDetailsUtility();
+            sizeLabel.setText(sd.formatFileSize(f.length()));
+            f= null; sd = null;
             //Cover
             double coverAR = newT.getCoverWidth() / newT.getCoverHeight();
             double screenAR = 0.608;

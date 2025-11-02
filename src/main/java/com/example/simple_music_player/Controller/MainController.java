@@ -2,12 +2,14 @@ package com.example.simple_music_player.Controller;
 
 
 import com.example.simple_music_player.SimpleMusicPlayer;
+import com.example.simple_music_player.Utility.WindowUtils;
 import com.example.simple_music_player.db.DatabaseManager;
 import com.example.simple_music_player.db.UserPrefRealtimeDAO;
 import javafx.application.Platform;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -23,7 +25,7 @@ public class MainController {
     @Setter
     Stage stage;
     UserPrefRealtimeDAO userPrefRealtimeDAO = new UserPrefRealtimeDAO(DatabaseManager.getConnection());
-
+    NowPlayingController npc;
     private boolean isHiddenLibrary = false;
     private boolean isHiddenAlbum = false;
 
@@ -36,7 +38,7 @@ public class MainController {
 
     @FXML
     private void initialize() {
-        NowPlayingController npc = NowPlayingController.getInstance();
+        npc = NowPlayingController.getInstance();
         npc.setMainController(this);
         Platform.runLater(() -> {
             try {
@@ -53,6 +55,7 @@ public class MainController {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
+            WindowUtils.makeDraggable(stage, npc.getTitleMainLabel());
         });
     }
 
@@ -64,7 +67,6 @@ public class MainController {
                 userPrefRealtimeDAO.setIsHiddenLibrary(isHiddenLibrary);
             libraryPane.setVisible(!isHiddenLibrary);
             libraryPane.setManaged(!isHiddenLibrary);
-            NowPlayingController npc = NowPlayingController.getInstance();
             npc.toggleLibraryButton(!isHiddenLibrary);
             System.out.println("LibraryView Pane Toggled");
         } else {
@@ -73,7 +75,6 @@ public class MainController {
                 userPrefRealtimeDAO.setIsHiddenAlbum(isHiddenAlbum);
             albumCoverPane.setVisible(!isHiddenAlbum);
             albumCoverPane.setManaged(!isHiddenAlbum);
-            NowPlayingController npc = NowPlayingController.getInstance();
             npc.toggleAlbumWindowButton(!isHiddenAlbum);
             System.out.println("AlbumCoverPane Toggled");
         }

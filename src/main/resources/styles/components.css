@@ -29,6 +29,7 @@
     -fx-background-color: transparent;
     -fx-scale-x: 1;
     -fx-scale-y: 1;
+    -fx-cursor: hand;
 }
 
 .next-previous-button:hover {
@@ -47,6 +48,7 @@
     -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 3, 0.6, 0, 0);
     -fx-font-size: 18px;
     -fx-font-weight: normal;
+    -fx-cursor: hand;
 }
 
 .shuffle-button:hover {
@@ -86,6 +88,7 @@
 }
 
 .lyrics-button {
+    -fx-cursor: hand;
     -fx-background-color: transparent;
 }
 
