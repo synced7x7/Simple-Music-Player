@@ -842,13 +842,11 @@ public class LibraryController {
     // --- Search ---
     private void filterTracks(String query) throws SQLException {
         String sortBy = getSortStatusOfPlaylist(UserPref.playlistId);
-        if (sortBy.equals("Date Added")) sortBy = "date_added";
         boolean rev = getReverseStatusOfPlaylist(UserPref.playlistId);
-        String finalSortBy = sortBy;
         boolean isEmptyQuery = (query == null || query.trim().isEmpty());
-
+        System.out.println("sortByfiltering -> " + sortBy);
         CompletableFuture.runAsync(() -> {
-            List<Integer> filteredIds = trackDAO.searchTrackIds(UserPref.playlistId, query, finalSortBy, rev);
+            List<Integer> filteredIds = trackDAO.searchTrackIds(UserPref.playlistId, query, sortBy, rev);
 
             Platform.runLater(() -> {
                 songListView.getItems().setAll(filteredIds);

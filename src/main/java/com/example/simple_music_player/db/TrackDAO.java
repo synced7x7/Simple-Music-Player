@@ -222,6 +222,11 @@ public class TrackDAO {
             return getAllIdsSorted(playlistId, sortBy, ascending);
         }
 
+        if (sortBy.equals("Date Added")) {
+            ascending = !ascending;
+            sortBy = "date_added";
+        }
+
         String order = ascending ? "ASC" : "DESC";
 
         String sql = """
