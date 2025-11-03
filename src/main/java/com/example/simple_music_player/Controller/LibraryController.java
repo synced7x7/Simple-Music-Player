@@ -82,6 +82,8 @@ public class LibraryController {
     @Setter
     public int currentPlaylistId;
 
+    List<Integer> lazySelection = null;
+
     private boolean isDescendant(Node parent, Node child) {
         while (child != null) {
             if (child == parent) return true;
@@ -437,14 +439,14 @@ public class LibraryController {
 
                     card.setOnMouseClicked(e -> {
                         if (e.getButton() == MouseButton.PRIMARY) {
+                            System.out.println("CurrentID + " + songId);
                             if (e.isControlDown()) {
-                                songListView.getSelectionModel().select(songListView.getItems().indexOf(id));
                                 e.consume();
                                 return;
                             } else if (e.isShiftDown()) {
-                                int last = songListView.getSelectionModel().getSelectedIndex();
+                                /*int last = songListView.getSelectionModel().getSelectedIndex();
                                 int current = songListView.getItems().indexOf(id);
-                                songListView.getSelectionModel().selectRange(Math.min(last, current), Math.max(last, current) + 1);
+                                songListView.getSelectionModel().selectRange(Math.min(last, current), Math.max(last, current) + 1);*/
                                 e.consume();
                                 return;
                             } else {
@@ -517,6 +519,7 @@ public class LibraryController {
                                     }
                                     playlistsDAO.updateSongInPlaylist(3, sId);
                                 }
+                                songListView.getSelectionModel().clearSelection();
                                 songListView.refresh();
                             } else {
                                 favButton.setText("♡");
@@ -524,6 +527,7 @@ public class LibraryController {
                                 List<Integer> songIds = new ArrayList<>(selectionModel.getSelectedItems());
                                 songIds.add(id);
                                 playlistsDAO.deleteSongsFromPlaylist(3, songIds);
+                                songListView.getSelectionModel().clearSelection();
                                 songListView.refresh();
                             }
                         } catch (SQLException ex) {
@@ -534,6 +538,7 @@ public class LibraryController {
                     setGraphic(card);
                 }
             }
+
         });
 
 
