@@ -138,38 +138,38 @@
     -fx-text-fill: linear-gradient(to right, #ff4b2b, #8e2de2);
 }
 
-.scroll-pane {
+.custom-scroll-pane {
     -fx-background-color: transparent;
     -fx-padding: 0;
 }
 
-.scroll-pane .viewport {
+.custom-scroll-pane .viewport {
     -fx-background-color: transparent;
 }
 
-.scroll-pane .scroll-bar:vertical {
+.custom-scroll-pane .scroll-bar:vertical {
     -fx-background-color: transparent;
     -fx-padding: 0;
     -fx-pref-width: 10px;
 }
 
-.scroll-pane .thumb {
+.custom-scroll-pane .thumb {
     -fx-background-color: linear-gradient(to top right, #a674fc, #ff003a);
     -fx-background-insets: 2;
     -fx-background-radius: 8px;
     -fx-effect: dropshadow(gaussian, rgba(255, 65, 108, 0.6), 20, 0.2, 2, 2);
 }
 
-.scroll-pane .thumb:hover {
+.custom-scroll-pane .thumb:hover {
     -fx-background-color: linear-gradient(to bottom right, #ff5f6d, #ffc371);
     -fx-effect: dropshadow(gaussian, rgba(255, 100, 100, 0.8), 25, 0.6, 0, 0);
 }
 
-.scroll-pane .track {
+.custom-scroll-pane .track {
     -fx-background-color: transparent;
 }
 
-.scroll-pane .corner {
+.custom-scroll-pane .corner {
     -fx-background-color: transparent;
 }
 

@@ -216,8 +216,8 @@ public class LibraryController {
                         """);
 
                 // --- Album Cover ---
-                double prefW = CARD_WIDTH *0.9;
-                double prefH = CARD_HEIGHT *0.6;
+                double prefW = CARD_WIDTH * 0.9;
+                double prefH = CARD_HEIGHT * 0.6;
                 cover.setFitWidth(prefW);
                 cover.setFitHeight(prefH); // <— force a fixed height for all covers
                 cover.setPreserveRatio(true);
@@ -231,10 +231,10 @@ public class LibraryController {
                 coverBox.setPrefSize(prefW, prefH);
                 coverBox.setMaxSize(prefW, prefH);
                 coverBox.setStyle("""
-                                  -fx-background-color: rgba(255,255,255,0.03);
-                                  -fx-background-radius: 8;
-                                  -fx-padding: 5 0 0 0;
-                                  """);
+                        -fx-background-color: rgba(255,255,255,0.03);
+                        -fx-background-radius: 8;
+                        -fx-padding: 5 0 0 0;
+                        """);
 
                 // Add depth using DropShadow
                 DropShadow shadow = new DropShadow();
@@ -542,10 +542,11 @@ public class LibraryController {
                             if (contextMenu.isShowing()) {
                                 contextMenu.hide();
                             }
-                            int idx = SongIdAndIndexUtility.getIndexFromSongId(id);
-                            // System.out.println("SongId: " + id + " Index: " + idx);
                             contextMenu.show(card, e.getScreenX(), e.getScreenY());
                             e.consume();
+                        } else if (e.getButton() == MouseButton.SECONDARY) {
+                            java.awt.Toolkit.getDefaultToolkit().beep();
+                            NotificationUtil.alert("Change playlist by playing a song first");
                         } else {
                             songListView.getSelectionModel().clearSelection();
                         }
@@ -566,16 +567,20 @@ public class LibraryController {
                                     }
                                     playlistsDAO.updateSongInPlaylist(3, sId);
                                 }
-                                songListView.getSelectionModel().clearSelection();
-                                songListView.refresh();
+                                Platform.runLater(() -> {
+                                    songListView.getSelectionModel().clearSelection();
+                                    songListView.refresh();
+                                });
                             } else {
                                 favButton.setText("♡");
                                 favButton.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), false);
                                 List<Integer> songIds = new ArrayList<>(selectionModel.getSelectedItems());
                                 songIds.add(id);
                                 playlistsDAO.deleteSongsFromPlaylist(3, songIds);
-                                songListView.getSelectionModel().clearSelection();
-                                songListView.refresh();
+                                Platform.runLater(() -> {
+                                    songListView.getSelectionModel().clearSelection();
+                                    songListView.refresh();
+                                });
                             }
                         } catch (SQLException ex) {
                             throw new RuntimeException(ex);
@@ -929,7 +934,6 @@ public class LibraryController {
                             int indexInList = playlistSongs.indexOf(currentSongId);
 
                             if (indexInList != -1) {
-                                //songListView.getSelectionModel().select(indexInList);
                                 songListView.scrollTo(indexInList);
                                 System.out.println("Focus restored to currently playing song at index: " + indexInList);
                             } else {
