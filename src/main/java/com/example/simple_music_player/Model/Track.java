@@ -4,8 +4,6 @@ import com.example.simple_music_player.Controller.NowPlayingController;
 import com.example.simple_music_player.Services.PlaybackService;
 import com.example.simple_music_player.Utility.CompressionUtility;
 import com.example.simple_music_player.Utility.NotificationUtil;
-import com.mpatric.mp3agic.ID3v2;
-import com.mpatric.mp3agic.Mp3File;
 import javafx.scene.image.Image;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,6 +23,7 @@ import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyUSLT;
 import org.jaudiotagger.tag.images.Artwork;
+
 import java.util.List;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -32,6 +31,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 
 @Getter
@@ -185,22 +185,24 @@ public class Track {
             if (ext.equals("wav")) return lyrics;
             Tag tag = audioFile.getTag();
             if (tag != null) {
-                //Jaudiotagger default lyrics extraction
-                lyrics = tag.getFirst(FieldKey.LYRICS);
-                if (lyrics == null || lyrics.isEmpty()) {
-                    System.out.println("Failed to extract lyrics using default JaudioTagger");
-                } else return lyrics;
+                if (ext.equals("mp3") || ext.equals("m4a")) {
+                    //Jaudiotagger default lyrics extraction
+                    lyrics = tag.getFirst(FieldKey.LYRICS);
+                    if (lyrics == null || lyrics.isEmpty()) {
+                        System.out.println("Failed to extract lyrics using default JaudioTagger");
+                    } else return lyrics;
 
-                // --- USLT (lyrics) extraction for Jaudiotagger 3.0.1 ---
-                if (tag instanceof AbstractID3v2Tag id3Tag) {
-                    List<TagField> usltFields = id3Tag.getFields("USLT");
-                    for (TagField field : usltFields) {
-                        if (field instanceof AbstractID3v2Frame frame &&
-                            frame.getBody() instanceof FrameBodyUSLT usltBody) {
-                            String text = usltBody.getLyric();
-                            if (text != null && !text.isEmpty()) {
-                                lyrics = text;
-                                break;
+                    // --- USLT (lyrics) extraction for Jaudiotagger 3.0.1 ---
+                    if (tag instanceof AbstractID3v2Tag id3Tag) {
+                        List<TagField> usltFields = id3Tag.getFields("USLT");
+                        for (TagField field : usltFields) {
+                            if (field instanceof AbstractID3v2Frame frame &&
+                                frame.getBody() instanceof FrameBodyUSLT usltBody) {
+                                String text = usltBody.getLyric();
+                                if (text != null && !text.isEmpty()) {
+                                    lyrics = text;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -211,44 +213,28 @@ public class Track {
                 } else return lyrics;
 
                 // Method 2: Try Vorbis Comment fields directly
-                if (tag instanceof FlacTag flacTag) {
-                    VorbisCommentTag vorbisTag = flacTag.getVorbisCommentTag();
+                if (ext.equals("flac")) {
+                    if (tag instanceof FlacTag flacTag) {
+                        VorbisCommentTag vorbisTag = flacTag.getVorbisCommentTag();
 
-                    if (vorbisTag != null) {
-                        // Try common lyrics field names in FLAC
-                        String[] lyricFields = {"LYRICS", "UNSYNCEDLYRICS", "UNSYNCED LYRICS", "TEXT"};
+                        if (vorbisTag != null) {
+                            // Try common lyrics field names in FLAC
+                            String[] lyricFields = {"LYRICS", "UNSYNCEDLYRICS", "UNSYNCED LYRICS", "TEXT"};
 
-                        for (String fieldName : lyricFields) {
-                            try {
-                                String extractedLyrics = vorbisTag.getFirst(fieldName);
-                                if (extractedLyrics != null && !extractedLyrics.isEmpty()) {
-                                    System.out.println("Extracted FLAC lyrics from field: " + fieldName);
-                                    return extractedLyrics;
+                            for (String fieldName : lyricFields) {
+                                try {
+                                    String extractedLyrics = vorbisTag.getFirst(fieldName);
+                                    if (extractedLyrics != null && !extractedLyrics.isEmpty()) {
+                                        System.out.println("Extracted FLAC lyrics from field: " + fieldName);
+                                        return extractedLyrics;
+                                    }
+                                } catch (Exception e) {
+                                    System.out.println("Could not extract lyrics using VorbisCommentTag: " + fieldName);
                                 }
-                            } catch (Exception e) {
-                                System.out.println("Could not extract lyrics using VorbisCommentTag: " + fieldName);
                             }
                         }
                     }
                 }
-
-                //External library fallback (mp3agic)
-                if (lyrics == null || lyrics.isEmpty()) {
-                    try {
-                        Mp3File mp3file = new Mp3File(path);
-                        if (mp3file.hasId3v2Tag()) {
-                            ID3v2 id3v2Tag = mp3file.getId3v2Tag();
-                            String lyrics2 = id3v2Tag.getLyrics();
-                            if (lyrics2 != null && !lyrics2.isEmpty()) lyrics = lyrics2;
-                        }
-                    } catch (Exception e) {
-                        System.out.println("mp3agic could not find lyrics");
-                    }
-                }
-
-                if (lyrics == null || lyrics.isEmpty()) {
-                    System.out.println("Failed to extract lyrics using mp3agic extraction");
-                } else return lyrics;
             }
         }
         return lyrics;
