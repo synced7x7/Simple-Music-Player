@@ -221,6 +221,7 @@ public class PlaylistService {
                 try {
                     playlistsDAO.createPlaylist(name);
                     loadPlaylists(playlistContainer, songIds);
+                    NotificationUtil.alert("Created playlist with name: " + name);
                     stage.close();
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);

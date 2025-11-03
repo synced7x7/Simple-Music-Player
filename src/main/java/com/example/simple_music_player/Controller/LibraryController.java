@@ -12,7 +12,10 @@ import com.example.simple_music_player.Utility.SongDetailsUtility;
 import com.example.simple_music_player.Utility.SongIdAndIndexUtility;
 import com.example.simple_music_player.db.*;
 import javafx.application.Platform;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -20,11 +23,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,8 +56,6 @@ public class LibraryController {
     private ComboBox<String> sortComboBox;
     @FXML
     private ComboBox<String> refreshComboBox;
-    @FXML
-    private ImageView backgroundImage;
     @FXML
     private Button reverseButton;
     @FXML
@@ -81,8 +87,6 @@ public class LibraryController {
     @Getter
     @Setter
     public int currentPlaylistId;
-
-    List<Integer> lazySelection = null;
 
     private boolean isDescendant(Node parent, Node child) {
         while (child != null) {
@@ -193,33 +197,74 @@ public class LibraryController {
 
         // ListView Cell Factory (virtualized cards)
         songListView.setCellFactory(list -> new ListCell<>() {
-            private final AnchorPane card = new AnchorPane();
+            private final VBox card = new VBox();
             private final ImageView cover = new ImageView();
             private final Label nameLabel = new Label();
             private final Button favButton = new Button();
             private final Label qLabel = new Label();
 
             {
+                // --- Album Card Container ---
+                card.setAlignment(Pos.TOP_CENTER);
                 card.setPrefSize(CARD_WIDTH, CARD_HEIGHT);
-                cover.setFitWidth(CARD_WIDTH);
-                cover.setFitHeight(CARD_WIDTH);
+                card.setMaxSize(CARD_WIDTH, CARD_HEIGHT);
+                card.setMinSize(CARD_WIDTH, CARD_HEIGHT);
+                card.setSpacing(0);
+                card.setStyle(""" 
+                        -fx-background-color: linear-gradient(to top, rgb(0,0,0), rgb(47,47,47));
+                        -fx-background-radius: 10;
+                        -fx-border-radius: 10;
+                        -fx-effect: dropshadow(gaussian, rgba(7, 7, 7, 0.8), 25, 0.6, 4, 4);
+                        """);
+
+                // --- Album Cover ---
+                double prefW = CARD_WIDTH *0.9;
+                double prefH = CARD_HEIGHT *0.6;
+                cover.setFitWidth(prefW);
+                cover.setFitHeight(prefH); // <— force a fixed height for all covers
                 cover.setPreserveRatio(true);
+                cover.setSmooth(true);
+                cover.setCache(true);
 
-                nameLabel.setPrefWidth(CARD_WIDTH);
-                nameLabel.setLayoutY(CARD_WIDTH + 5);
-                nameLabel.setWrapText(true);
+                // Center the image properly within its box
+                StackPane coverBox = new StackPane(cover);
+                coverBox.setAlignment(Pos.CENTER);
+                coverBox.setMinSize(prefW, prefH);
+                coverBox.setPrefSize(prefW, prefH);
+                coverBox.setMaxSize(prefW, prefH);
+                coverBox.setStyle("""
+                                  -fx-background-color: rgba(255,255,255,0.03);
+                                  -fx-background-radius: 8;
+                                  -fx-padding: 5 0 0 0;
+                                  """);
 
-                qLabel.setLayoutX(CARD_WIDTH - 25);
-                qLabel.setLayoutY(CARD_HEIGHT - 5);
+                // Add depth using DropShadow
+                DropShadow shadow = new DropShadow();
+                shadow.setRadius(20);
+                shadow.setOffsetX(4);
+                shadow.setOffsetY(8);
+                shadow.setColor(Color.rgb(0, 0, 0, 0.6));
+                cover.setEffect(shadow);
+
+                // --- Song Name ---
+                nameLabel.setStyle("""
+                            -fx-text-fill: linear-gradient(to right, #ff4b2b, #8e2de2);
+                            -fx-font-size: 12px;
+                            -fx-font-family: "Chiffon TRIAL Medium";
+                            -fx-alignment: center;
+                            -fx-padding: 10 0 10 0;
+                        """);
+                nameLabel.setMaxWidth(CARD_WIDTH * 0.9);
+                nameLabel.setAlignment(Pos.CENTER);
+
+                // --- Favorite Button ---
+                favButton.getStyleClass().add("fav-button");
 
 
-                // --- Favorite Button Styling ---
-                favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 16px;");
-                favButton.setLayoutX(CARD_WIDTH - 25); // bottom-right corner
-                favButton.setLayoutY(CARD_HEIGHT - 25);
-                favButton.setText("♡");
+                // --- Quality Label ---
+                qLabel.getStyleClass().add("q-button");
 
-                card.getChildren().addAll(cover, nameLabel, qLabel, favButton);
+                card.getChildren().addAll(cover, nameLabel, favButton, qLabel);
             }
 
             @Override
@@ -228,6 +273,19 @@ public class LibraryController {
                 if (empty || id == null) {
                     setGraphic(null);
                 } else {
+                    //Manually set highlights
+                    if (id.equals(SongIdAndIndexUtility.getSongIdFromIndex(playbackService.getCurrentIndex()))) {
+                        setStyle("""
+                                 -fx-background-color: linear-gradient(to bottom left, #652d3c, #000000);
+                                 -fx-font-family: "Georgia";
+                                 -fx-background-radius: 10;
+                                 -fx-border-radius: 10;
+                                 -fx-border-width: 1;
+                                 -fx-effect: dropshadow(gaussian, rgb(0, 0, 0), 5, 0, 4, 4);
+                                """);
+                    } else
+                        setStyle("");
+
                     // --- Handles multiple selection ---
                     ListView<Integer> listView = getListView();
                     MultipleSelectionModel<Integer> selectionModel = listView.getSelectionModel();
@@ -235,7 +293,7 @@ public class LibraryController {
 
                     Track track = trackDAO.getTrackCompressedArtworkAndTitleById(id);
                     if (track == null) {
-                        System.out.println("No track found for id " + id + ". Removing...");
+                        //System.out.println("No track found for id " + id + ". Removing...");
                         NotificationUtil.alert("No track found with id " + id + ". Removing...");
                         try {
                             playlistsDAO.deleteSongsFromPlaylist(UserPref.playlistId, Collections.singletonList(id));
@@ -257,11 +315,11 @@ public class LibraryController {
                     }
 
                     if (isFavorite) {
-                        favButton.setText("♥");
-                        favButton.setStyle("-fx-background-color: transparent; -fx-text-fill: red; -fx-font-size: 16px;");
+                        favButton.setText("❤");
+                        favButton.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), true);
                     } else {
                         favButton.setText("♡");
-                        favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 16px;");
+                        favButton.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), false);
                     }
 
                     boolean isInQ = false;
@@ -272,7 +330,7 @@ public class LibraryController {
                         count = Math.toIntExact(q.stream().filter(item -> Objects.equals(item, id)).count());
                         if (count > 0) {
                             isInQ = true;
-                            System.out.println("ID " + id + " appears " + count + " times in the queue.");
+                            //System.out.println("ID " + id + " appears " + count + " times in the queue.");
                         }
                     }
 
@@ -316,7 +374,6 @@ public class LibraryController {
                         PlaylistService playlistService = new PlaylistService();
                         List<Integer> selectedIds = new ArrayList<>(selectionModel.getSelectedItems());
                         playlistService.openPlaylistSelectionWindow(selectedIds);
-                        NotificationUtil.alert("Added to Playlist");
                     });
 
                     // -- Open File Location --
@@ -439,20 +496,12 @@ public class LibraryController {
 
                     card.setOnMouseClicked(e -> {
                         if (e.getButton() == MouseButton.PRIMARY) {
-                            System.out.println("CurrentID + " + songId);
                             if (e.isControlDown()) {
                                 e.consume();
                                 return;
                             } else if (e.isShiftDown()) {
-                                /*int last = songListView.getSelectionModel().getSelectedIndex();
-                                int current = songListView.getItems().indexOf(id);
-                                songListView.getSelectionModel().selectRange(Math.min(last, current), Math.max(last, current) + 1);*/
                                 e.consume();
                                 return;
-                            } else {
-                                // Single click → clear selection and play
-                                songListView.getSelectionModel().clearSelection();
-                                songListView.getSelectionModel().select(songListView.getItems().indexOf(id));
                             }
 
                             if (isPlaylistChanged) {
@@ -496,7 +545,7 @@ public class LibraryController {
                                 contextMenu.hide();
                             }
                             int idx = SongIdAndIndexUtility.getIndexFromSongId(id);
-                            System.out.println("SongId: " + id + " Index: " + idx);
+                            // System.out.println("SongId: " + id + " Index: " + idx);
                             contextMenu.show(card, e.getScreenX(), e.getScreenY());
                             e.consume();
                         } else {
@@ -507,8 +556,8 @@ public class LibraryController {
                     favButton.setOnAction(e -> {
                         try {
                             if (favButton.getText().equals("♡")) {
-                                favButton.setText("♥");
-                                favButton.setStyle("-fx-background-color: transparent; -fx-text-fill: red; -fx-font-size: 16px;");
+                                favButton.setText("❤");
+                                favButton.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), true);
                                 List<Integer> songIds = new ArrayList<>(selectionModel.getSelectedItems());
                                 songIds.add(id);
                                 System.out.println("songIds: " + songIds);
@@ -523,7 +572,7 @@ public class LibraryController {
                                 songListView.refresh();
                             } else {
                                 favButton.setText("♡");
-                                favButton.setStyle("-fx-background-color: transparent; -fx-font-size: 16px;");
+                                favButton.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), false);
                                 List<Integer> songIds = new ArrayList<>(selectionModel.getSelectedItems());
                                 songIds.add(id);
                                 playlistsDAO.deleteSongsFromPlaylist(3, songIds);
@@ -536,20 +585,10 @@ public class LibraryController {
                     });
 
                     setGraphic(card);
+                    setPrefHeight(CARD_HEIGHT + 30);
                 }
             }
-
         });
-
-
-        playbackService.currentTrackProperty().addListener((obs, oldT, newT) -> {
-            if (newT.getCover() != null) {
-                backgroundImage.setImage(newT.getCover());
-            } else {
-                backgroundImage.setImage(null);
-            }
-        });
-
     }
 
     // --- Sorting ---
@@ -890,7 +929,7 @@ public class LibraryController {
                             int indexInList = playlistSongs.indexOf(currentSongId);
 
                             if (indexInList != -1) {
-                                songListView.getSelectionModel().select(indexInList);
+                                //songListView.getSelectionModel().select(indexInList);
                                 songListView.scrollTo(indexInList);
                                 System.out.println("Focus restored to currently playing song at index: " + indexInList);
                             } else {

@@ -248,8 +248,9 @@ public class PlaybackService {
             Platform.runLater(() -> {
                 if (libraryController.getCurrentPlaylistId() == UserPref.playlistId) {
                     libraryController.getSongListView().getSelectionModel().clearSelection();
-                    libraryController.getSongListView().getSelectionModel().select(idx);
+                    //libraryController.getSongListView().getSelectionModel().select(idx);
                     libraryController.getSongListView().scrollTo(idx);
+                    libraryController.getSongListView().refresh();
                 }
             });
         }

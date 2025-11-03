@@ -14,13 +14,12 @@
 
 <AnchorPane fx:id="root" prefHeight="750" prefWidth="450" style="-fx-background-color: black;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.LibraryController">
     <children>
-        <ImageView fx:id="backgroundImage" cache="true" fitHeight="750.0" fitWidth="450.0" />
-        <ImageView fitHeight="750.0" fitWidth="450.0" opacity="0.96" pickOnBounds="true">
+        <ImageView fitHeight="750.0" fitWidth="450.0" pickOnBounds="true">
             <image>
                 <Image url="@../../../Images/ShadedImage.jpg" />
             </image>
         </ImageView>
-        <ComboBox fx:id="sortComboBox" layoutX="317.0" layoutY="11.0" prefHeight="10.0" prefWidth="118.0" promptText="Sort">
+        <ComboBox fx:id="sortComboBox" layoutX="317.0" layoutY="11.0" prefHeight="10.0" prefWidth="118.0" promptText="Sort" stylesheets="@../../../styles/Library%20Components.css">
             <items>
                 <FXCollections fx:factory="observableArrayList">
                     <String fx:value="Title" />
@@ -32,13 +31,13 @@
             </items>
         </ComboBox>
         <!-- Virtualized list for songs -->
-        <ListView fx:id="songListView" layoutY="92.0" prefHeight="658.0" prefWidth="450.0" style="             -fx-background-color: transparent; -fx-control-inner-background: transparent;  -fx-control-inner-background-alt: transparent; " />
+        <ListView fx:id="songListView" layoutY="92.0" prefHeight="658.0" prefWidth="154.0" style="             -fx-background-color: transparent; -fx-control-inner-background: transparent;  -fx-control-inner-background-alt: transparent; " stylesheets="@../../../styles/Library%20Components.css" />
         <TextField fx:id="searchField" layoutX="14.0" layoutY="11.0" prefHeight="26.0" prefWidth="263.0" />
         <Button fx:id="reverseButton" layoutX="400.0" layoutY="41.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" text="🔄" />
         <Button fx:id="directoryButton" layoutX="14.0" layoutY="41.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" text="📁" />
         <Label fx:id="songCountLabel" alignment="CENTER" layoutX="198.0" layoutY="67.0" text="521 songs" />
         <Button fx:id="playlistManagerButton" layoutX="55.0" layoutY="41.0" mnemonicParsing="false" onAction="#openPlaylistManager" prefHeight="26.0" prefWidth="34.0" text="🎼" />
-        <ComboBox fx:id="refreshComboBox" layoutX="337.0" layoutY="41.0" prefHeight="26.0" prefWidth="54.0" promptText="🛠">
+        <ComboBox fx:id="refreshComboBox" layoutX="337.0" layoutY="41.0" prefHeight="26.0" prefWidth="54.0" promptText="🛠" stylesheets="@../../../styles/Library%20Components.css">
             <items>
                 <FXCollections fx:factory="observableArrayList">
                     <String fx:value="Update Library" />
