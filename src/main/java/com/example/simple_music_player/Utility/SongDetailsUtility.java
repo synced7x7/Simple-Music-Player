@@ -1,5 +1,6 @@
 package com.example.simple_music_player.Utility;
 
+import com.example.simple_music_player.Controller.MainController;
 import com.example.simple_music_player.Controller.NowPlayingController;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Services.PlaybackService;
@@ -9,13 +10,17 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+
 import java.io.File;
+import java.util.Objects;
 
 public class SongDetailsUtility {
     private final TrackDAO trackDAO = new TrackDAO(DatabaseManager.getConnection());
@@ -23,7 +28,7 @@ public class SongDetailsUtility {
     public void openSongDetails(int songId) {
         PlaybackService playbackService = NowPlayingController.getPlaybackService();
         Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initStyle(StageStyle.TRANSPARENT);
         stage.setTitle("🎵 Song Details");
 
         Track t = trackDAO.getTrackById(songId);
@@ -81,24 +86,29 @@ public class SongDetailsUtility {
             }
         });
 
+        Button closeBtn = new Button("Close");
+        closeBtn.getStyleClass().add("song-details-close-button");
+        closeBtn.setOnMouseClicked(e -> stage.close());
         VBox infoBox = new VBox(6, title, artist, album, genre, year, format,
-                bitrate, sampleRate, channels, duration, dateAdded, fileSize, path);
+                bitrate, sampleRate, channels, duration, dateAdded, fileSize, path, closeBtn);
         infoBox.setAlignment(Pos.CENTER_LEFT);
         infoBox.setPadding(new Insets(10, 20, 20, 20));
 
         // --- Combine ---
         VBox root = new VBox(15, imageView, infoBox);
+        WindowUtils.makeDraggable(stage, root);
         root.setPadding(new Insets(20));
         root.setAlignment(Pos.TOP_CENTER);
         root.setStyle("""
-            -fx-background-color: linear-gradient(to bottom right, #1a1a1a, #2e2e2e);
-            -fx-background-radius: 15;
-            -fx-border-radius: 15;
-            -fx-border-color: #444;
-            -fx-border-width: 1;
-        """);
+                    -fx-background-color: linear-gradient(to bottom right, #1a1a1a, #2e2e2e);
+                    -fx-border-radius: 15;
+                     -fx-border-color: #444;
+                     -fx-padding: 5 10 5 10;
+                     -fx-border-width: 1;
+                """);
 
         Scene scene = new Scene(root);
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/PlaylistComp.css")).toExternalForm());
         stage.setScene(scene);
         stage.setResizable(false);
         stage.sizeToScene();
