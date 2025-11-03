@@ -757,7 +757,12 @@ public class LibraryController {
         // --- queue service ---
         QueueService queueService = AppContext.getQueueService();
         queueService.clearQueue();
-        //
+
+        // --- CLEAR LISTVIEW ---
+        songListView.getItems().clear();
+        songListView.getSelectionModel().clearSelection();
+        songListView.refresh();
+
         // --- Create playlist ---
         if (directoryMode == DirectoryMode.DIR_CHANGE) playlistsDAO.clearAllPlaylists();
         playlistsDAO.createShuffledPlaylist();
@@ -815,22 +820,25 @@ public class LibraryController {
 
             Platform.runLater(() -> {
                 try {
+                    songListView.getItems().clear();
+                    songListView.getSelectionModel().clearSelection();
+
                     countSongs(allIds.size(), 2);
                     playbackService.setPlaylist(allIds, 0, "Play", 0);
+
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
                 songListView.getItems().setAll(allIds);
                 NowPlayingController npc = NowPlayingController.getInstance();
                 npc.setPlaylistNameLabel("All Songs");
-                if (npc != null) { //initialize Controller
-                    npc.setInitialVolumeSliderControllerValue(UserPref.volume);
-                    npc.updateShuffleButtonStyle();
-                    npc.updateRepeatButtonStyle();
-                } else {
-                    System.out.println("NowPlayingController not initialized yet!");
-                }
+                //initialize Controller
+                npc.setInitialVolumeSliderControllerValue(UserPref.volume);
+                npc.updateShuffleButtonStyle();
+                npc.updateRepeatButtonStyle();
+                npc.togglePlayPause(MediaStatus.PLAYING); //pass what status you want the music player be
                 NotificationUtil.alert("Loaded songs successfully from the directory");
+                songListView.refresh();
             });
         });
     }
