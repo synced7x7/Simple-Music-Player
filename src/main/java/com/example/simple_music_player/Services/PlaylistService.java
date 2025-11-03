@@ -15,6 +15,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
 import java.sql.SQLException;
 import java.util.List;
 
@@ -89,7 +90,7 @@ public class PlaylistService {
                 editField.setVisible(false);
                 editField.setPrefWidth(200);
 
-                Button  addBtn = new Button("✚");
+                Button addBtn = new Button("✚");
                 addBtn.setMinWidth(35);
                 addBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
                 if (songIds.size() == 1 && songIds.getFirst() == -1) {
@@ -104,7 +105,7 @@ public class PlaylistService {
                 deleteBtn.setMinWidth(35);
                 deleteBtn.setStyle("-fx-background-color: #f44336; -fx-text-fill: white;");
 
-                if(playlist.getId() <4 ) {
+                if (playlist.getId() < 4) {
                     addBtn.setVisible(false);
                     addBtn.setDisable(true);
                     editBtn.setVisible(false);
@@ -132,7 +133,7 @@ public class PlaylistService {
                     try {
                         playlistsDAO.insertSongsInPlaylist(playlist.getId(), songIds);
                         System.out.println("Added song " + songIds + " to playlist: " + playlist.getName());
-                        NotificationUtil.alert("Added song + " + songIds + " to playlist: " + playlist.getName());
+                        NotificationUtil.alert("Added songs to playlist. Duplicated songs will be ignored." );
                     } catch (SQLException ex) {
                         throw new RuntimeException(ex);
                     }

@@ -65,8 +65,6 @@ public class LibraryController {
     @FXML
     private ProgressBar loadingProgressBar;
     @FXML
-    private Button removeDuplicatesButton;
-    @FXML
     public AnchorPane root;
 
     private static final double CARD_WIDTH = 120;
@@ -489,6 +487,7 @@ public class LibraryController {
 
                     // --- Attach to ContextMenu ---
                     ContextMenu contextMenu = new ContextMenu();
+                    contextMenu.getStyleClass().add("custom-context-menu");
                     if (UserPref.playlistId != 3)
                         contextMenu.getItems().addAll(queueMenu, addToPlaylist, openFileLocation, remove, viewDetails);
                     else
@@ -510,7 +509,6 @@ public class LibraryController {
                                     //shifted to new playlist
                                     queueService.clearQueue();
                                     currentPlaylistId = UserPref.playlistId;
-                                    toggleRemoveDuplicatesButton(currentPlaylistId > 3);
                                     int reverse = playlistsDAO.getReverse(currentPlaylistId);
                                     String sort = playlistsDAO.getSortingPref(currentPlaylistId);
                                     boolean ascending = reverse != 1;
@@ -657,8 +655,6 @@ public class LibraryController {
         int playlistId = userPrefDAO.getPlaylistId();
         UserPref.playlistId = playlistId;
         currentPlaylistId = playlistId;
-        toggleRemoveDuplicatesButton(currentPlaylistId > 3);
-
         String sortingPref = playlistsDAO.getSortingPref(playlistId);
         int reverse = playlistsDAO.getReverse(playlistId);
         UserPref.repeat = userPrefDAO.getRepeat();
@@ -810,7 +806,6 @@ public class LibraryController {
             if (UserPref.volume == 0) UserPref.volume = 0.75;
 
             currentPlaylistId = 2;
-            toggleRemoveDuplicatesButton(false);
             UserPref.setUserPref(0, 0, "Play", 0, 0, 1, UserPref.volume, 2);
             try {
                 playlistsDAO.insertSongsInPlaylist(2, allIds);
@@ -926,7 +921,6 @@ public class LibraryController {
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
-                toggleRemoveDuplicatesButton(UserPref.playlistId >= 3 && shouldRestoreFocus);
                 // Restore focus AFTER items are loaded
                 if (shouldRestoreFocus && !PlaybackService.playlist.isEmpty()) {
                     Platform.runLater(() -> {
@@ -961,33 +955,6 @@ public class LibraryController {
 
     private void clearSearchField() {
         searchField.clear();
-    }
-
-    @FXML
-    private void removeDuplicatesFromPlaylists() throws SQLException {
-        List<Integer> uniquePlaylist = new ArrayList<>(new LinkedHashSet<>(PlaybackService.playlist));
-        PlaybackService.playlist.clear();
-        PlaybackService.playlist.addAll(uniquePlaylist);
-
-        playlistsDAO.removeDuplicates(currentPlaylistId);
-
-        songListView.getItems().setAll(uniquePlaylist);
-        songListView.getSelectionModel().clearSelection();
-        refreshSongCountLabel();
-        System.out.println("Duplicate songs successfully removed from playlist.");
-        NotificationUtil.alert("Duplicate songs successfully removed from playlist");
-    }
-
-    private void toggleRemoveDuplicatesButton(boolean enable) {
-        if (enable) {
-            removeDuplicatesButton.setVisible(true);
-            removeDuplicatesButton.setManaged(true);
-            removeDuplicatesButton.setDisable(false);
-        } else {
-            removeDuplicatesButton.setVisible(false);
-            removeDuplicatesButton.setManaged(false);
-            removeDuplicatesButton.setDisable(true);
-        }
     }
 
     private void refreshSongCountLabel() throws SQLException {

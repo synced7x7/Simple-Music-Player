@@ -1,5 +1,5 @@
 .list-view {
-    -fx-selection-bar: #FF6347;
+    -fx-selection-bar: #ff4747;
     -fx-selection-bar-non-focused: #FFA07A;
 }
 
@@ -9,6 +9,18 @@
 
 .list-cell:selected:focused {
     -fx-background-color: #D3D3D3;
+}
+
+.custom-context-menu {
+    -fx-background-color: linear-gradient(to bottom right, #1a1a1a, #2e2e2e);
+}
+
+.menu-item .label {
+    -fx-text-fill: white;
+}
+
+.menu-item:focused .label {
+    -fx-text-fill: #000000;
 }
 
 .scroll-pane {
