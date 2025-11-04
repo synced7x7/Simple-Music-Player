@@ -224,8 +224,6 @@ public class NowPlayingController {
             File f = new File(newT.getPath());
             SongDetailsUtility sd = new SongDetailsUtility();
             sizeLabel.setText(sd.formatFileSize(f.length()));
-            f = null;
-            sd = null;
             //Cover
             double coverAR = newT.getCoverWidth() / newT.getCoverHeight();
             double screenAR = 0.608;
@@ -456,7 +454,7 @@ public class NowPlayingController {
                     System.out.println("Desktop is not supported on this system.");
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         });
 

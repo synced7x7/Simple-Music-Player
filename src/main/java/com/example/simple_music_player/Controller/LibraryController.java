@@ -89,7 +89,7 @@ public class LibraryController {
     @Setter
     public int currentPlaylistId;
 
-    private CustomImageService customImageService = new CustomImageService();
+    private final CustomImageService customImageService = new CustomImageService();
 
     private boolean isDescendant(Node parent, Node child) {
         while (child != null) {
