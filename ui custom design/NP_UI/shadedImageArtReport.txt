@@ -1,0 +1,32 @@
+Report created: 
+	11/5/2025	2:26:42 AM
+
+Project name: shadedImageArt.aep
+
+Source files collected to: 
+	C:\Users\Asus\Documents\JetbrainWorkspace\Simple-Music-Player\ui custom design\NP_UI
+
+Source files collected: All
+
+Collected comps:  
+	ShadedImage
+	
+Number of collected files:  1
+
+Size of collected files:  11 KB
+
+Collected source files: 
+	C:\Users\Asus\Downloads\ShadedImage.jpg
+	
+Rendering plug-ins:
+	Classic 3D
+	
+Effects used:  3
+
+Effect:  Deep Glow
+	
+Effect:  Looks
+	
+Effect:  S_DropShadow
+	
+

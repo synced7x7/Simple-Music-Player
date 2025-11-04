@@ -38,5 +38,30 @@ public class MiscDAO {
         return true;
     }
 
+    public void setCustomImageNo(int no) throws  SQLException {
+        String sql = """
+                    INSERT OR REPLACE INTO custom_image (id, customImageNo)
+                    VALUES (1, ?);
+                """; //Replace prevents duplicates
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, no);
+            ps.executeUpdate();
+        }
+    }
+
+    public int getCustomImageNo() throws SQLException {
+        String sql = "SELECT customImageNo FROM custom_image where id = 1";
+        int num = 2;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                  num = rs.getInt("customImageNo");
+                  return num;
+                }
+            }
+        }
+        return num;
+    }
+
 
 }

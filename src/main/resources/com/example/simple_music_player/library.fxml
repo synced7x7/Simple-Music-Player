@@ -8,16 +8,19 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.effect.Glow?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.paint.Color?>
 <?import javafx.scene.paint.LinearGradient?>
 <?import javafx.scene.paint.Stop?>
+<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="root" onMouseClicked="#loseFocus" prefHeight="750" prefWidth="450" style="-fx-background-color: black;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.LibraryController">
+<AnchorPane fx:id="root" onMouseClicked="#loseFocus" prefHeight="750" prefWidth="450" style="-fx-background-color: black;" stylesheets="@../../../styles/LibraryComponents.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.LibraryController">
     <children>
         <ImageView fitHeight="750.0" fitWidth="450.0" pickOnBounds="true">
             <image>
@@ -36,7 +39,7 @@
             </items>
         </ComboBox>
         <!-- Virtualized list for songs -->
-        <ListView fx:id="songListView" layoutY="104.0" prefHeight="647.0" prefWidth="168.0" style="             -fx-background-color: transparent; -fx-control-inner-background: transparent;  -fx-control-inner-background-alt: transparent; " styleClass="custom-scroll-pane" stylesheets="@../../../styles/Library%20Components.css" />
+        <ListView fx:id="songListView" layoutY="104.0" prefHeight="647.0" prefWidth="168.0" style="             -fx-background-color: transparent; -fx-control-inner-background: transparent;  -fx-control-inner-background-alt: transparent; " styleClass="custom-scroll-pane" stylesheets="@../../../styles/LibraryComponents.css" />
         <TextField fx:id="searchField" layoutX="189.0" layoutY="13.0" prefHeight="27.0" prefWidth="250.0" styleClass="playlist-textfield" stylesheets="@../../../styles/LibraryComponents.css" />
         <Button fx:id="reverseButton" layoutX="62.0" layoutY="56.0" mnemonicParsing="false" prefHeight="18.0" prefWidth="34.0" styleClass="libraryButton" stylesheets="@../../../styles/LibraryComponents.css" text="🔄" />
         <Button fx:id="directoryButton" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" styleClass="libraryButton" stylesheets="@../../../styles/LibraryComponents.css" text="📁" />
@@ -89,5 +92,15 @@
             <Glow level="1.0" />
          </effect>
       </Label>
+      <Rectangle arcHeight="5.0" arcWidth="10.0" fill="#1f75ff00" height="654.0" layoutX="185.0" layoutY="92.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="5.0" width="262.0">
+         <effect>
+            <DropShadow offsetX="-4.0" offsetY="-4.0" spread="0.28" />
+         </effect>
+      </Rectangle>
+      <StackPane layoutX="191.0" layoutY="98.0" prefHeight="635.0" prefWidth="250.0">
+         <children>
+            <ImageView fx:id="customImageView" fitHeight="575.0" fitWidth="241.0" onMouseClicked="#customImageToggler" preserveRatio="true" styleClass="custom-image-view" />
+         </children>
+      </StackPane>
     </children>
 </AnchorPane>

@@ -14,7 +14,6 @@ import com.example.simple_music_player.db.*;
 import javafx.application.Platform;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -32,11 +31,9 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
 import lombok.Getter;
 import lombok.Setter;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.sql.SQLException;
@@ -70,6 +67,8 @@ public class LibraryController {
     private Label loadingLabel;
     @FXML
     public AnchorPane root;
+    @FXML
+    private ImageView customImageView;
 
     private static final double CARD_WIDTH = 120;
     private static final double CARD_HEIGHT = 150;
@@ -89,6 +88,8 @@ public class LibraryController {
     @Getter
     @Setter
     public int currentPlaylistId;
+
+    private CustomImageService customImageService = new CustomImageService();
 
     private boolean isDescendant(Node parent, Node child) {
         while (child != null) {
@@ -737,6 +738,14 @@ public class LibraryController {
                 throw new RuntimeException(e);
             }
 
+            //CustomImage
+            try {
+                int customImageNo = miscDAO.getCustomImageNo();
+                customImageService.setCustomImage(customImageView, customImageNo);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+
             //initialize Controller
             npc.setInitialVolumeSliderControllerValue(UserPref.volume);
             npc.updateShuffleButtonStyle();
@@ -1001,5 +1010,11 @@ public class LibraryController {
     private void loseFocus() {
         songCountLabel.requestFocus();
     }
+
+    @FXML
+    private void customImageToggler() throws SQLException {
+        customImageService.toggleCustomImage(customImageView);
+    }
+
 
 }

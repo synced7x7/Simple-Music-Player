@@ -162,6 +162,21 @@
     -fx-background-color: transparent; /* makes unfilled part transparent */
 }
 
+.custom-image-view {
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(255, 65, 108, 0.6), 20, 0.2, 2, 2);
+}
+
+.custom-image-view:hover {
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.9), 15, 0.3, 0, 0);
+}
+
+.custom-image-view:pressed {
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+
 
 
 

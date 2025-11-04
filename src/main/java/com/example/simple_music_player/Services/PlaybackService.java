@@ -8,13 +8,17 @@ import com.example.simple_music_player.Model.SongLocator;
 import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.SimpleMusicPlayer;
+import com.example.simple_music_player.Utility.AnimationUtils;
 import com.example.simple_music_player.Utility.NotificationUtil;
 import com.example.simple_music_player.Utility.VolumeFadeUtil;
 import com.example.simple_music_player.db.*;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
@@ -247,14 +251,32 @@ public class PlaybackService {
     public void setListViewFocus(int idx) {
         if (libraryController != null) {
             Platform.runLater(() -> {
+                ListView<?> listView = libraryController.getSongListView();
                 if (libraryController.getCurrentPlaylistId() == UserPref.playlistId) {
-                    libraryController.getSongListView().getSelectionModel().clearSelection();
+                    listView.getSelectionModel().clearSelection();
                     //libraryController.getSongListView().getSelectionModel().select(idx);
-                    libraryController.getSongListView().scrollTo(idx);
-                    libraryController.getSongListView().refresh();
+
+                    listView.scrollTo(idx);
+                    listView.refresh();
+
+                    // Now smooth scroll
+                    ScrollBar vScrollBar = findVerticalScrollBar(listView);
+                    if (vScrollBar != null) {
+                        double targetV = (double) idx / Math.max(1, listView.getItems().size() - 1);
+                        AnimationUtils.smoothScrollTo(vScrollBar, targetV, 0.6);
+                    }
                 }
             });
         }
+    }
+
+    private ScrollBar findVerticalScrollBar(ListView<?> listView) {
+        for (Node node : listView.lookupAll(".scroll-bar")) {
+            if (node instanceof ScrollBar sb && sb.getOrientation() == Orientation.VERTICAL) {
+                return sb;
+            }
+        }
+        return null;
     }
 
     public void setupVisualizerListener(MediaPlayer mediaPlayer) {

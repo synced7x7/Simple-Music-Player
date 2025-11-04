@@ -99,6 +99,13 @@ public class DatabaseManager {
                     );
                 """;
 
+        String createCustomImageTable = """
+                    CREATE TABLE IF NOT EXISTS custom_image (
+                        id INTEGER PRIMARY KEY,
+                         customImageNo INTEGER
+                    );
+                """;
+
         String createUserPrefRealtimeTable = """
                     CREATE TABLE IF NOT EXISTS user_pref_realtime (
                     id INTEGER PRIMARY KEY,
@@ -138,6 +145,7 @@ public class DatabaseManager {
             stmt.execute(createMiscTable);
             stmt.execute(createUserPrefRealtimeTable);
             stmt.execute(createTempSongsTable);
+            stmt.execute(createCustomImageTable);
         }
     }
 

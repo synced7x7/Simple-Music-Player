@@ -18,11 +18,7 @@
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="450.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.NowPlayingController">
     <StackPane prefHeight="750.0" prefWidth="456.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <children>
-            <ImageView fx:id="backAlbumCover" fitWidth="456.0" preserveRatio="true" StackPane.alignment="CENTER">
-                <image>
-                    <Image url="@../../../../../../../../../Downloads/Ariana%20Grande%20-%207%20Rings%20(Drill%20Remix)%20What%20If%20Ariana%20Grande%20Made%20Drill%20Music.jpg" />
-                </image>
-            </ImageView>
+            <ImageView fx:id="backAlbumCover" fitWidth="456.0" preserveRatio="true" StackPane.alignment="CENTER" />
         </children>
     </StackPane>
     <ImageView fitHeight="751.0" fitWidth="456.0" opacity="0.93" pickOnBounds="true">
