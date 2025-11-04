@@ -236,10 +236,12 @@ public class NowPlayingController {
                 backAlbumCover.setFitHeight(750);
                 backAlbumCover.setFitWidth(-1);
             }
-            AnimationUtils.fadeIn(albumCover, 1f);
+
+            if(currentLyricsMode == 0) {
+                AnimationUtils.fadeIn(albumCover, 1f);
+            }
             if (newT.getCover() != null) {
                 albumCover.setImage(newT.getCover());
-
                 backAlbumCover.setImage(newT.getCover());
             } else {
                 Random rand = new Random();
@@ -360,8 +362,10 @@ public class NowPlayingController {
         version.getStyleClass().add("info-text");
         author.getStyleClass().add("info-text");
         mail.getStyleClass().add("info-text");
-        Label credits = new Label("Releases");
+        Label credits = new Label("RELEASES");
         credits.getStyleClass().add("info-credits");
+        Label db = new Label("DATABASE");
+        db.getStyleClass().add("info-credits");
 
         // ===== Custom title bar =====
         HBox titleBar = new HBox();
@@ -379,9 +383,12 @@ public class NowPlayingController {
         titleBar.getChildren().addAll(titleLabel, spacer, closeButton);
         WindowUtils.makeDraggable(infoStage, titleBar);
         // === ===
-
+        HBox link = new HBox();
+        link.setAlignment(Pos.CENTER);
+        link.setSpacing(25);
+        link.getChildren().addAll(credits, db);
         // ===== Main content =====
-        VBox content = new VBox(10, appName, version, author, mail, credits);
+        VBox content = new VBox(10, appName, version, author, mail, link);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(15));
         content.getStyleClass().add("info-root");
@@ -432,6 +439,27 @@ public class NowPlayingController {
                 mail.setText("tasnifemran@gmail.com, Instagram: synced_x");
             }
         });
+
+        db.setOnMouseClicked(event -> {
+            try {
+                String userHome = System.getProperty("user.home"); // get the actual user home
+                File appDir = new File(userHome, ".myplayer");
+
+                if (!appDir.exists()) {
+                    System.out.println("Folder doesn't exist: " + appDir.getAbsolutePath());
+                    return;
+                }
+
+                if (java.awt.Desktop.isDesktopSupported()) {
+                    java.awt.Desktop.getDesktop().open(appDir);
+                } else {
+                    System.out.println("Desktop is not supported on this system.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
 
         // Clicking "Updates" → open website
         credits.setOnMouseClicked(event -> {
@@ -496,6 +524,7 @@ public class NowPlayingController {
         repeatButton.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), isActive);
     }
 
+    private int currentLyricsMode = 0;
     @FXML
     private void toggleLyrics() throws CannotReadException, TagException, InvalidAudioFrameException, ReadOnlyFileException, IOException {
         lyricsToggleCount = (lyricsToggleCount + 1) % 3;
@@ -505,6 +534,7 @@ public class NowPlayingController {
         switch (lyricsToggleCount) {
             // === CASE 0: Album cover only ===
             case 0 -> {
+                currentLyricsMode = 0;
                 syncedXLyricsLabel.setVisible(false);
                 syncedXLyricsLabel.setText("");
                 isLyricsActive = false;
@@ -523,6 +553,7 @@ public class NowPlayingController {
 
             // === CASE 1: Full Lyrics View ===
             case 1 -> {
+                currentLyricsMode = 1;
                 isLyricsActive = true;
 
                 albumCover.setVisible(false);
@@ -546,6 +577,7 @@ public class NowPlayingController {
 
             // === CASE 2: SyncedX Mode (Single Line + Visualizer) ===
             case 2 -> {
+                currentLyricsMode = 2;
                 isLyricsActive = false;
                 currentLyricLines.clear();
                 lastHighlightedIndex = -1;

@@ -248,14 +248,15 @@
 
 .info-credits {
     -fx-font-family: "Georgia", "Times New Roman";
-    -fx-text-fill: #00c1ff;
-    -fx-underline: true;
+    -fx-text-fill: lightblue;
+    -fx-underline: false;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
 }
 
 .info-credits:hover {
-    -fx-text-fill: lightblue;
-    -fx-cursor: hand;
-    -fx-underline: false;
+    -fx-text-fill: #00c1ff;
+    -fx-underline: true;
 }
 
 .info-root {
