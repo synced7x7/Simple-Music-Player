@@ -9,6 +9,7 @@ import com.example.simple_music_player.Model.Track;
 import com.example.simple_music_player.Model.UserPref;
 import com.example.simple_music_player.SimpleMusicPlayer;
 import com.example.simple_music_player.Utility.NotificationUtil;
+import com.example.simple_music_player.Utility.VolumeFadeUtil;
 import com.example.simple_music_player.db.*;
 import javafx.application.Platform;
 import javafx.beans.property.*;
@@ -122,7 +123,7 @@ public class PlaybackService {
         else { //for commandline Argument
             t = tempTrackDAO.getTrackById(songId);
             double vol = userPrefDAO.getVolume();
-            setVolume(vol);
+            setVolumeWithFading(vol);
             nowPlayingController.setInitialVolumeSliderControllerValue(vol);
             UserPref.volume = vol;
             nowPlayingController.toggleCountdown();
@@ -437,7 +438,10 @@ public class PlaybackService {
         if(UserPref.status!=null && UserPref.status.equals("Pause"))
             forceTogglePlay();
 
-        setVolume(UserPref.volume);
+        new Thread(() -> {
+
+        });
+        setVolumeWithFading(UserPref.volume);
         setupDurationListener(mediaPlayer);
         restartVisualizer();
 
@@ -500,10 +504,17 @@ public class PlaybackService {
     }
 
 
-    public void setVolume(double volume) {
+    public void setVolumeWithFading(double volume) {
         if (mediaPlayer != null) {
-            mediaPlayer.setVolume(volume);
+            System.out.println("Volume: " + volume);
+            VolumeFadeUtil.fadeIn(mediaPlayer, volume, 1f);
         } else System.out.println("MediaPlayer is null in setVolume function");
+    }
+
+    public void setVolumeWithoutFading(double volume) {
+        if(mediaPlayer != null) {
+            mediaPlayer.setVolume(volume);
+        }
     }
 
 

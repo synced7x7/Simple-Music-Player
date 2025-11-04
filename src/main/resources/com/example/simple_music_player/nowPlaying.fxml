@@ -84,7 +84,7 @@
             </effect>
         </ImageView>
     </StackPane>
-    <ScrollPane fx:id="lyricsScrollPane" hbarPolicy="NEVER" layoutX="46.0" layoutY="93.0" prefHeight="344.0" prefWidth="362.0" stylesheets="@../../../styles/components.css">
+    <ScrollPane fx:id="lyricsScrollPane" hbarPolicy="NEVER" layoutX="46.0" layoutY="93.0" prefHeight="344.0" prefWidth="362.0" styleClass="custom-scroll-pane" stylesheets="@../../../styles/components.css">
         <content>
             <VBox fx:id="lyricsFlow" alignment="CENTER" prefHeight="344.0" prefWidth="363.0" />
         </content>

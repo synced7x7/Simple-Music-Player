@@ -154,7 +154,7 @@ public class NowPlayingController {
 
         // Bind slider to PlaybackService
         volumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
-            playbackService.setVolume(newVal.doubleValue());
+            playbackService.setVolumeWithoutFading(newVal.doubleValue());
             UserPref.volume = newVal.doubleValue();
         });
 
@@ -480,7 +480,7 @@ public class NowPlayingController {
 
     public void setInitialVolumeSliderControllerValue(double value) {
         volumeSlider.setValue(value);
-        playbackService.setVolume(volumeSlider.getValue());
+        playbackService.setVolumeWithoutFading(volumeSlider.getValue());
     }
 
     public void updateShuffleButtonStyle() {

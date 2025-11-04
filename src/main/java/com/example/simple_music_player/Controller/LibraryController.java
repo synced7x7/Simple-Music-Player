@@ -588,6 +588,7 @@ public class LibraryController {
                     });
 
                     setGraphic(card);
+                    setAlignment(Pos.CENTER);
                     setPrefHeight(CARD_HEIGHT + 30);
                 }
             }
