@@ -144,6 +144,25 @@
 }
 
 
+.progress-bar {
+    -fx-background-color: transparent;
+    -fx-background-radius: 5;
+    -fx-border-width: 0px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 15, 0.6, 3, 3);
+}
+
+.progress-bar > .bar {
+    -fx-background-color: linear-gradient(to right, #041c34, #4a1723);
+    -fx-effect: dropshadow(gaussian, rgb(255, 65, 108), 20, 0.2, 2, 2);
+    -fx-background-insets: 1;
+    -fx-background-radius: 4;
+}
+
+.progress-bar > .track {
+    -fx-background-color: transparent; /* makes unfilled part transparent */
+}
+
+
 
 
 

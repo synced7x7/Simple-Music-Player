@@ -51,7 +51,7 @@ public class SimpleMusicPlayer extends Application {
     private void getStyleSheets(Scene scene) {
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/base.css")).toExternalForm());
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/components.css")).toExternalForm());
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/Library Components.css")).toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/styles/LibraryComponents.css")).toExternalForm());
     }
 
     public static void main(String[] args) {

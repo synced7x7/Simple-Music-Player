@@ -65,6 +65,10 @@ public class LibraryController {
     @FXML
     private ProgressBar loadingProgressBar;
     @FXML
+    private Label loadingCountLabel;
+    @FXML
+    private Label loadingLabel;
+    @FXML
     public AnchorPane root;
 
     private static final double CARD_WIDTH = 120;
@@ -779,21 +783,32 @@ public class LibraryController {
             return;
         }
 
+        // === Loading UI ===
         loadingProgressBar.setVisible(true);
         loadingProgressBar.setDisable(false);
         loadingProgressBar.setProgress(0);
+
+        loadingCountLabel.setVisible(true);
+        loadingCountLabel.setDisable(false);
+
+        loadingLabel.setVisible(true);
+        loadingLabel.setDisable(false);
+        // === ===
         songListView.setDisable(true);
         CompletableFuture.runAsync(() -> {
             int total = files.length;
             int count = 0;
-
             for (File f : files) {
                 try {
                     Track t = new Track(f.getAbsolutePath());
                     trackDAO.updateTracks(t);
                     count++;
                     double finalProgress = (double) count / total;
-                    Platform.runLater(() -> loadingProgressBar.setProgress(finalProgress));
+                    int finalCount = count;
+                    Platform.runLater(() -> {
+                        loadingProgressBar.setProgress(finalProgress);
+                        loadingCountLabel.setText(finalCount + "/" + total);
+                    });
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
@@ -804,6 +819,11 @@ public class LibraryController {
                 loadingProgressBar.setProgress(1);
                 loadingProgressBar.setVisible(false);
                 loadingProgressBar.setDisable(true);
+                loadingCountLabel.setVisible(false);
+                loadingCountLabel.setDisable(true);
+
+                loadingLabel.setVisible(false);
+                loadingLabel.setDisable(true);
                 songListView.setDisable(false);
             });
 
