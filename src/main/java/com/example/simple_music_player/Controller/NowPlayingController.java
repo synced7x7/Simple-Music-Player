@@ -236,8 +236,10 @@ public class NowPlayingController {
                 backAlbumCover.setFitHeight(750);
                 backAlbumCover.setFitWidth(-1);
             }
+            AnimationUtils.fadeIn(albumCover, 1f);
             if (newT.getCover() != null) {
                 albumCover.setImage(newT.getCover());
+
                 backAlbumCover.setImage(newT.getCover());
             } else {
                 Random rand = new Random();
@@ -264,6 +266,7 @@ public class NowPlayingController {
                 AlbumCoverController albumCoverController = playbackService.getAlbumCoverController();
                 albumCoverController.setAlbumCover(img);
             }
+
 
             //Lyrics
             if (isLyricsActive) {
