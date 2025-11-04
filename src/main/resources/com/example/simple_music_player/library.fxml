@@ -14,14 +14,14 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="root" prefHeight="750" prefWidth="450" style="-fx-background-color: black;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.LibraryController">
+<AnchorPane fx:id="root" onMouseClicked="#loseFocus" prefHeight="750" prefWidth="450" style="-fx-background-color: black;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.simple_music_player.Controller.LibraryController">
     <children>
         <ImageView fitHeight="750.0" fitWidth="450.0" pickOnBounds="true">
             <image>
                 <Image url="@../../../Images/ShadedImage.jpg" />
             </image>
         </ImageView>
-        <ComboBox fx:id="sortComboBox" layoutX="317.0" layoutY="11.0" prefHeight="10.0" prefWidth="118.0" promptText="Sort" stylesheets="@../../../styles/Library%20Components.css">
+        <ComboBox fx:id="sortComboBox" layoutX="62.0" layoutY="14.0" prefHeight="26.0" prefWidth="105.0" promptText="Sort" stylesheets="@../../../styles/ComboBox.css">
             <items>
                 <FXCollections fx:factory="observableArrayList">
                     <String fx:value="Title" />
@@ -33,19 +33,19 @@
             </items>
         </ComboBox>
         <!-- Virtualized list for songs -->
-        <ListView fx:id="songListView" layoutY="92.0" prefHeight="658.0" prefWidth="154.0" style="             -fx-background-color: transparent; -fx-control-inner-background: transparent;  -fx-control-inner-background-alt: transparent; " stylesheets="@../../../styles/Library%20Components.css" />
-        <TextField fx:id="searchField" layoutX="14.0" layoutY="11.0" prefHeight="26.0" prefWidth="251.0" />
-        <Button fx:id="reverseButton" layoutX="400.0" layoutY="41.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" text="🔄" />
-        <Button fx:id="directoryButton" layoutX="14.0" layoutY="41.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" text="📁" />
-        <Label fx:id="songCountLabel" alignment="CENTER" layoutX="131.0" layoutY="54.0" prefHeight="26.0" prefWidth="187.0" styleClass="title" stylesheets="@../../../styles/components.css" text="521 songs">
+        <ListView fx:id="songListView" layoutY="104.0" prefHeight="647.0" prefWidth="154.0" style="             -fx-background-color: transparent; -fx-control-inner-background: transparent;  -fx-control-inner-background-alt: transparent; " stylesheets="@../../../styles/Library%20Components.css" />
+        <TextField fx:id="searchField" layoutX="189.0" layoutY="13.0" prefHeight="27.0" prefWidth="250.0" styleClass="playlist-textfield" stylesheets="@../../../styles/Library%20Components.css" />
+        <Button fx:id="reverseButton" layoutX="62.0" layoutY="56.0" mnemonicParsing="false" prefHeight="18.0" prefWidth="34.0" styleClass="libraryButton" stylesheets="@../../../styles/Library%20Components.css" text="🔄" />
+        <Button fx:id="directoryButton" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="34.0" styleClass="libraryButton" stylesheets="@../../../styles/Library%20Components.css" text="📁" />
+        <Label fx:id="songCountLabel" alignment="CENTER" layoutX="174.0" layoutY="57.0" prefHeight="26.0" prefWidth="262.0" styleClass="title" stylesheets="@../../../styles/components.css" text="521 songs">
          <font>
             <Font name="Chiffon TRIAL SemiBold" size="16.0" />
          </font>
          <effect>
             <Glow level="1.0" />
          </effect></Label>
-        <Button fx:id="playlistManagerButton" layoutX="55.0" layoutY="41.0" mnemonicParsing="false" onAction="#openPlaylistManager" prefHeight="26.0" prefWidth="34.0" text="🎼" />
-        <ComboBox fx:id="refreshComboBox" layoutX="337.0" layoutY="41.0" prefHeight="26.0" prefWidth="54.0" promptText="🛠" stylesheets="@../../../styles/Library%20Components.css">
+        <Button fx:id="playlistManagerButton" layoutX="14.0" layoutY="56.0" mnemonicParsing="false" onAction="#openPlaylistManager" prefHeight="6.0" prefWidth="34.0" styleClass="libraryButton" stylesheets="@../../../styles/Library%20Components.css" text="🎼" />
+        <ComboBox fx:id="refreshComboBox" layoutX="115.0" layoutY="55.0" prefHeight="26.0" prefWidth="50.0" promptText="🛠" stylesheets="@../../../styles/ComboBox.css">
             <items>
                 <FXCollections fx:factory="observableArrayList">
                     <String fx:value="Update Library" />

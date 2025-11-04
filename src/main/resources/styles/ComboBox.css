@@ -1,0 +1,58 @@
+/* === Modern Gradient ComboBox === */
+.combo-box {
+    -fx-background-color: rgba(70, 70, 70, 0.25);
+    -fx-border-color: transparent;
+    -fx-background-radius: 8px;
+    -fx-font-family: "Garamond";
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 15, 0.6, 2, 2);
+}
+
+/* Prevent white flash when selected/focused */
+.combo-box-base:focused,
+.combo-box:focused,
+.combo-box .list-cell:focused,
+.combo-box .list-cell:selected {
+    -fx-background-color: rgba(70, 70, 70, 0.35);
+    -fx-text-fill: white;
+}
+
+/* Hover */
+.combo-box:hover {
+    -fx-text-fill: linear-gradient(to bottom right, #ff5f6d, #ffc371);
+    -fx-effect: dropshadow(gaussian, rgba(255, 100, 100, 0.8), 25, 0.6, 0, 0);
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+}
+
+/* List Cell (dropdown items) */
+.list-cell {
+    -fx-background-color: linear-gradient(to left, #1a1a1a, #2e2e2e);
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+}
+
+/* Hovered item in dropdown */
+.list-cell:hover {
+    -fx-background-color: linear-gradient(to left, #ffc371, #ff5f6d);
+    -fx-text-fill: #000000;
+}
+
+/* Selected item in dropdown */
+.list-cell:selected {
+    -fx-background-color: rgba(255, 100, 100, 0.3);
+    -fx-text-fill: #ffffff;
+}
+
+/* Remove arrow button completely */
+.combo-box .arrow-button,
+.combo-box .arrow {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-opacity: 0;
+    -fx-shape: null;
+    -fx-max-width: 0;
+    -fx-max-height: 0;
+}

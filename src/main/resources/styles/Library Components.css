@@ -29,6 +29,7 @@
 }
 
 .scroll-bar:vertical {
+    -fx-pref-width: 10;
     -fx-background-color: transparent;
     -fx-padding: 0;
 }
@@ -94,3 +95,55 @@
     -fx-translate-x: -40px;
     -fx-translate-y: -35px;
 }
+
+/*Library Buttons*/
+.libraryButton {
+    -fx-border-width: 12px;
+    -fx-background-color: linear-gradient(to left, #1a1a1a, #2e2e2e);
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 20, 0.2, 2, 2);
+}
+
+.libraryButton:hover {
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-text-fill: linear-gradient(to bottom right, #ff5f6d, #ffc371);
+    -fx-effect: dropshadow(gaussian, rgba(255, 100, 100, 0.8), 25, 0.6, 0, 0);
+}
+
+.libraryButton:pressed {
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+/*playlist */
+.playlist-textfield {
+    -fx-background-color: transparent; /* dark background */
+    -fx-font-family: "Times New Roman";
+    -fx-text-fill: black; /* white text */
+    -fx-background-radius: 8; /* rounded corners */
+    -fx-border-radius: 4; /* rounded border */
+    -fx-border-color: #3c3c3f; /* bluish border */
+    -fx-border-width: 1.5; /* border thickness */
+    -fx-padding: 4 8 4 8; /* padding inside */
+    -fx-font-size: 14px;
+    -fx-prompt-text-fill: rgba(255, 255, 255, 0.5); /* grey placeholder */
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 15, 0.6, 3, 3);
+}
+
+.playlist-textfield:hover {
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.6), 25, 0.2, 3, 3);
+}
+
+.playlist-textfield:focused {
+    -fx-text-fill: white;
+    -fx-background-color: linear-gradient(to right, #041c34, #4a1723);
+    -fx-effect: dropshadow(gaussian, rgba(255, 65, 108, 0.6), 20, 0.2, 2, 2);
+}
+
+
+
+
+

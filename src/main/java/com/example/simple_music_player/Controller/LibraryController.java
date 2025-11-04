@@ -976,4 +976,9 @@ public class LibraryController {
         NotificationUtil.alert("Loaded songs by using command line argument successfully");
     }
 
+    @FXML
+    private void loseFocus() {
+        songCountLabel.requestFocus();
+    }
+
 }
